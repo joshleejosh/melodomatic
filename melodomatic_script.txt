@@ -1,0 +1,94 @@
+# MELODOMATIC is controlled by a script file.
+
+# The script must contain at least one SCALE and one VOICE.
+# When this is not true, the program ends.
+
+# A leading ':' denotes a directive.
+# Lines after a directive are part of that data structure.
+# A '#' denotes a comment.
+# Blank lines are ignored.
+
+
+### SCALES ################################################
+# A scale defines the notes that can be played by a voice.
+# A set of linked scales forms a directed graph of chord changes.
+
+:scale FMaj    # Scale ID is a string
+65             # ROOT note is an integer midi note value (0-129)
+0 2 4 7 9 12   # Scale INTERVALS are relative to the root note. This forms the
+               # pool of notes that a voice picks from to generate its
+               # sequence.
+BbMaj C7       # LINKS are ids of other scales that the player can transition to.
+               # The player switches between scales periodically.
+
+:scale BbMaj
+70
+0 2 4 7 9 12
+FMaj C7
+
+:scale C7
+72
+0 2 4 7 10 12
+FMaj BbMaj
+
+
+
+### VOICES ################################################
+# A voice generates a sequence of notes (using the player's current scale).
+# The player plays all voices simultaneously.
+
+:voice Bass    # Voice ID is a string.
+-36            # OFFSET is added to whatever note we get from the scale.
+               # Usually this will be a multiple of 12 for shifting up/down
+               # octaves.
+2 4 4 8 8 16   # DURATIONS are a pool of values (measured in beats) that are
+               # randomly picked from to determine how long a note will play
+               # for. More entries means the value will be picked more often.
+48 56 64       # VELOCITIES are MIDI values (0-127). The voice will
+               # periodically shift up and down the series of values.
+
+:voice Tenor
+-12
+1 2 2 4 4 8
+	  	 40	56	   	  72		 # whitespace is cleansed, I hope
+
+:voice Alto
+0
+1 1 1 1 2 2 4
+48 64 80 96
+
+:voice Soprano
+12
+.5 .5 1 1 1 1 2
+40 56
+
+
+
+### OTHER DIRECTIVES (all optional) ########################
+
+# Tempo
+:beats_per_minute 108
+
+# Define the smallest fraction of a beat that we can play.
+# This is used to derive the rate of processing, so very large numbers lead to
+# very small time slices, which could lead to performance stuttering.
+# But too few pulses risks dropping/overlapping short notes.
+# So you should probably just not futz with this. (Default is 8)
+:pulses_per_beat 8
+
+# Define how often (in beats) the reader should check for changes in this script file.
+:reload_interval 16
+
+# A list of possible periods between scale changes.
+:scale_change_times 16 32
+
+# Which scale the player should start on when the file is first loaded.
+# By default, the player will start with the first scale in the file.
+# TODO: when the file is hotloaded, does this override the current scale change?
+:scale_first Test
+
+# Whenever a voice plays a note, this is the chance that it will also change velocity.
+# Velocity changes are always one step up or down the voice's velocity list.
+:velocity_change_chance .20
+
+
