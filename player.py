@@ -13,7 +13,7 @@ class Player:
         self.voices = []
         self.change_tempo(consts.DEFAULT_BEATS_PER_MINUTE, consts.DEFAULT_PULSES_PER_BEAT)
         self.velocityChangeChance = consts.DEFAULT_VELOCITY_CHANGE_CHANCE
-        self.states = []
+        self.statuses = []
         self.midi = None
         self.pulse = 0
 
@@ -23,7 +23,14 @@ class Player:
         for vo in self.voices:
             vo.dump()
 
-    def valid_config(self):
+    def validate(self):
+        self.scaler.validate()
+        for v in self.voices:
+            v.validate()
+        # be sure pulseTime got reset
+        self.change_tempo(self.bpm, self.ppb)
+
+    def is_valid(self):
         rv = True
         if not self.voices:
             rv = False
@@ -62,7 +69,7 @@ class Player:
                 # check for a file change
                 if self.reader:
                     self.reader.update(self.pulse)
-                    if not self.valid_config(): # game over
+                    if not self.is_valid(): # game over
                         if consts.VERBOSE:
                             print 'End via empty script'
                         break
@@ -100,23 +107,23 @@ class Player:
         self.midi = None
 
     def update_status(self):
-        newStates = [ self.scaler.state, ]
+        newstats = [ self.scaler.state, ]
         for v in self.voices:
-            newStates.append(v.state)
+            newstats.append(v.state)
 
         doit = False
         s = '%06d'%self.pulse
-        for i in xrange(len(newStates)):
-            if i < len(self.states) and self.states[i] == newStates[i]:
-                if i==0 or not newStates[i]:
+        for i in xrange(len(newstats)):
+            if i < len(self.statuses) and self.statuses[i] == newstats[i]:
+                if i==0 or not newstats[i]:
                     s += str.center('', 12)
                 else:
                     s += str.center('|', 12)
             else:
                 doit = True
-                s += str.center(newStates[i], 12)
+                s += str.center(newstats[i], 12)
 
         if doit or self.pulse%self.shortestDuration==0:
             print s
-        self.states = newStates
+        self.statuses = newstats
 

@@ -5,9 +5,17 @@
 
 # A leading ':' denotes a directive.
 # Lines after a directive are part of that data structure.
+# A '@' denotes a macro string.
+# A '@' in the context of a data structure will be replaced by its macro.
 # A '#' denotes a comment.
 # Blank lines are ignored.
 
+### MACROS ################################################
+# Macros are straight text substitutions.
+
+@major_pentatonic 0 2 4 7 9 12
+@quarter_quarter_half 1    1 	  2 # whitespace will be scrubbed, as will this comment.
+@sixteen 16
 
 ### SCALES ################################################
 # A scale defines the notes that can be played by a voice.
@@ -19,18 +27,19 @@
                # pool of notes that a voice picks from to generate its
                # sequence.
 BbMaj C7       # LINKS are ids of other scales that the player can transition to.
-               # The player switches between scales periodically.
+               # The player switches between scales periodically. If there are
+               # no links, the player will just stay here forever. Invalid
+               # links will be thrown away.
 
 :scale BbMaj
 70
-0 2 4 7 9 12
+@major_pentatonic
 FMaj C7
 
 :scale C7
 72
 0 2 4 7 10 12
 FMaj BbMaj
-
 
 
 ### VOICES ################################################
@@ -50,11 +59,11 @@ FMaj BbMaj
 :voice Tenor
 -12
 1 2 2 4 4 8
-	  	 40	56	   	  72		 # whitespace is cleansed, I hope
+    	   40     56   		   	72	    # whitespace is cleansed, I hope
 
 :voice Alto
 0
-1 1 1 1 2 2 4
+4 @quarter_quarter_half @quarter_quarter_half
 48 64 80 96
 
 :voice Soprano
@@ -71,20 +80,22 @@ FMaj BbMaj
 
 # Define the smallest fraction of a beat that we can play.
 # This is used to derive the rate of processing, so very large numbers lead to
-# very small time slices, which could lead to performance stuttering.
-# But too few pulses risks dropping/overlapping short notes.
-# So you should probably just not futz with this. (Default is 8)
-:pulses_per_beat 8
+# very small time slices, which could lead to choppy performance.
+# On the other hand, too few pulses risks dropping/overlapping short notes.
+# So you should probably just not play with this. (Default is 8)
+:pulses_per_beat 4
 
 # Define how often (in beats) the reader should check for changes in this script file.
-:reload_interval 16
+:reload_interval 4
 
-# A list of possible periods between scale changes.
-:scale_change_times 16 32
+# A list of possible periods (in beats) between scale changes.
+:scale_change_times @sixteen 32
 
 # Which scale the player should start on when the file is first loaded.
 # By default, the player will start with the first scale in the file.
-# TODO: when the file is hotloaded, does this override the current scale change?
+# 
+# TODO: When the file is hotloaded at the same time that a scale change is due,
+# does this override the scale change or does the scale change override this?
 :scale_first Test
 
 # Whenever a voice plays a note, this is the chance that it will also change velocity.

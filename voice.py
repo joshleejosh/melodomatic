@@ -16,10 +16,8 @@ class Voice:
         self.playing = False
         self.state = ''
 
-    def reset(self):
-        self.playing = False
-        self.scale = self.player.scaler.get_scale()
-        self.change_velocity()
+    def validate(self):
+        pass
 
     def dump(self):
         print '%s: %d %s %s'%(self.id, self.offset, self.durations, self.velocities)
