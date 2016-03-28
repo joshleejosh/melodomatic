@@ -28,20 +28,30 @@ class Voice:
             b = self.rnddur()
             self.nextPulse = pulse + b
 
-        didon = False
+        # Collate events for this tick so that we send all note off events
+        # before the note-ons, for the case where we're repeating a held note
+        # (we don't want the release of an old press to cancel out the new one)
+        ons = []
+        offs = []
         for i in range(len(self.queue)-1, -1, -1):
             q = self.queue[i]
             if q['when'] <= pulse:
-                if q['event'] == 'note_on':
-                    self.playing = True
-                    self.state = '%s@%d'%(note_name(q['note']), q['velocity'])
-                    didon = True
-                if q['event'] == 'note_off':
-                    if not didon:
-                        self.state = ''
-                        self.playing = False
-                midi.send(mido.Message(q['event'], note=q['note'], velocity=q['velocity']))
+                if q['velocity'] == 0:
+                    offs.append(q)
+                else:
+                    ons.append(q)
                 del self.queue[i]
+
+        for q in offs:
+            self.state = ''
+            self.playing = False
+            midi.send(mido.Message(q['event'], note=q['note'], velocity=q['velocity']))
+            print q
+        for q in ons:
+            self.playing = True
+            self.state = '%s@%d'%(note_name(q['note']), q['velocity'])
+            midi.send(mido.Message(q['event'], note=q['note'], velocity=q['velocity']))
+            print q
 
     def gen_note(self, at, n=-1, d=-1):
         if not self.scale:
@@ -60,8 +70,9 @@ class Voice:
         if (rnd.random() < self.player.velocityChangeChance):
             self.change_velocity()
 
-        self.queue.append({ 'when':at+dur, 'event':'note_off',  'note':note, 'velocity':self.velocity })
-        self.queue.append({ 'when':at,     'event':'note_on',   'note':note, 'velocity':self.velocity })
+        # send note-off as a note-on with velocity 0.
+        self.queue.append({ 'when':at+dur, 'event':'note_on', 'note':note, 'velocity':0 })
+        self.queue.append({ 'when':at,     'event':'note_on', 'note':note, 'velocity':self.velocity })
 
     def change_velocity(self):
         if len(self.velocities) == 0:
