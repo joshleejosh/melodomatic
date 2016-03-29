@@ -29,6 +29,9 @@ class Scale:
         # strip out invalid links
         self.links = tuple(link for link in self.links if link in scaler.scales)
 
+    def pitch_to_interval(self, p):
+        return self.intervals.index(p - self.root)
+
     def get_pitch(self, i):
         return self.root + self.intervals[i]
 

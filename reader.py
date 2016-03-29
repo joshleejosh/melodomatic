@@ -140,7 +140,15 @@ class Reader:
                     if len(a) < 2:
                         print 'Error: no id for voice'
                     else:
-                        vocbuf = [a[1], ]
+                        vocbuf = ['voice', a[1], ]
+
+                elif line.startswith(':harmony'):
+                    a = line.split()
+                    if len(a) < 2:
+                        print 'Error: no id for harmony'
+                    else:
+                        vocbuf = ['harmony', a[1], ]
+
 
             # add data to blocks.
             else:
@@ -172,26 +180,37 @@ class Reader:
             # we can't verify the validity of the links until after we're
             # finished loading, so just accept them all for now.
             rv.links = scabuf[3].strip().split()
-        if len(scabuf) > 4:
-            if consts.VERBOSE:
-                print 'Warning: scale [%s] has extra junk'%sid
         return rv
 
     def make_voice(self, vocbuf):
-        vid = vocbuf[0].strip()
-        rv = voice.Voice(vid, self.player)
-        if len(vocbuf) > 1:
-            i = vocbuf[1].strip()
-            if is_int(i):
-                rv.offset = int(i)
-        if len(vocbuf) > 2:
-            rv.durations = split_floats(vocbuf[2].strip().split())
-        if len(vocbuf) > 3:
-            rv.velocities = split_ints(vocbuf[3].strip().split())
-        if len(vocbuf) > 4:
-            if consts.VERBOSE:
-                print 'Warning: voice [%s] has extra junk'%vid
-        return rv
+        which = vocbuf[0].strip()
+        vid = vocbuf[1].strip()
+        if which == 'voice':
+            rv = voice.Voice(vid, self.player)
+            if len(vocbuf) > 2:
+                i = vocbuf[2].strip()
+                if is_int(i):
+                    rv.offset = int(i)
+            if len(vocbuf) > 3:
+                rv.durations = split_floats(vocbuf[3].strip().split())
+            if len(vocbuf) > 4:
+                rv.velocities = split_ints(vocbuf[4].strip().split())
+            return rv
+
+        elif which == 'harmony':
+            rv = voice.Harmony(vid, self.player)
+            if len(vocbuf) > 2:
+                rv.voice = vocbuf[2].strip()
+            if len(vocbuf) > 3:
+                i = vocbuf[3].strip()
+                if is_int(i):
+                    rv.pitchOffset = int(i)
+            if len(vocbuf) > 4:
+                i = vocbuf[4].strip()
+                if is_int(i):
+                    rv.velocityOffset = int(i)
+            return rv
+
 
     def update(self, pulse):
         if pulse%self.reloadInterval == 0:

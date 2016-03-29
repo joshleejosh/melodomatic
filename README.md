@@ -41,7 +41,6 @@ optional arguments:
 ### TODO
 
 * Separate note frequency (when notes play) from duration (how long a note is held)
-* Voices in unison?
 * Static sequences/loops
 * Build phrases instead of plucking random notes
   * Connectors between phrases: silence, leading notes, fills, gliss?

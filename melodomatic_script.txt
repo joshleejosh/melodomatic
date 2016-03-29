@@ -47,10 +47,10 @@ FMaj BbMaj
 # The player plays all voices simultaneously.
 
 :voice Bass    # Voice ID is a string.
--36            # OFFSET is added to whatever pitch we get from the scale.
+-24            # OFFSET is added to whatever pitch we get from the scale.
                # Usually this will be a multiple of 12 for shifting up/down
                # octaves.
-2 4 4 8 8 16   # DURATIONS are a pool of values (measured in beats) that are
+4 4 8 8 16     # DURATIONS are a pool of values (measured in beats) that are
                # randomly picked from to determine how long a note will play
                # for. More entries means the value will be picked more often.
 48 56 64       # VELOCITIES are MIDI values (0-127). The voice will
@@ -71,6 +71,12 @@ FMaj BbMaj
 .5 .5 1 1 1 1 2
 40 56
 
+
+# A HARMONY is a voice that plays in unison with another voice.
+:harmony BassH   # ID of the harmony voice.
+Bass             # ID of the root voice this will play along with.
+-12              # Pitch offset from the root voice.
+-8               # Velocity offset from the root voice.
 
 
 ### OTHER DIRECTIVES (all optional) ########################
@@ -96,7 +102,7 @@ FMaj BbMaj
 # 
 # TODO: When the file is hotloaded at the same time that a scale change is due,
 # does this override the scale change or does the scale change override this?
-:scale_first Test
+:scale_first FMaj
 
 # Whenever a voice plays a note, this is the chance that it will also change velocity.
 # Velocity changes are always one step up or down the voice's velocity list.

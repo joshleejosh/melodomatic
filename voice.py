@@ -1,3 +1,4 @@
+import sys
 import consts
 from util import *
 
@@ -13,22 +14,27 @@ class Voice:
         self.velocities = ()
         self.velocity = consts.DEFAULT_VELOCITY
         self.queue = []
-        self.nextPulse = 0
+        self.harmonies = []
+        self.nextNote = 0
         self.scale = None
         self.playing = False
         self.state = ''
 
     def validate(self):
-        pass
+        del self.harmonies[:]
+        for v in self.player.voices:
+            if isinstance(v, Harmony):
+                if v.voice == self.id:
+                    self.harmonies.append(v)
 
     def dump(self):
-        print '%s: %d %s %s'%(self.id, self.offset, self.durations, self.velocities)
+        print '%s: %d %s %s %d'%(self.id, self.offset, self.durations, self.velocities, self.nextNote)
 
     def update(self, pulse):
-        if pulse >= self.nextPulse:
+        if pulse >= self.nextNote:
             self.gen_note(pulse)
             b = self.rnddur()
-            self.nextPulse = pulse + b
+            self.nextNote = pulse + b
 
         # Collate events for this tick so that we send all note off events
         # before the note-ons, for the case where we're repeating a held note
@@ -53,34 +59,33 @@ class Voice:
             self.state = '%s@%d'%(note_name(q['note']), q['velocity'])
             self.player.play(q['note'], q['velocity'])
 
-    def gen_note(self, at, n=-1, d=-1):
+    def gen_note(self, at):
         if not self.scale:
             return
-        note = 0
-        if n >= 0:
-            note = self.offset + self.scale.get_pitch(n)
-        else:
-            note = self.offset + self.scale.next_pitch()
-        dur = 0
-        if d >= 0:
-            dur = d * self.player.ppb
-        else:
-            dur = self.rnddur()
-
+        note = self.offset + self.scale.next_pitch()
+        dur = self.rnddur()
+        vel = self.velocity
         if (rnd.random() < self.player.velocityChangeChance):
-            self.change_velocity()
+            vel = self.change_velocity()
 
+        self.mknote(at, note, vel, dur)
+
+        for h in self.harmonies:
+            h.harmonize(at, note, vel, dur)
+
+    def mknote(self, at, n, v, d):
         # a note-off is just a note-on with velocity 0.
-        self.queue.append({ 'when':at+dur, 'note':note, 'velocity':0 })
-        self.queue.append({ 'when':at,     'note':note, 'velocity':self.velocity })
+        if n >= 0 and n <= 127:
+            self.queue.append({ 'when':at+d, 'note':n, 'velocity':0 })
+            self.queue.append({ 'when':at,   'note':n, 'velocity':v })
 
     def change_velocity(self):
         if len(self.velocities) == 0:
             self.velocity = consts.DEFAULT_VELOCITY
-            return
+            return self.velocity
         if self.velocity not in self.velocities:
             self.velocity = rnd.choice(self.velocities)
-            return
+            return self.velocity
 
         vi = self.velocities.index(self.velocity)
         if len(self.velocities) == 1:
@@ -93,6 +98,7 @@ class Voice:
             ni = vi + coinflip()
         #print '%s v: %d -> %d'%(self.id, self.velocities[vi], self.velocities[ni])
         self.velocity = self.velocities[ni]
+        return self.velocity
 
     def new_scale(self, sc):
         self.scale = sc
@@ -101,4 +107,29 @@ class Voice:
         if not self.durations:
             return self.player.ppb
         return int(rnd.choice(self.durations) * self.player.ppb)
+
+
+class Harmony(Voice):
+    def __init__(self, i, p):
+        Voice.__init__(self, i, p)
+        self.voice = ''
+        self.pitchOffset = 0
+        self.velocityOffset = 0
+
+    def dump(self):
+        print '%s: Harmony of %s, %d %d'%(self.id, self.voice, self.pitchOffset, self.velocityOffset)
+
+    def verify(self):
+        # I should only generate notes when directed to by my parent voice.
+        self.nextNote = sys.maxint
+
+    def harmonize(self, at, n, v, d):
+        self.mknote(at, n + self.pitchOffset, v + self.velocityOffset, d)
+
+    def gen_note(self, at):
+        pass
+
+    def change_velocity(self):
+        pass
+
 

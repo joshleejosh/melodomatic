@@ -16,6 +16,14 @@ def coinflip():
     else:
         return +1
 
+def sign(n):
+    if n < 0:
+        return -1
+    elif n > 0:
+        return +1
+    else:
+        return 0
+
 NOTE_NAMES = ('C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B')
 def note_name(v):
     octave = int(v/12)
