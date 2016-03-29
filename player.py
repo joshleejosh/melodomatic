@@ -4,7 +4,7 @@ import consts
 from util import *
 import voice, scale, reader
 
-# I am the top level controller for the program. 
+# I am the top level controller for the ScaleChanger, all Scales, and all Voices. 
 # I am configured by a Reader.
 class Player:
     def __init__(self):
@@ -48,12 +48,12 @@ class Player:
             # create separate instances of the scale, in case the note sequence involves keeping state.
             v.new_scale(newScale.clone())
 
+    def play(self, n, v):
+        # note-off is sent as a note-on with velocity 0.
+        self.midi.send(mido.Message('note_on', note=n, velocity=v))
+
     def run(self):
         self.midi = mido.open_output()
-        #self.midi.send(mido.Message('note_on', note=60, velocity=96))
-        #time.sleep(1.0)
-        #self.midi.send(mido.Message('note_off', note=60, velocity=96))
-
         queue = []
         lastt = t = time.time()
         self.pulse = -1
@@ -77,9 +77,9 @@ class Player:
                 # check for a scale change
                 self.scaler.update(self.pulse)
 
-                # play some notes
+                # play some notes already
                 for voice in self.voices:
-                    voice.update(self.pulse, self.midi)
+                    voice.update(self.pulse)
 
                 if not consts.QUIET:
                     self.update_status()
@@ -106,6 +106,7 @@ class Player:
             self.midi.close()
         self.midi = None
 
+    # Update the status string and print it out.
     def update_status(self):
         newstats = [ self.scaler.state, ]
         for v in self.voices:
@@ -114,6 +115,7 @@ class Player:
         doit = False
         s = '%06d'%self.pulse
         for i in xrange(len(newstats)):
+            # Try not to repeat status messages.
             if i < len(self.statuses) and self.statuses[i] == newstats[i]:
                 if i==0 or not newstats[i]:
                     s += str.center('', 12)

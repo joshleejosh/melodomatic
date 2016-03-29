@@ -1,7 +1,9 @@
-import mido
 import consts
 from util import *
 
+# I am responsible for taking pitches from a Scale and turning them into
+# playable notes. This mostly involves deciding when and how long to play each
+# note. I also decide how hard to play a note (its velocity).
 class Voice:
     def __init__(self, i, p):
         self.id = i;
@@ -22,7 +24,7 @@ class Voice:
     def dump(self):
         print '%s: %d %s %s'%(self.id, self.offset, self.durations, self.velocities)
 
-    def update(self, pulse, midi):
+    def update(self, pulse):
         if pulse >= self.nextPulse:
             self.gen_note(pulse)
             b = self.rnddur()
@@ -45,22 +47,20 @@ class Voice:
         for q in offs:
             self.state = ''
             self.playing = False
-            midi.send(mido.Message(q['event'], note=q['note'], velocity=q['velocity']))
-            print q
+            self.player.play(q['note'], q['velocity'])
         for q in ons:
             self.playing = True
             self.state = '%s@%d'%(note_name(q['note']), q['velocity'])
-            midi.send(mido.Message(q['event'], note=q['note'], velocity=q['velocity']))
-            print q
+            self.player.play(q['note'], q['velocity'])
 
     def gen_note(self, at, n=-1, d=-1):
         if not self.scale:
             return
         note = 0
         if n >= 0:
-            note = self.offset + self.scale.get_note(n)
+            note = self.offset + self.scale.get_pitch(n)
         else:
-            note = self.offset + self.scale.next_note()
+            note = self.offset + self.scale.next_pitch()
         dur = 0
         if d >= 0:
             dur = d * self.player.ppb
@@ -70,9 +70,9 @@ class Voice:
         if (rnd.random() < self.player.velocityChangeChance):
             self.change_velocity()
 
-        # send note-off as a note-on with velocity 0.
-        self.queue.append({ 'when':at+dur, 'event':'note_on', 'note':note, 'velocity':0 })
-        self.queue.append({ 'when':at,     'event':'note_on', 'note':note, 'velocity':self.velocity })
+        # a note-off is just a note-on with velocity 0.
+        self.queue.append({ 'when':at+dur, 'note':note, 'velocity':0 })
+        self.queue.append({ 'when':at,     'note':note, 'velocity':self.velocity })
 
     def change_velocity(self):
         if len(self.velocities) == 0:

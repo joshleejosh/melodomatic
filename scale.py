@@ -1,44 +1,45 @@
 from consts import *
 from util import *
 
-
+# I represent a set of pitches that can be played together.
+# I produce pitches in some kind of order for a Voice to play as notes.
 class Scale:
     def __init__(self, id):
         self.id = id
         self.root = consts.DEFAULT_SCALE_ROOT
-        self.notes = consts.DEFAULT_SCALE_NOTES
+        self.intervals = consts.DEFAULT_SCALE_INTERVALS
         self.links = ()
         self.cur = 0
 
     def dump(self):
-        print '%s: %d %s %s'%(self.id, self.root, self.notes, self.links)
+        print '%s: %d %s %s'%(self.id, self.root, self.intervals, self.links)
 
     def clone(self):
         rv = Scale(self.id)
         rv.root = self.root
-        rv.notes = tuple(self.notes)
+        rv.intervals = tuple(self.intervals)
         rv.links = tuple(self.links)
         return rv
 
     def validate(self, scaler):
         if self.root < 0 or self.root > 127:
             self.root = DEFAULT_SCALE_ROOT
-        if not self.notes:
-            self.notes = consts.DEFAULT_SCALE_NOTES
+        if not self.intervals:
+            self.intervals = consts.DEFAULT_SCALE_INTERVALS
         # strip out invalid links
         self.links = tuple(link for link in self.links if link in scaler.scales)
 
-    def get_note(self, i):
-        return self.root + self.notes[i]
+    def get_pitch(self, i):
+        return self.root + self.intervals[i]
 
-    def next_note(self):
+    def next_pitch(self):
         # pick a random note
-        return self.root + rnd.choice(self.notes)
+        return self.root + rnd.choice(self.intervals)
         """
         # walk up the scale
-        if self.cur >= len(self.notes):
+        if self.cur >= len(self.intervals):
             self.cur = 0
-        rv = self.root + self.notes[self.cur]
+        rv = self.root + self.intervals[self.cur]
         self.cur += 1
         return rv
         """
@@ -48,6 +49,10 @@ class Scale:
             return self.id
         return rnd.choice(self.links)
 
+
+# I am responsible for knowing about all the available Scales and shifting
+# between them at appropriate times.  When I change Scales, the Player will
+# propogate the change to all the Voices.
 class ScaleChanger:
     def __init__(self, p):
         self.player = p
@@ -88,4 +93,5 @@ class ScaleChanger:
                 self.curScale = nextScale
                 self.player.change_scale(self.scales[self.curScale])
         self.state = self.curScale
+
 

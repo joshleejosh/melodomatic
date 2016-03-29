@@ -26,9 +26,12 @@ def split_floats(a):
 
 RE_MACRO = re.compile('@(\S+)')
 
-# I am responsible for reading a script file and modifying a
-# Player instance based on what I find. I am also responsible for
-# hotloading changes to the file.
+# I am responsible for reading a script file and configuring the
+# Player instance based on what I find. Along the way, I am responsible for
+# creating Scales and Voices.
+#
+# I am also responsible for checking for changes to the file at regular
+# intervals and reconfiguring the Player when that happens.
 class Reader:
     def __init__(self, fn, pl):
         self.filename = fn
@@ -164,7 +167,7 @@ class Reader:
         if len(scabuf) > 1:
             rv.root = int(scabuf[1].strip())
         if len(scabuf) > 2:
-            rv.notes = split_ints(scabuf[2].strip().split())
+            rv.intervals = split_ints(scabuf[2].strip().split())
         if len(scabuf) > 3:
             # we can't verify the validity of the links until after we're
             # finished loading, so just accept them all for now.

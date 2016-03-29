@@ -11,20 +11,20 @@
 # Blank lines are ignored.
 
 ### MACROS ################################################
-# Macros are straight text substitutions.
+# Macros are direct text substitutions.
 
 @major_pentatonic 0 2 4 7 9 12
 @quarter_quarter_half 1    1 	  2 # whitespace will be scrubbed, as will this comment.
 @sixteen 16
 
 ### SCALES ################################################
-# A scale defines the notes that can be played by a voice.
+# A scale defines the pitches that can be played by a voice.
 # A set of linked scales forms a directed graph of chord changes.
 
 :scale FMaj    # Scale ID is a string
-65             # ROOT note is an integer midi note value (0-129)
-0 2 4 7 9 12   # Scale INTERVALS are relative to the root note. This forms the
-               # pool of notes that a voice picks from to generate its
+65             # ROOT pitch is an integer midi note value (0-129)
+0 2 4 7 9 12   # Scale INTERVALS are relative to the root pitch. This forms the
+               # pool of pitches that a voice picks from to generate its
                # sequence.
 BbMaj C7       # LINKS are ids of other scales that the player can transition to.
                # The player switches between scales periodically. If there are
@@ -47,7 +47,7 @@ FMaj BbMaj
 # The player plays all voices simultaneously.
 
 :voice Bass    # Voice ID is a string.
--36            # OFFSET is added to whatever note we get from the scale.
+-36            # OFFSET is added to whatever pitch we get from the scale.
                # Usually this will be a multiple of 12 for shifting up/down
                # octaves.
 2 4 4 8 8 16   # DURATIONS are a pool of values (measured in beats) that are

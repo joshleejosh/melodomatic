@@ -8,11 +8,11 @@ A script-controlled procedural MIDI sequencer.
 * Control multiple voices
 * Change keys/chords as the program progresses
 * Cryptic scripting language to control sequences
-* Hotloading scripts for livecoding fun
+* Hotload scripts for livecoding fun
 
 ### REQUIREMENTS
 
-* A MIDI device
+* A MIDI device to receive data from this program
 * Mido (http://mido.readthedocs.org/)
   * Mido requires PortMIDI (http://portmedia.sourceforge.net/portmidi/)
 
@@ -40,17 +40,14 @@ optional arguments:
 
 ### TODO
 
-* Macros
-* More error handling
 * Separate note frequency (when notes play) from duration (how long a note is held)
-* Option to double up voices
+* Voices in unison?
 * Static sequences/loops
 * Build phrases instead of plucking random notes
-* links between phrases: silence, leading notes, fills, gliss?
-* Repetition?
+  * Connectors between phrases: silence, leading notes, fills, gliss?
+  * Repetition?
 * Better MIDIing
   * Channels
   * Aftertouch, pitchbend, etc.
-
-
+  * When should we use note-off instead of note-on with velocity=0?
 
