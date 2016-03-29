@@ -8,7 +8,7 @@ A script-controlled procedural MIDI sequencer.
 * Control multiple voices
 * Change keys/chords as the program progresses
 * Cryptic scripting language to control sequences
-* Hotload scripts for livecoding fun
+* Hotload scripts for livecoding fun (https://youtu.be/Mvmt8FRrqK8)
 
 ### REQUIREMENTS
 
