@@ -27,8 +27,10 @@ class Player:
         self.scaler.validate()
         for v in self.voices:
             v.validate()
-        # be sure pulseTime got reset
+        # make sure pulseTime got reset
         self.change_tempo(self.bpm, self.ppb)
+        # make sure voices have scales
+        self.change_scale(self.scaler.scales[self.scaler.curScale])
 
     def is_valid(self):
         rv = True

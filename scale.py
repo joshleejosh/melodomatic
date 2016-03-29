@@ -14,13 +14,6 @@ class Scale:
     def dump(self):
         print '%s: %d %s %s'%(self.id, self.root, self.intervals, self.links)
 
-    def clone(self):
-        rv = Scale(self.id)
-        rv.root = self.root
-        rv.intervals = tuple(self.intervals)
-        rv.links = tuple(self.links)
-        return rv
-
     def validate(self, scaler):
         if self.root < 0 or self.root > 127:
             self.root = DEFAULT_SCALE_ROOT
@@ -28,6 +21,13 @@ class Scale:
             self.intervals = consts.DEFAULT_SCALE_INTERVALS
         # strip out invalid links
         self.links = tuple(link for link in self.links if link in scaler.scales)
+
+    def clone(self):
+        rv = Scale(self.id)
+        rv.root = self.root
+        rv.intervals = tuple(self.intervals)
+        rv.links = tuple(self.links)
+        return rv
 
     def pitch_to_interval(self, p):
         return self.intervals.index(p - self.root)
@@ -92,7 +92,7 @@ class ScaleChanger:
             self.nextChange = pulse + int(rnd.choice(self.changeTimes) * self.player.ppb)
             if self.curScale:
                 nextScale = self.scales[self.curScale].nextScale()
-                #print 'Scale Change: %s -> %s; next change at %d'%(self.curScale, nextScale, self.nextChange)
+                print 'Scale Change: %s -> %s; next change at %d'%(self.curScale, nextScale, self.nextChange)
                 self.curScale = nextScale
                 self.player.change_scale(self.scales[self.curScale])
         self.state = self.curScale

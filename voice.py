@@ -20,15 +20,15 @@ class Voice:
         self.playing = False
         self.state = ''
 
+    def dump(self):
+        print '%s: %d %s %s'%(self.id, self.offset, self.durations, self.velocities)
+
     def validate(self):
         del self.harmonies[:]
         for v in self.player.voices:
             if isinstance(v, Harmony):
                 if v.voice == self.id:
                     self.harmonies.append(v)
-
-    def dump(self):
-        print '%s: %d %s %s %d'%(self.id, self.offset, self.durations, self.velocities, self.nextNote)
 
     def update(self, pulse):
         if pulse >= self.nextNote:
