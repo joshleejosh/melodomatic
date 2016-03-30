@@ -79,6 +79,7 @@ class ScaleChanger:
         for sc in self.scales.itervalues():
             sc.validate(self)
         self.validate_cur()
+        self.set_next_change(self.player.pulse)
 
     def validate_cur(self):
         if len(self.scales) == 0:
@@ -92,12 +93,15 @@ class ScaleChanger:
 
     def update(self, pulse):
         if pulse >= self.nextChange:
-            self.nextChange = pulse + int(rnd.choice(self.changeTimes) * self.player.ppb)
+            self.set_next_change(pulse)
             if self.curScale:
                 nextScale = self.scales[self.curScale].nextScale()
                 #print 'Scale Change: %s -> %s; next change at %d'%(self.curScale, nextScale, self.nextChange)
                 self.curScale = nextScale
                 self.player.change_scale(self.scales[self.curScale])
         self.state = self.curScale
+
+    def set_next_change(self, pulse):
+        self.nextChange = pulse + int(rnd.choice(self.changeTimes) * self.player.ppb)
 
 

@@ -110,9 +110,7 @@ Bass             # ID of the root voice this will play along with.
 
 # Which scale the player should start on when the file is first loaded.
 # By default, the player will start with the first scale in the file.
-# 
-# TODO: When the file is hotloaded at the same time that a scale change is due,
-# does this override the scale change or does the scale change override this?
+# When the file is hotloaded, this will override any current scale change.
 :scale_first FMaj
 
 # Whenever a voice plays a note, this is the chance that it will also change velocity.

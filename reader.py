@@ -244,8 +244,6 @@ class Reader:
             return rv
 
 
-
-
     def update(self, pulse):
         if pulse%self.reloadInterval == 0:
             t = os.stat(self.filename).st_mtime
