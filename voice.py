@@ -24,6 +24,9 @@ class Voice:
         print '%s: %d %s %s'%(self.id, self.offset, self.durations, self.velocities)
 
     def validate(self):
+        self.validate_harmonies()
+
+    def validate_harmonies(self):
         del self.harmonies[:]
         for v in self.player.voices:
             if isinstance(v, Harmony):
@@ -36,6 +39,7 @@ class Voice:
             b = self.rnddur()
             self.nextNote = pulse + b
 
+    def play(self, pulse):
         # Collate events for this tick so that we send all note off events
         # before the note-ons, for the case where we're repeating a held note
         # (we don't want the release of an old press to cancel out the new one)
@@ -62,16 +66,16 @@ class Voice:
     def gen_note(self, at):
         if not self.scale:
             return
-        note = self.offset + self.scale.next_pitch()
+        pitch = self.offset + self.scale.next_pitch()
         dur = self.rnddur()
         vel = self.velocity
         if (rnd.random() < self.player.velocityChangeChance):
             vel = self.change_velocity()
 
-        self.mknote(at, note, vel, dur)
+        self.mknote(at, pitch, vel, dur)
 
         for h in self.harmonies:
-            h.harmonize(at, note, vel, dur)
+            h.harmonize(at, pitch, vel, dur)
 
     def mknote(self, at, n, v, d):
         # a note-off is just a note-on with velocity 0.
@@ -120,16 +124,70 @@ class Harmony(Voice):
         print '%s: Harmony of %s, %d %d'%(self.id, self.voice, self.pitchOffset, self.velocityOffset)
 
     def verify(self):
-        # I should only generate notes when directed to by my parent voice.
-        self.nextNote = sys.maxint
+        pass
+
+    def update(self, pulse):
+        # skip note generation
+        pass
 
     def harmonize(self, at, n, v, d):
         self.mknote(at, n + self.pitchOffset, v + self.velocityOffset, d)
 
-    def gen_note(self, at):
-        pass
 
-    def change_velocity(self):
-        pass
+class Step:
+    def __init__(self, p, d, v):
+        self.pitch = p
+        self.duration = d
+        self.velocity = v
+    def dump(self):
+        print '    Step: %s %0.2f %d'%(('.' if self.pitch==sys.maxint else str(self.pitch)), self.duration, self.velocity)
+
+class Loop(Voice):
+    def __init__(self, i, p):
+        Voice.__init__(self, i, p)
+        self.steps = []
+        self.curStep = -1
+
+    # arguments are strings, since some of them might be a dot (representing a
+    # rest or carry) or undefined (representing a carry)
+    def add_step(self, p, d, v):
+        if p == '.':
+            p = sys.maxint
+        if not d or d == '.':
+            d = self.steps[-1].duration
+        if not v or v == '.':
+            v = self.steps[-1].velocity
+        self.steps.append(Step(int(p), float(d), int(v)))
+        self.durations = tuple(s.duration for s in self.steps) # for reporting
+
+    def dump(self):
+        print '%s: Loop: %d steps, %d beats'%(self.id, len(self.steps), sum(self.durations))
+        #for step in self.steps:
+        #    step.dump()
+
+    def validate(self):
+        self.curStep = -1
+        self.validate_harmonies()
+
+    def update(self, pulse):
+        if pulse >= self.nextNote:
+            self.curStep = (self.curStep + 1)%len(self.steps)
+            dur = self.gen_note(pulse)
+            self.nextNote = pulse + dur
+
+    def gen_note(self, at):
+        step = self.steps[self.curStep]
+        d = step.duration * self.player.ppb
+        if step.pitch == sys.maxint:
+            # this is a rest, so don't play a note and just return the time of the next note.
+            return d
+
+        p = self.offset + self.scale.root + step.pitch
+        self.mknote(at, p, step.velocity, d)
+
+        for h in self.harmonies:
+            h.harmonize(at, p, step.velocity, d)
+
+        return d
 
 

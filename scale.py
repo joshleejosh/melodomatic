@@ -92,7 +92,7 @@ class ScaleChanger:
             self.nextChange = pulse + int(rnd.choice(self.changeTimes) * self.player.ppb)
             if self.curScale:
                 nextScale = self.scales[self.curScale].nextScale()
-                print 'Scale Change: %s -> %s; next change at %d'%(self.curScale, nextScale, self.nextChange)
+                #print 'Scale Change: %s -> %s; next change at %d'%(self.curScale, nextScale, self.nextChange)
                 self.curScale = nextScale
                 self.player.change_scale(self.scales[self.curScale])
         self.state = self.curScale

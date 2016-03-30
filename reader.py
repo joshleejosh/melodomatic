@@ -149,6 +149,16 @@ class Reader:
                     else:
                         vocbuf = ['harmony', a[1], ]
 
+                elif line.startswith(':loop'):
+                    a = line.split()
+                    if len(a) < 2:
+                        print 'Error: no id for loop'
+                    else:
+                        vocbuf = ['loop', a[1], ]
+
+                else:
+                    print 'Warning: Ignoring unrecognized directive %s'%line
+
 
             # add data to blocks.
             else:
@@ -210,6 +220,26 @@ class Reader:
                 if is_int(i):
                     rv.velocityOffset = int(i)
             return rv
+
+        elif which == 'loop':
+            rv = voice.Loop(vid, self.player)
+            if len(vocbuf) > 2:
+                i = vocbuf[2].strip()
+                if is_int(i):
+                    rv.offset = int(i)
+            for step in vocbuf[3:]:
+                a = step.split()
+                p = d = v = ''
+                p = a[0]
+                if len(a) > 1:
+                    d = a[1]
+                if len(a) > 2:
+                    v = a[2]
+                rv.add_step(p, d, v)
+
+            return rv
+
+
 
 
     def update(self, pulse):

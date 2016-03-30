@@ -46,20 +46,15 @@ FMaj BbMaj
 # A voice generates a sequence of notes (using the player's current scale).
 # The player plays all voices simultaneously.
 
-:voice Bass    # Voice ID is a string.
--24            # OFFSET is added to whatever pitch we get from the scale.
-               # Usually this will be a multiple of 12 for shifting up/down
-               # octaves.
-4 4 8 8 16     # DURATIONS are a pool of values (measured in beats) that are
-               # randomly picked from to determine how long a note will play
-               # for. More entries means the value will be picked more often.
-48 56 64       # VELOCITIES are MIDI values (0-127). The voice will
-               # periodically shift up and down the series of values.
-
-:voice Tenor
--12
-1 2 2 4 4 8
-    	   40     56   		   	72	    # whitespace is cleansed, I hope
+:voice Tenor  # Voice ID is a string.
+-12           # OFFSET is added to whatever pitch we get from the scale.
+              # Usually this will be a multiple of 12 for shifting up/down
+              # octaves.
+1 2 2 4 4     # DURATIONS are a pool of values (measured in beats) that are
+              # randomly picked from to determine how long a note will play
+              # for. More entries means the value will be picked more often.
+48 64 80      # VELOCITIES are MIDI values (0-127). The voice will
+              # periodically shift up and down the series of values.
 
 :voice Alto
 0
@@ -72,9 +67,22 @@ FMaj BbMaj
 40 56
 
 
-# A HARMONY is a voice that plays in unison with another voice.
+# A LOOP is a voice that plays a specific sequence instead of generating random notes.
+:loop Bass
+-24              # OFFSET is used the same way as in regular voices.
+ 0    4     40   # Each line is a STEP in the sequence, consisting of PITCH, DURATION, and VELOCITY.
+                 # Pitch is relative to the current scale's root.
+		 # Duration is in beats.
+		 # Velocity is a MIDI value.
+ 7               # If duration or velocity are unspecified, they just repeat the previous step's value.
+ 0    4     56
+ .    2          # A '.' for a pitch represents a rest.
+ 7    2          # A '.' for a pitch represents a rest.
+
+# A HARMONY is a voice that plays in unison with another voice, but with its pitch shifted.
 :harmony BassH   # ID of the harmony voice.
 Bass             # ID of the root voice this will play along with.
+                 # This can be a voice or loop, but not another harmony.
 -12              # Pitch offset from the root voice.
 -8               # Velocity offset from the root voice.
 
