@@ -84,6 +84,9 @@ FMaj BbMaj
 Bass             # ID of the root voice this will play along with.
                  # This can be a voice or loop, but not another harmony.
 -12              # Pitch offset from the root voice.
+0                # Step offset from the root voice. This counts up or down the
+		 # scale's interval series. Behavior can get pretty janky
+		 # when it runs off the end and tries to wrap around.
 -8               # Velocity offset from the root voice.
 
 

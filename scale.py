@@ -29,8 +29,12 @@ class Scale:
         rv.links = tuple(self.links)
         return rv
 
+    # for the given pitch, reverse engineer which interval in my set it indexes to.
     def pitch_to_interval(self, p):
-        return self.intervals.index(p - self.root)
+        try:
+            return self.intervals.index(p - self.root)
+        except ValueError:
+            return -1
 
     def get_pitch(self, i):
         return self.root + self.intervals[i]
@@ -40,10 +44,9 @@ class Scale:
         return self.root + rnd.choice(self.intervals)
         """
         # walk up the scale
-        if self.cur >= len(self.intervals):
-            self.cur = 0
+        print self.cur, len(self.intervals)
         rv = self.root + self.intervals[self.cur]
-        self.cur += 1
+        self.cur = (self.cur + 1)%len(self.intervals)
         return rv
         """
 

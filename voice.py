@@ -113,11 +113,14 @@ class Voice:
         return int(rnd.choice(self.durations) * self.player.ppb)
 
 
+# I am a special kind of Voice that plays along with another Voice in unison,
+# but with my pitches and velocities offset by a certain amount.
 class Harmony(Voice):
     def __init__(self, i, p):
         Voice.__init__(self, i, p)
         self.voice = ''
         self.pitchOffset = 0
+        self.stepOffset = 0
         self.velocityOffset = 0
 
     def dump(self):
@@ -131,17 +134,28 @@ class Harmony(Voice):
         pass
 
     def harmonize(self, at, n, v, d):
-        self.mknote(at, n + self.pitchOffset, v + self.velocityOffset, d)
+        # walk up/down the scale's intervals according to stepOffset, wrapping
+        # around and octaving when neccessary.
+        so = 0
+        pii = self.scale.pitch_to_interval(n)
+        if pii >= 0:
+            op = self.scale.intervals[pii]
+            pii += self.stepOffset
+            if self.stepOffset < 0:
+                if pii < 0:
+                    so -= 12
+                so += self.scale.intervals[pii] - op
+            elif self.stepOffset > 0:
+                if pii >= len(self.scale.intervals):
+                    so += 12
+                    pii = pii%len(self.scale.intervals)
+                so += self.scale.intervals[pii] - op
+
+        self.mknote(at, n + self.pitchOffset + so, v + self.velocityOffset, d)
 
 
-class Step:
-    def __init__(self, p, d, v):
-        self.pitch = p
-        self.duration = d
-        self.velocity = v
-    def dump(self):
-        print '    Step: %s %0.2f %d'%(('.' if self.pitch==sys.maxint else str(self.pitch)), self.duration, self.velocity)
-
+# I am a special type of Voice that plays a static sequence of notes in a loop,
+# instead of generating them algorithmically.
 class Loop(Voice):
     def __init__(self, i, p):
         Voice.__init__(self, i, p)
@@ -189,5 +203,15 @@ class Loop(Voice):
             h.harmonize(at, p, step.velocity, d)
 
         return d
+
+
+# I am used by Loop, and represent a step in its sequence.
+class Step:
+    def __init__(self, p, d, v):
+        self.pitch = p
+        self.duration = d
+        self.velocity = v
+    def dump(self):
+        print '    Step: %s %0.2f %d'%(('.' if self.pitch==sys.maxint else str(self.pitch)), self.duration, self.velocity)
 
 

@@ -218,6 +218,10 @@ class Reader:
             if len(vocbuf) > 4:
                 i = vocbuf[4].strip()
                 if is_int(i):
+                    rv.stepOffset = int(i)
+            if len(vocbuf) > 5:
+                i = vocbuf[5].strip()
+                if is_int(i):
                     rv.velocityOffset = int(i)
             return rv
 
