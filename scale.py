@@ -9,7 +9,6 @@ class Scale:
         self.root = consts.DEFAULT_SCALE_ROOT
         self.intervals = consts.DEFAULT_SCALE_INTERVALS
         self.links = ()
-        self.cur = 0
 
     def dump(self):
         print '%s: %d %s %s'%(self.id, self.root, self.intervals, self.links)
@@ -22,13 +21,6 @@ class Scale:
         # strip out invalid links
         self.links = tuple(link for link in self.links if link in scaler.scales)
 
-    def clone(self):
-        rv = Scale(self.id)
-        rv.root = self.root
-        rv.intervals = tuple(self.intervals)
-        rv.links = tuple(self.links)
-        return rv
-
     # for the given pitch, reverse engineer which interval in my set it indexes to.
     def pitch_to_interval(self, p):
         try:
@@ -39,18 +31,10 @@ class Scale:
     def get_pitch(self, i):
         return self.root + self.intervals[i]
 
-    def next_pitch(self):
-        # pick a random note
+    def random_pitch(self):
         return self.root + rnd.choice(self.intervals)
-        """
-        # walk up the scale
-        print self.cur, len(self.intervals)
-        rv = self.root + self.intervals[self.cur]
-        self.cur = (self.cur + 1)%len(self.intervals)
-        return rv
-        """
 
-    def nextScale(self):
+    def next_scale(self):
         if not self.links:
             return self.id
         return rnd.choice(self.links)
@@ -83,25 +67,21 @@ class ScaleChanger:
 
     def validate_cur(self):
         if len(self.scales) == 0:
-            self.curScale = '' # that's okay, the player is going to fail and bail out next tick anyway.
+            self.curScale = '' # that's okay, the program is going to end next tick anyway
         elif self.curScale not in self.scales:
             self.curScale = rnd.choice(self.scales.keys())
-
-    def get_scale(self):
-        self.validate_cur()
-        return self.scales[self.curScale].clone()
 
     def update(self, pulse):
         if pulse >= self.nextChange:
             self.set_next_change(pulse)
             if self.curScale:
-                nextScale = self.scales[self.curScale].nextScale()
-                #print 'Scale Change: %s -> %s; next change at %d'%(self.curScale, nextScale, self.nextChange)
-                self.curScale = nextScale
-                self.player.change_scale(self.scales[self.curScale])
+                next_scale = self.scales[self.curScale].next_scale()
+                #print 'Scale Change: %s -> %s; next change at %d'%(self.curScale, next_scale, self.nextChange)
+                if next_scale != self.curScale:
+                    self.curScale = next_scale
+                    self.player.change_scale(self.scales[self.curScale])
         self.state = self.curScale
 
     def set_next_change(self, pulse):
         self.nextChange = pulse + int(rnd.choice(self.changeTimes) * self.player.ppb)
-
 

@@ -12,19 +12,21 @@ class Voice:
         self.offset = 0
         self.durations = ()
         self.velocities = ()
-        self.velocity = consts.DEFAULT_VELOCITY
         self.queue = []
         self.harmonies = []
+        self.state = ''
+        self.playing = False
+        self.velocity = consts.DEFAULT_VELOCITY
         self.nextNote = 0
         self.scale = None
-        self.playing = False
-        self.state = ''
 
     def dump(self):
         print '%s: %d %s %s'%(self.id, self.offset, self.durations, self.velocities)
 
     def validate(self):
         self.validate_harmonies()
+        self.velocity = -1
+        self.change_velocity()
 
     def validate_harmonies(self):
         del self.harmonies[:]
@@ -35,6 +37,8 @@ class Voice:
 
     def update(self, pulse):
         if pulse >= self.nextNote:
+            if (rnd.random() < self.player.velocityChangeChance):
+                vel = self.change_velocity()
             self.gen_note(pulse)
             b = self.rnddur()
             self.nextNote = pulse + b
@@ -66,23 +70,25 @@ class Voice:
     def gen_note(self, at):
         if not self.scale:
             return
-        pitch = self.offset + self.scale.next_pitch()
-        dur = self.rnddur()
-        vel = self.velocity
-        if (rnd.random() < self.player.velocityChangeChance):
-            vel = self.change_velocity()
-
-        self.mknote(at, pitch, vel, dur)
-
+        p = self.offset + self.make_pitch()
+        d = self.make_duration()
+        self.queue_note(at, p, self.velocity, d)
         for h in self.harmonies:
-            h.harmonize(at, pitch, vel, dur)
+            h.harmonize(at, p, self.velocity, d)
 
-    def mknote(self, at, n, v, d):
+    def make_pitch(self):
+        return self.scale.random_pitch()
+
+    def make_duration(self):
+        return self.rnddur()
+
+    def queue_note(self, at, n, v, d):
         # a note-off is just a note-on with velocity 0.
         if n >= 0 and n <= 127:
             self.queue.append({ 'when':at+d, 'note':n, 'velocity':0 })
             self.queue.append({ 'when':at,   'note':n, 'velocity':v })
 
+    # randomly walk up or down one step in my list of velocities.
     def change_velocity(self):
         if len(self.velocities) == 0:
             self.velocity = consts.DEFAULT_VELOCITY
@@ -97,20 +103,20 @@ class Voice:
         elif vi == 0:
             ni = 1
         elif vi == len(self.velocities) - 1:
-            ni = -2
+            ni = len(self.velocities) - 2
         else:
             ni = vi + coinflip()
         #print '%s v: %d -> %d'%(self.id, self.velocities[vi], self.velocities[ni])
         self.velocity = self.velocities[ni]
         return self.velocity
 
-    def new_scale(self, sc):
-        self.scale = sc
-
     def rnddur(self):
         if not self.durations:
             return self.player.ppb
-        return int(rnd.choice(self.durations) * self.player.ppb)
+        return self.b2d(rnd.choice(self.durations))
+
+    def b2d(self, b):
+        return int(b * self.player.ppb)
 
 
 # I am a special kind of Voice that plays along with another Voice in unison,
@@ -126,7 +132,7 @@ class Harmony(Voice):
     def dump(self):
         print '%s: Harmony of %s, %d %d'%(self.id, self.voice, self.pitchOffset, self.velocityOffset)
 
-    def verify(self):
+    def validate(self):
         pass
 
     def update(self, pulse):
@@ -151,7 +157,7 @@ class Harmony(Voice):
                     pii = pii%len(self.scale.intervals)
                 so += self.scale.intervals[pii] - op
 
-        self.mknote(at, n + self.pitchOffset + so, v + self.velocityOffset, d)
+        self.queue_note(at, n + self.pitchOffset + so, v + self.velocityOffset, d)
 
 
 # I am a special type of Voice that plays a static sequence of notes in a loop,
@@ -197,7 +203,7 @@ class Loop(Voice):
             return d
 
         p = self.offset + self.scale.root + step.pitch
-        self.mknote(at, p, step.velocity, d)
+        self.queue_note(at, p, step.velocity, d)
 
         for h in self.harmonies:
             h.harmonize(at, p, step.velocity, d)

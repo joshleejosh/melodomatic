@@ -1,8 +1,7 @@
 import time
-import mido
 import consts
 from util import *
-import voice, scale, reader
+import voice, scale, reader, midi
 
 # I am the top level controller for the ScaleChanger, all Scales, and all Voices. 
 # I am configured by a Reader.
@@ -14,8 +13,8 @@ class Player:
         self.change_tempo(consts.DEFAULT_BEATS_PER_MINUTE, consts.DEFAULT_PULSES_PER_BEAT)
         self.velocityChangeChance = consts.DEFAULT_VELOCITY_CHANGE_CHANCE
         self.statuses = []
-        self.midi = None
         self.pulse = 0
+        self.midi = midi.MelodomaticMidi()
 
     def dump(self):
         print 'Tempo: %d bpm, %d ppb, %f pulse time'%(self.bpm, self.ppb, self.pulseTime)
@@ -30,7 +29,8 @@ class Player:
         # make sure pulseTime got reset
         self.change_tempo(self.bpm, self.ppb)
         # make sure voices have scales
-        self.change_scale(self.scaler.scales[self.scaler.curScale])
+        if len(self.scaler.scales) > 0:
+            self.change_scale(self.scaler.scales[self.scaler.curScale])
 
     def is_valid(self):
         rv = True
@@ -47,15 +47,14 @@ class Player:
 
     def change_scale(self, newScale):
         for v in self.voices:
-            # create separate instances of the scale, in case the note sequence involves keeping state.
-            v.new_scale(newScale.clone())
+            v.scale = newScale
 
     def play(self, n, v):
         # note-off is sent as a note-on with velocity 0.
-        self.midi.send(mido.Message('note_on', note=n, velocity=v))
+        self.midi.note_on(n, v)
 
     def run(self):
-        self.midi = mido.open_output()
+        self.midi.open()
         queue = []
         lastt = t = time.time()
         self.pulse = -1
@@ -68,26 +67,9 @@ class Player:
                 dt = t - lastt
                 self.pulse += 1
 
-                # check for a file change
-                if self.reader:
-                    self.reader.update(self.pulse)
-                    if not self.is_valid(): # game over
-                        if consts.VERBOSE:
-                            print 'End via empty script'
-                        break
-
-                # check for a scale change
-                self.scaler.update(self.pulse)
-
-                # generate some notes...
-                for voice in self.voices:
-                    voice.update(self.pulse)
-                # ... and play them!
-                for voice in self.voices:
-                    voice.play(self.pulse)
-
-                if not consts.QUIET:
-                    self.update_status()
+                # do stuff
+                if not self.update():
+                    break
 
                 # wait for next pulse
                 nextt = t + self.pulseTime
@@ -104,12 +86,31 @@ class Player:
 
         self.shutdown()
 
+    def update(self):
+        # check for a file change
+        if self.reader:
+            self.reader.update(self.pulse)
+        if not self.is_valid(): # game over
+            if consts.VERBOSE:
+                print 'End via empty script'
+            return False
+
+        # check for a scale change
+        self.scaler.update(self.pulse)
+
+        # generate some notes...
+        for voice in self.voices:
+            voice.update(self.pulse)
+        # ... and play them!
+        for voice in self.voices:
+            voice.play(self.pulse)
+
+        if not consts.QUIET:
+            self.update_status()
+        return True
+
     def shutdown(self):
-        if self.midi:
-            self.midi.reset()
-            time.sleep(1.0)
-            self.midi.close()
-        self.midi = None
+        self.midi.close()
 
     # Update the status string and print it out.
     def update_status(self):

@@ -26,29 +26,22 @@ def split_floats(a):
 
 RE_MACRO = re.compile('@(\S+)')
 
-# I am responsible for reading a script file and configuring the
-# Player instance based on what I find. Along the way, I am responsible for
-# creating Scales and Voices.
-#
-# I am also responsible for checking for changes to the file at regular
-# intervals and reconfiguring the Player when that happens.
-class Reader:
-    def __init__(self, fn, pl):
-        self.filename = fn
-        self.filetime = time.time()
-        self.player = pl
-        self.player.reader = self
-        self.reloadInterval = consts.DEFAULT_RELOAD_INTERVAL
+# I am responsible for parsing script data and configuring a Player instance
+# based on what I find.  Along the way, I am responsible for creating Scales
+# and Voices.
+class Parser:
+    def __init__(self):
+        self.player = None
+        self.reader = None
 
-    def load_script(self):
-        self.filetime = os.stat(self.filename).st_mtime
-
+    def parse(self, lines, player, reader):
+        self.player = player
+        self.reader = reader
         # Blow away existing scales and voice instances, but
         # otherwise leave player state intact since we're hotloading
         self.player.scaler.scales.clear()
         del self.player.voices[:]
 
-        fp = open(self.filename)
         scabuf = []
         vocbuf = []
         macros = {}
@@ -72,7 +65,7 @@ class Reader:
                         self.player.shortestDuration = min(self.player.shortestDuration, min(nv.durations))
                 del vocbuf[:]
 
-        for line in fp.readlines():
+        for line in lines:
             line = line.split('#')[0].strip()
             if len(line) == 0:
                 continue
@@ -168,16 +161,15 @@ class Reader:
                     vocbuf.append(line)
 
         close_blocks()
-        fp.close()
 
         self.player.validate()
         self.player.shortestDuration = self.player.shortestDuration * self.player.ppb
-        if newReloadInterval >= 0:
-            self.reloadInterval = newReloadInterval * self.player.ppb
+        if reader and newReloadInterval >= 0:
+            reader.reloadInterval = newReloadInterval * self.player.ppb
 
         if consts.VERBOSE:
             self.player.dump()
-            print 'Reloaded at %d, hotload interval %d'%(self.player.pulse, self.reloadInterval)
+
 
     def make_scale(self, scabuf):
         sid = scabuf[0].strip()
@@ -243,6 +235,26 @@ class Reader:
 
             return rv
 
+
+# I am responsible for reading a script file and feeding its contents to a Parser.
+# I am also responsible for checking for changes to the file at regular
+# intervals and reconfiguring the Player when that happens.
+class Reader:
+    def __init__(self, fn, pl):
+        self.filename = fn
+        self.filetime = time.time()
+        self.player = pl
+        self.player.reader = self
+        self.reloadInterval = consts.DEFAULT_RELOAD_INTERVAL
+
+    def load_script(self):
+        self.filetime = os.stat(self.filename).st_mtime
+        fp = open(self.filename)
+        Parser().parse(fp.readlines(), self.player, self)
+        fp.close()
+
+        if consts.VERBOSE:
+            print '(Re)loaded at %d, hotload interval %d'%(self.player.pulse, self.reloadInterval)
 
     def update(self, pulse):
         if pulse%self.reloadInterval == 0:
