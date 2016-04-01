@@ -39,26 +39,20 @@ class Parser:
         self.reader = reader
         self.player.preparse_scrub()
 
-        scabuf = []
-        vocbuf = []
+        scabufs = []
+        vocbufs = []
+        self.scabuf = []
+        self.vocbuf = []
         macros = {}
         newReloadInterval = -1
 
         def close_blocks():
-            if scabuf:
-                ns = self.make_scale(scabuf)
-                if ns:
-                    self.player.scaler.scales[ns.id] = ns
-                    if not self.player.scaler.curScale:
-                        self.player.scaler.curScale = ns.id
-                del scabuf[:]
-
-            if vocbuf:
-                nv = self.make_voice(vocbuf)
-                if nv:
-                    self.player.add_voice(nv)
-                    self.player.voices[nv.id] = nv
-                del vocbuf[:]
+            if self.scabuf:
+                scabufs.append(self.scabuf)
+                self.scabuf = []
+            if self.vocbuf:
+                vocbufs.append(self.vocbuf)
+                self.vocbuf = []
 
         linei = 0
         for line in lines:
@@ -69,7 +63,7 @@ class Parser:
 
             # handle macro definitions.
             if line[0] == '@':
-                if not (scabuf or vocbuf):
+                if not (self.scabuf or self.vocbuf):
                     a = line.split()
                     car = a[0][1:]
                     cdr = ' '.join(a[1:])
@@ -102,6 +96,7 @@ class Parser:
                 elif line.startswith(':pulses_per_beat'):
                     i = line.split()[1]
                     if is_int(i):
+                        print 'what %s'%i
                         self.player.change_tempo(self.player.bpm, int(i))
 
                 elif line.startswith(':reload_interval'):
@@ -128,28 +123,28 @@ class Parser:
                     if len(a) < 2:
                         print 'Error: no id for scale'
                     else:
-                        scabuf = [a[1], ]
+                        self.scabuf = [a[1], ]
 
                 elif line.startswith(':voice'):
                     a = line.split()
                     if len(a) < 2:
                         print 'Error: no id for voice'
                     else:
-                        vocbuf = ['voice', a[1], ]
+                        self.vocbuf = ['voice', a[1], ]
 
                 elif line.startswith(':harmony'):
                     a = line.split()
                     if len(a) < 2:
                         print 'Error: no id for harmony'
                     else:
-                        vocbuf = ['harmony', a[1], ]
+                        self.vocbuf = ['harmony', a[1], ]
 
                 elif line.startswith(':loop'):
                     a = line.split()
                     if len(a) < 2:
                         print 'Error: no id for loop'
                     else:
-                        vocbuf = ['loop', a[1], ]
+                        self.vocbuf = ['loop', a[1], ]
 
                 else:
                     print 'Warning: Ignoring unrecognized directive %s'%line
@@ -157,12 +152,23 @@ class Parser:
 
             # add data to blocks.
             else:
-                if scabuf:
-                    scabuf.append(line)
-                if vocbuf:
-                    vocbuf.append(line)
+                if self.scabuf:
+                    self.scabuf.append(line)
+                if self.vocbuf:
+                    self.vocbuf.append(line)
 
         close_blocks()
+        for s in scabufs:
+            ns = self.make_scale(s)
+            if ns:
+                self.player.scaler.scales[ns.id] = ns
+                if not self.player.scaler.curScale:
+                    self.player.scaler.curScale = ns.id
+        for v in vocbufs:
+            nv = self.make_voice(v)
+            if nv:
+                self.player.add_voice(nv)
+                self.player.voices[nv.id] = nv
 
         self.player.validate()
         if reader and newReloadInterval >= 0:
@@ -195,7 +201,7 @@ class Parser:
                 if is_int(i):
                     rv.offset = int(i)
             if len(vocbuf) > 3:
-                rv.durations = split_floats(vocbuf[3].strip().split())
+                rv.durations = tuple(self.parse_duration(d) for d in vocbuf[3].strip().split())
             if len(vocbuf) > 4:
                 rv.velocities = split_ints(vocbuf[4].strip().split())
             return rv
@@ -229,12 +235,22 @@ class Parser:
                 p = d = v = ''
                 p = a[0]
                 if len(a) > 1:
-                    d = a[1]
+                    d = self.parse_duration(a[1])
                 if len(a) > 2:
                     v = a[2]
                 rv.add_step(p, d, v)
 
             return rv
+
+    def parse_duration(self, d):
+        d = d.strip()
+        if d == '.': # magic value used in loops
+            return d
+        if d[-1] == 'p' and is_float(d[:-1]):
+            return float(d[:-1])
+        if is_float(d):
+            return float(d) * self.player.ppb
+        return d
 
 
 # I am responsible for reading a script file and feeding its contents to a Parser.
@@ -265,5 +281,4 @@ class Reader:
             if t != self.filetime:
                 self.load_script()
                 self.state = '*'
-
 

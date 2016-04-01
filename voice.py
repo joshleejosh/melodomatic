@@ -118,10 +118,7 @@ class Voice:
     def rnddur(self):
         if not self.durations:
             return self.player.ppb
-        return self.b2d(rnd.choice(self.durations))
-
-    def b2d(self, b):
-        return int(b * self.player.ppb)
+        return rnd.choice(self.durations)
 
 
 # I am a special kind of Voice that plays along with another Voice in unison,
@@ -205,7 +202,7 @@ class Loop(Voice):
         self.curStep = (self.curStep + 1)%len(self.steps)
         step = self.steps[self.curStep]
 
-        d = step.duration * self.player.ppb
+        d = step.duration
         p = step.pitch
         v = step.velocity
         if p == sys.maxint:

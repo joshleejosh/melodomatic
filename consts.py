@@ -13,7 +13,7 @@ def set_verbose(v):
         print 'Verbose level %d'%VERBOSE
 
 DEFAULT_BEATS_PER_MINUTE = 120
-DEFAULT_PULSES_PER_BEAT = 8
+DEFAULT_PULSES_PER_BEAT = 12
 DEFAULT_RELOAD_INTERVAL = 64 # this is pulses, but in the script, you should count this in beats.
 DEFAULT_SCALE_ROOT = 60
 DEFAULT_SCALE_INTERVALS = (0,)

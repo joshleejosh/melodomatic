@@ -27,8 +27,8 @@ class Player:
     def dump(self):
         print 'Tempo: %d bpm, %d ppb, %f pulse time'%(self.bpm, self.ppb, self.pulseTime)
         self.scaler.dump()
-        for vo in self.voices.itervalues():
-            vo.dump()
+        for vo in self.voiceOrder:
+            self.voices[vo].dump()
 
     def add_voice(self, v):
         if v not in self.voices.values():
@@ -43,7 +43,7 @@ class Player:
         for v in self.voices.itervalues():
             v.validate()
             if v.durations:
-                self.shortestDuration = min(self.shortestDuration, min(abs(d) for d in v.durations) * self.ppb)
+                self.shortestDuration = min(self.shortestDuration, min(abs(d) for d in v.durations))
         # make sure voices have scales
         if len(self.scaler.scales) > 0:
             self.change_scale(self.scaler.scales[self.scaler.curScale])
