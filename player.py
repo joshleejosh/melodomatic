@@ -117,16 +117,17 @@ class Player:
 
         doit = False
         s = '%06d'%self.pulse
+        s += '%2s'%self.reader.state
         for i in xrange(len(newstats)):
             # Try not to repeat status messages.
             if i < len(self.statuses) and self.statuses[i] == newstats[i]:
                 if i==0 or not newstats[i]:
-                    s += str.center('', 12)
+                    s += str.center('', 9)
                 else:
-                    s += str.center('|', 12)
+                    s += str.center('|', 9)
             else:
                 doit = True
-                s += str.center(newstats[i], 12)
+                s += str.center(newstats[i], 9)
 
         if doit or self.pulse%self.shortestDuration==0:
             print s

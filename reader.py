@@ -65,20 +65,23 @@ class Parser:
                         self.player.shortestDuration = min(self.player.shortestDuration, min(nv.durations))
                 del vocbuf[:]
 
+        linei = 0
         for line in lines:
+            linei += 1
             line = line.split('#')[0].strip()
             if len(line) == 0:
                 continue
 
             # handle macro definitions.
             if line[0] == '@':
-                if scabuf or vocbuf:
-                    pass
-                else:
+                if not (scabuf or vocbuf):
                     a = line.split()
                     car = a[0][1:]
                     cdr = ' '.join(a[1:])
                     macros[car] = cdr
+                    if consts.VERBOSE:
+                        print 'Macro definition [%s]->[%s]'%(car, cdr)
+
                     continue
 
             # do macro substitutions before processing the line.
@@ -87,7 +90,11 @@ class Parser:
                     if g in macros:
                         line = line.replace('@'+g, macros[g])
                     else:
+                        if consts.VERBOSE:
+                            print 'ERROR line %d: bad macro reference @%s'%(linei, g)
                         line = line.replace('@'+g, '')
+            if len(line) == 0: # blank after substitution?
+                continue
 
             # handle directives.
             if line[0] == ':':
@@ -246,6 +253,7 @@ class Reader:
         self.player = pl
         self.player.reader = self
         self.reloadInterval = consts.DEFAULT_RELOAD_INTERVAL
+        self.state = ''
 
     def load_script(self):
         self.filetime = os.stat(self.filename).st_mtime
@@ -257,9 +265,11 @@ class Reader:
             print '(Re)loaded at %d, hotload interval %d'%(self.player.pulse, self.reloadInterval)
 
     def update(self, pulse):
+        self.state = ''
         if pulse%self.reloadInterval == 0:
             t = os.stat(self.filename).st_mtime
             if t != self.filetime:
                 self.load_script()
+                self.state = '*'
 
 
