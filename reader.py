@@ -37,15 +37,11 @@ class Parser:
     def parse(self, lines, player, reader):
         self.player = player
         self.reader = reader
-        # Blow away existing scales and voice instances, but
-        # otherwise leave player state intact since we're hotloading
-        self.player.scaler.scales.clear()
-        del self.player.voices[:]
+        self.player.preparse_scrub()
 
         scabuf = []
         vocbuf = []
         macros = {}
-        self.player.shortestDuration = 9999
         newReloadInterval = -1
 
         def close_blocks():
@@ -60,9 +56,8 @@ class Parser:
             if vocbuf:
                 nv = self.make_voice(vocbuf)
                 if nv:
-                    self.player.voices.append(nv)
-                    if nv.durations:
-                        self.player.shortestDuration = min(self.player.shortestDuration, min(nv.durations))
+                    self.player.add_voice(nv)
+                    self.player.voices[nv.id] = nv
                 del vocbuf[:]
 
         linei = 0
@@ -170,7 +165,6 @@ class Parser:
         close_blocks()
 
         self.player.validate()
-        self.player.shortestDuration = self.player.shortestDuration * self.player.ppb
         if reader and newReloadInterval >= 0:
             reader.reloadInterval = newReloadInterval * self.player.ppb
 

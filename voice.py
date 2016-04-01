@@ -43,7 +43,7 @@ class Voice:
 
     def validate_harmonies(self):
         del self.harmonies[:]
-        for v in self.player.voices:
+        for v in self.player.voices.itervalues():
             if isinstance(v, Harmony):
                 if v.voice == self.id:
                     self.harmonies.append(v)

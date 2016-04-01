@@ -9,25 +9,41 @@ class Player:
     def __init__(self):
         self.reader = None
         self.scaler = scale.ScaleChanger(self)
-        self.voices = []
+        self.voices = {}
+        self.voiceOrder = []
         self.change_tempo(consts.DEFAULT_BEATS_PER_MINUTE, consts.DEFAULT_PULSES_PER_BEAT)
         self.velocityChangeChance = consts.DEFAULT_VELOCITY_CHANGE_CHANCE
         self.statuses = []
         self.pulse = 0
         self.midi = midi.MelodomaticMidi()
 
+    # Blow away existing scales and voice instances, but
+    # otherwise leave player state intact since we may be hotloading
+    def preparse_scrub(self):
+        self.scaler.scales.clear()
+        self.voices.clear()
+        del self.voiceOrder[:]
+
     def dump(self):
         print 'Tempo: %d bpm, %d ppb, %f pulse time'%(self.bpm, self.ppb, self.pulseTime)
         self.scaler.dump()
-        for vo in self.voices:
+        for vo in self.voices.itervalues():
             vo.dump()
 
+    def add_voice(self, v):
+        if v not in self.voices.values():
+            self.voices[v.id] = v
+            self.voiceOrder.append(v.id)
+
     def validate(self):
-        self.scaler.validate()
-        for v in self.voices:
-            v.validate()
         # make sure pulseTime got reset
         self.change_tempo(self.bpm, self.ppb)
+        self.scaler.validate()
+        self.shortestDuration = consts.DEFAULT_RELOAD_INTERVAL
+        for v in self.voices.itervalues():
+            v.validate()
+            if v.durations:
+                self.shortestDuration = min(self.shortestDuration, min(abs(d) for d in v.durations) * self.ppb)
         # make sure voices have scales
         if len(self.scaler.scales) > 0:
             self.change_scale(self.scaler.scales[self.scaler.curScale])
@@ -46,7 +62,7 @@ class Player:
         self.pulseTime = 60.0 / self.bpm / self.ppb
 
     def change_scale(self, newScale):
-        for v in self.voices:
+        for v in self.voices.itervalues():
             v.scale = newScale
 
     def play(self, n, v):
@@ -99,7 +115,7 @@ class Player:
         self.scaler.update(self.pulse)
 
         # generate some notes and play them
-        for voice in self.voices:
+        for voice in self.voices.itervalues():
             voice.update(self.pulse)
 
         if not consts.QUIET:
@@ -112,8 +128,8 @@ class Player:
     # Update the status string and print it out.
     def update_status(self):
         newstats = [ self.scaler.state, ]
-        for v in self.voices:
-            newstats.append(v.state)
+        for v in self.voiceOrder:
+            newstats.append(self.voices[v].state)
 
         doit = False
         s = '%06d'%self.pulse
