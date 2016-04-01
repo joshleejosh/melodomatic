@@ -14,7 +14,7 @@
 # Macros are direct text substitutions.
 
 @major_pentatonic 0 2 4 7 9 12
-@quarter_quarter_half 1    1 	  2 # whitespace will be scrubbed, as will this comment.
+@quarter_quarter_half 1 	1  	2 # whitespace will be scrubbed, as will this comment.
 @sixteen 16
 
 ### SCALES ################################################
@@ -50,21 +50,22 @@ FMaj BbMaj
 -12           # OFFSET is added to whatever pitch we get from the scale.
               # Usually this will be a multiple of 12 for shifting up/down
               # octaves.
-1 2 2 4 4     # DURATIONS are a pool of values (measured in beats) that are
+1 2 2 4 -1 -2 # DURATIONS are a pool of values (measured in beats) that are
               # randomly picked from to determine how long a note will play
               # for. More entries means the value will be picked more often.
+              # Negative durations are rests.
 48 64 80      # VELOCITIES are MIDI values (0-127). The voice will
               # periodically shift up and down the series of values.
 
 :voice Alto
 0
-4 @quarter_quarter_half @quarter_quarter_half
+4 @quarter_quarter_half @quarter_quarter_half -1 -2
 48 64 80 96
 
 :voice Soprano
 12
-.5 .5 1 1 1 1 2
-40 56
+.5 .5 1 1 1 2 -.5 -1
+32 48
 
 
 # A LOOP is a voice that plays a specific sequence instead of generating random notes.
@@ -72,8 +73,8 @@ FMaj BbMaj
 -24              # OFFSET is used the same way as in regular voices.
  0    4     40   # Each line is a STEP in the sequence, consisting of PITCH, DURATION, and VELOCITY.
                  # Pitch is relative to the current scale's root.
-		 # Duration is in beats.
-		 # Velocity is a MIDI value.
+                 # Duration is in beats.
+                 # Velocity is a MIDI value.
  7               # If duration or velocity are unspecified, they just repeat the previous step's value.
  0    4     56
  .    2          # A '.' for a pitch represents a rest.
@@ -85,8 +86,8 @@ Bass             # ID of the root voice this will play along with.
                  # This can be a voice or loop, but not another harmony.
 -12              # Pitch offset from the root voice.
 0                # Step offset from the root voice. This counts up or down the
-		 # scale's interval series. Behavior can get pretty janky
-		 # when it runs off the end and tries to wrap around.
+                 # scale's interval series. Behavior can get pretty janky
+                 # when it runs off the end and tries to wrap around.
 -8               # Velocity offset from the root voice.
 
 

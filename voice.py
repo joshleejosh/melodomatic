@@ -39,8 +39,7 @@ class Voice:
         if pulse >= self.nextNote:
             if (rnd.random() < self.player.velocityChangeChance):
                 vel = self.change_velocity()
-            self.gen_note(pulse)
-            b = self.rnddur()
+            b = self.gen_note(pulse)
             self.nextNote = pulse + b
 
     def play(self, pulse):
@@ -72,9 +71,13 @@ class Voice:
             return
         p = self.offset + self.make_pitch()
         d = self.make_duration()
-        self.queue_note(at, p, self.velocity, d)
-        for h in self.harmonies:
-            h.harmonize(at, p, self.velocity, d)
+        if d > 0:
+            self.queue_note(at, p, self.velocity, d)
+            for h in self.harmonies:
+                h.harmonize(at, p, self.velocity, d)
+        else:
+            d = abs(d)
+        return d
 
     def make_pitch(self):
         return self.scale.random_pitch()

@@ -24,6 +24,29 @@ class VoiceTest(unittest.TestCase):
         self.assertEqual(v.queue[4], {'when':69, 'note':55, 'velocity':0})
         self.assertEqual(v.queue[5], {'when':37, 'note':55, 'velocity':48})
 
+    def test_gen_rest(self):
+        script = """
+            :scale S
+            40
+            0
+            :voice V
+            0
+            -1 1 -2
+            48
+        """
+        player = test_script.make_player(script)
+        v = player.voices[0]
+        d = v.gen_note(0)
+        self.assertEqual(d, 8)
+        self.assertEqual(len(v.queue), 0)
+        d = v.gen_note(8)
+        self.assertEqual(d, 8)
+        self.assertEqual(len(v.queue), 2)
+        d = v.gen_note(16)
+        self.assertEqual(d, 16)
+        self.assertEqual(len(v.queue), 2)
+
+
     def test_play(self):
         player = test_script.make_player(test_script.TEST_SCRIPT_SIMPLE)
         v = player.voices[0]
