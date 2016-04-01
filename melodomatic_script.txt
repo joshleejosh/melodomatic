@@ -75,10 +75,10 @@ FMaj BbMaj
                  # Pitch is relative to the current scale's root.
                  # Duration is in beats.
                  # Velocity is a MIDI value.
- 7               # If duration or velocity are unspecified, they just repeat the previous step's value.
+ 7               # If duration or velocity are unspecified, they repeat the previous step's value.
  0    4     56
  .    2          # A '.' for a pitch represents a rest.
- 7    2          # A '.' for a pitch represents a rest.
+ 7    2
 
 # A HARMONY is a voice that plays in unison with another voice, but with its pitch shifted.
 :harmony BassH   # ID of the harmony voice.

@@ -98,12 +98,9 @@ class Player:
         # check for a scale change
         self.scaler.update(self.pulse)
 
-        # generate some notes...
+        # generate some notes and play them
         for voice in self.voices:
             voice.update(self.pulse)
-        # ... and play them!
-        for voice in self.voices:
-            voice.play(self.pulse)
 
         if not consts.QUIET:
             self.update_status()

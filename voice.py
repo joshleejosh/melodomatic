@@ -2,6 +2,19 @@ import sys
 import consts
 from util import *
 
+class Note:
+    def __init__(self, a, d, p, v):
+        self.pitch = p
+        self.velocity = v
+        self.duration = d
+        self.at = a
+        self.until = self.at + self.duration
+    def __str__(self):
+        return '%dv%d'%(self.pitch, self.velocity)
+        #return '%dv%dd%d(%d-%d)'%(self.pitch, self.velocity, self.duration, self.at, self.until)
+    def is_rest(self):
+        return (self.velocity == 0)
+
 # I am responsible for taking pitches from a Scale and turning them into
 # playable notes. This mostly involves deciding when and how long to play each
 # note. I also decide how hard to play a note (its velocity).
@@ -12,12 +25,12 @@ class Voice:
         self.offset = 0
         self.durations = ()
         self.velocities = ()
-        self.queue = []
         self.harmonies = []
         self.state = ''
         self.playing = False
         self.velocity = consts.DEFAULT_VELOCITY
-        self.nextNote = 0
+        self.nextPulse = 0
+        self.lastNote = None
         self.scale = None
 
     def dump(self):
@@ -36,60 +49,49 @@ class Voice:
                     self.harmonies.append(v)
 
     def update(self, pulse):
-        if pulse >= self.nextNote:
+        if self.lastNote and not self.lastNote.is_rest() and pulse >= self.lastNote.until:
+            self.end_last_note()
+
+        if pulse >= self.nextPulse:
             if (rnd.random() < self.player.velocityChangeChance):
                 vel = self.change_velocity()
-            b = self.gen_note(pulse)
-            self.nextNote = pulse + b
+            note = self.gen_note(pulse)
+            if note:
+                self.play(note)
 
-    def play(self, pulse):
-        # Collate events for this tick so that we send all note off events
-        # before the note-ons, for the case where we're repeating a held note
-        # (we don't want the release of an old press to cancel out the new one)
-        ons = []
-        offs = []
-        for i in range(len(self.queue)-1, -1, -1):
-            q = self.queue[i]
-            if q['when'] <= pulse:
-                if q['velocity'] == 0:
-                    offs.append(q)
-                else:
-                    ons.append(q)
-                del self.queue[i]
+    def play(self, note):
+        if not note.is_rest():
+            self.player.play(note.pitch, note.velocity)
+        self.lastNote = note
+        self.nextPulse = note.until
+        if self.lastNote:
+            if not self.lastNote.is_rest():
+                self.state = str(self.lastNote)
 
-        for q in offs:
-            self.state = ''
-            self.playing = False
-            self.player.play(q['note'], q['velocity'])
-        for q in ons:
-            self.playing = True
-            self.state = '%s@%d'%(note_name(q['note']), q['velocity'])
-            self.player.play(q['note'], q['velocity'])
+    def end_last_note(self):
+        self.player.play(self.lastNote.pitch, 0)
+        self.lastNote = None
+        self.state = ''
 
     def gen_note(self, at):
         if not self.scale:
-            return
+            return None
         p = self.offset + self.make_pitch()
         d = self.make_duration()
-        if d > 0:
-            self.queue_note(at, p, self.velocity, d)
-            for h in self.harmonies:
-                h.harmonize(at, p, self.velocity, d)
-        else:
+        v = self.velocity
+        if d < 0:
             d = abs(d)
-        return d
+            v = p = 0
+        rv = Note(at, d, p, v)
+        for h in self.harmonies:
+            h.harmonize(rv)
+        return rv
 
     def make_pitch(self):
         return self.scale.random_pitch()
 
     def make_duration(self):
         return self.rnddur()
-
-    def queue_note(self, at, n, v, d):
-        # a note-off is just a note-on with velocity 0.
-        if n >= 0 and n <= 127:
-            self.queue.append({ 'when':at+d, 'note':n, 'velocity':0 })
-            self.queue.append({ 'when':at,   'note':n, 'velocity':v })
 
     # randomly walk up or down one step in my list of velocities.
     def change_velocity(self):
@@ -135,18 +137,23 @@ class Harmony(Voice):
     def dump(self):
         print '%s: Harmony of %s, %d %d'%(self.id, self.voice, self.pitchOffset, self.velocityOffset)
 
+    # I should never generate a note on my own
     def validate(self):
-        pass
+        self.nextPulse = sys.maxint
+    def gen_note(self):
+        return None
 
-    def update(self, pulse):
-        # skip note generation
-        pass
+    def harmonize(self, note):
+        if self.lastNote and not self.lastNote.is_rest():
+            self.end_last_note()
+        if note.is_rest():
+            self.play(note)
+            return
 
-    def harmonize(self, at, n, v, d):
         # walk up/down the scale's intervals according to stepOffset, wrapping
         # around and octaving when neccessary.
         so = 0
-        pii = self.scale.pitch_to_interval(n)
+        pii = self.scale.pitch_to_interval(note.pitch)
         if pii >= 0:
             op = self.scale.intervals[pii]
             pii += self.stepOffset
@@ -160,7 +167,8 @@ class Harmony(Voice):
                     pii = pii%len(self.scale.intervals)
                 so += self.scale.intervals[pii] - op
 
-        self.queue_note(at, n + self.pitchOffset + so, v + self.velocityOffset, d)
+        hnote = Note(note.at, note.duration, note.pitch + self.pitchOffset + so, note.velocity + self.velocityOffset)
+        self.play(hnote)
 
 
 # I am a special type of Voice that plays a static sequence of notes in a loop,
@@ -172,7 +180,7 @@ class Loop(Voice):
         self.curStep = -1
 
     # arguments are strings, since some of them might be a dot (representing a
-    # rest or carry) or undefined (representing a carry)
+    # rest or carryover of the previous value) or empty (representing a carryover)
     def add_step(self, p, d, v):
         if p == '.':
             p = sys.maxint
@@ -192,26 +200,23 @@ class Loop(Voice):
         self.curStep = -1
         self.validate_harmonies()
 
-    def update(self, pulse):
-        if pulse >= self.nextNote:
-            self.curStep = (self.curStep + 1)%len(self.steps)
-            dur = self.gen_note(pulse)
-            self.nextNote = pulse + dur
-
     def gen_note(self, at):
+        rv = None
+        self.curStep = (self.curStep + 1)%len(self.steps)
         step = self.steps[self.curStep]
-        d = step.duration * self.player.ppb
-        if step.pitch == sys.maxint:
-            # this is a rest, so don't play a note and just return the time of the next note.
-            return d
 
-        p = self.offset + self.scale.root + step.pitch
-        self.queue_note(at, p, step.velocity, d)
+        d = step.duration * self.player.ppb
+        p = step.pitch
+        v = step.velocity
+        if p == sys.maxint:
+            p = v = 0
+        else:
+            p += self.offset + self.scale.root
+        rv = Note(at, d, p, v)
 
         for h in self.harmonies:
-            h.harmonize(at, p, step.velocity, d)
-
-        return d
+            h.harmonize(rv)
+        return rv
 
 
 # I am used by Loop, and represent a step in its sequence.
