@@ -32,6 +32,7 @@ class Voice:
         self.nextPulse = 0
         self.lastNote = None
         self.scale = None
+        self.pitchSet = ''
 
     def dump(self):
         print '%s: %d %s %s'%(self.id, self.offset, self.durations, self.velocities)
@@ -40,6 +41,8 @@ class Voice:
         self.validate_harmonies()
         self.velocity = -1
         self.change_velocity()
+        if not self.pitchSet:
+            self.pitchSet = self.player.pitchSets.values()[0].id
 
     def validate_harmonies(self):
         del self.harmonies[:]
@@ -76,19 +79,20 @@ class Voice:
     def gen_note(self, at):
         if not self.scale:
             return None
-        p = self.offset + self.make_pitch()
+        v = p = 0
         d = self.make_duration()
-        v = self.velocity
         if d < 0:
             d = abs(d)
-            v = p = 0
+        else:
+            p = self.offset + self.make_pitch()
+            v = self.velocity
         rv = Note(at, d, p, v)
         for h in self.harmonies:
             h.harmonize(rv)
         return rv
 
     def make_pitch(self):
-        return self.scale.random_pitch()
+        return self.player.pitchSets[self.pitchSet].random_pitch(self.scale)
 
     def make_duration(self):
         return self.rnddur()

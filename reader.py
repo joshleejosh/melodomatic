@@ -1,7 +1,7 @@
-import sys, os, time, re
+import os, time, re
 import consts
 from util import *
-import player, voice, scale
+import player, voice, scale, pitchset
 
 def is_int(i):
     try:
@@ -48,18 +48,20 @@ class Parser:
                 continue
             if line.startswith(':include'):
                 fn = line.split()[1]
+                if consts.VERBOSE:
+                    print 'Include file [%s]'%fn
                 fp = open(fn)
                 ilines = fp.readlines()
                 fp.close()
                 del lines[linei]
                 lines[linei:1] = ilines
                 linei += len(ilines) - 1
-        for line in lines:
-            sys.stdout.write(line)
 
         scabufs = []
+        setbufs = []
         vocbufs = []
         self.scabuf = []
+        self.setbuf = []
         self.vocbuf = []
         macros = {}
         newReloadInterval = -1
@@ -68,6 +70,9 @@ class Parser:
             if self.scabuf:
                 scabufs.append(self.scabuf)
                 self.scabuf = []
+            if self.setbuf:
+                setbufs.append(self.setbuf)
+                self.setbuf = []
             if self.vocbuf:
                 vocbufs.append(self.vocbuf)
                 self.vocbuf = []
@@ -81,7 +86,7 @@ class Parser:
 
             # handle macro definitions.
             if line[0] == '@':
-                if not (self.scabuf or self.vocbuf):
+                if not (self.scabuf or self.setbuf or self.vocbuf):
                     a = line.split()
                     car = a[0][1:]
                     cdr = ' '.join(a[1:])
@@ -142,6 +147,13 @@ class Parser:
                     else:
                         self.scabuf = [a[1], ]
 
+                elif line.startswith(':pitchset'):
+                    a = line.split()
+                    if len(a) < 2:
+                        print 'Error: no id for pitchset'
+                    else:
+                        self.setbuf = [a[1], ]
+
                 elif line.startswith(':voice'):
                     a = line.split()
                     if len(a) < 2:
@@ -171,6 +183,8 @@ class Parser:
             else:
                 if self.scabuf:
                     self.scabuf.append(line)
+                if self.setbuf:
+                    self.setbuf.append(line)
                 if self.vocbuf:
                     self.vocbuf.append(line)
 
@@ -181,11 +195,14 @@ class Parser:
                 self.player.scaler.scales[ns.id] = ns
                 if not self.player.scaler.curScale:
                     self.player.scaler.curScale = ns.id
+        for s in setbufs:
+            sb = self.make_pitch_set(s)
+            if sb:
+                self.player.add_pitch_set(sb)
         for v in vocbufs:
             nv = self.make_voice(v)
             if nv:
                 self.player.add_voice(nv)
-                self.player.voices[nv.id] = nv
 
         self.player.validate()
         if reader and newReloadInterval >= 0:
@@ -208,19 +225,28 @@ class Parser:
             rv.links = scabuf[3].strip().split()
         return rv
 
+    def make_pitch_set(self, setbuf):
+        sid = setbuf[0].strip()
+        rv = pitchset.PitchSet(sid)
+        if len(setbuf) > 1:
+            rv.set_intervals(setbuf[1].strip().split())
+        return rv
+
     def make_voice(self, vocbuf):
         which = vocbuf[0].strip()
         vid = vocbuf[1].strip()
         if which == 'voice':
             rv = voice.Voice(vid, self.player)
             if len(vocbuf) > 2:
-                i = vocbuf[2].strip()
+                rv.pitchSet = vocbuf[2].strip()
+            if len(vocbuf) > 3:
+                i = vocbuf[3].strip()
                 if is_int(i):
                     rv.offset = int(i)
-            if len(vocbuf) > 3:
-                rv.durations = tuple(self.parse_duration(d) for d in vocbuf[3].strip().split())
             if len(vocbuf) > 4:
-                rv.velocities = split_ints(vocbuf[4].strip().split())
+                rv.durations = tuple(self.parse_duration(d) for d in vocbuf[4].strip().split())
+            if len(vocbuf) > 5:
+                rv.velocities = split_ints(vocbuf[5].strip().split())
             return rv
 
         elif which == 'harmony':

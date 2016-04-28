@@ -1,7 +1,7 @@
 import time
 import consts
 from util import *
-import voice, scale, reader, midi
+import voice, scale, pitchset, reader, midi
 
 # I am the top level controller for the ScaleChanger, all Scales, and all Voices. 
 # I am configured by a Reader.
@@ -9,6 +9,7 @@ class Player:
     def __init__(self):
         self.reader = None
         self.scaler = scale.ScaleChanger(self)
+        self.pitchSets = {}
         self.voices = {}
         self.voiceOrder = []
         self.change_tempo(consts.DEFAULT_BEATS_PER_MINUTE, consts.DEFAULT_PULSES_PER_BEAT)
@@ -17,18 +18,25 @@ class Player:
         self.pulse = 0
         self.midi = midi.MelodomaticMidi()
 
-    # Blow away existing scales and voice instances, but
-    # otherwise leave player state intact since we may be hotloading
+    # Blow away existing scales, pitchSets, and voice instances, but
+    # otherwise leave player state (mostly timing) intact since we may be hotloading
     def preparse_scrub(self):
         self.scaler.scales.clear()
+        self.pitchSets.clear()
         self.voices.clear()
         del self.voiceOrder[:]
 
     def dump(self):
         print 'Tempo: %d bpm, %d ppb, %f pulse time'%(self.bpm, self.ppb, self.pulseTime)
         self.scaler.dump()
+        for pc in self.pitchSets.itervalues():
+            pc.dump()
         for vo in self.voiceOrder:
             self.voices[vo].dump()
+
+    def add_pitch_set(self, p):
+        if p not in self.pitchSets.values():
+            self.pitchSets[p.id] = p
 
     def add_voice(self, v):
         if v not in self.voices.values():
@@ -51,6 +59,8 @@ class Player:
     def is_valid(self):
         rv = True
         if not self.voices:
+            rv = False
+        if not self.pitchSets:
             rv = False
         if not self.scaler.scales:
             rv = False

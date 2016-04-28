@@ -1,8 +1,8 @@
 from consts import *
 from util import *
 
-# I represent a set of pitches that can be played together.
-# I produce pitches in some kind of order for a Voice to play as notes.
+# I represent a musical scale out of which notes are picked to produce melodies.
+# I also know what other scales the ScaleChanger can transition to from me.
 class Scale:
     def __init__(self, id):
         self.id = id
@@ -31,14 +31,10 @@ class Scale:
     def get_pitch(self, i):
         return self.root + self.intervals[i]
 
-    def random_pitch(self):
-        return self.root + rnd.choice(self.intervals)
-
     def next_scale(self):
         if not self.links:
             return self.id
         return rnd.choice(self.links)
-
 
 # I am responsible for knowing about all the available Scales and shifting
 # between them at appropriate times.  When I change Scales, the Player will

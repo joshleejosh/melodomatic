@@ -12,37 +12,58 @@
 
 ### PREPROCESSING ################################################
 
-# You can include another file. It gets pasted in verbatim before the script is processed.
-# Hotloading will only occur when *this* file is updated, though.
+# You can include another file. It gets pasted in verbatim *before* the script is processed.
+# Hotloading will only occur when the main file is updated.
 :include melodomatic_include.txt
 
 # Macros are direct text substitutions.
-@major_pentatonic 0 2 4 7 9 12
-@quarter_quarter_half 1 	1  	2 # whitespace will be scrubbed, as will this comment.
+@scale_major 0 2 4 5 7 9 11
+@scale_seventh 	0 	 2   4 5 7 9 10 12 	  # stray whitespace will be cleansed, as will this comment.
 
 ### SCALES ################################################
 # A scale defines the pitches that can be played by a voice.
-# A set of linked scales forms a directed graph of chord changes.
+# A set of linked scales forms a directed graph of harmonic changes.
 
-:scale FMaj    # Scale ID is a string
-65             # ROOT pitch is an integer midi note value (0-129)
-0 2 4 7 9 12   # Scale INTERVALS are relative to the root pitch. This forms the
-               # pool of pitches that a voice picks from to generate its
-               # sequence.
-BbMaj C7       # LINKS are ids of other scales that the player can transition to.
-               # The player switches between scales periodically. If there are
-               # no links, the player will just stay here forever. Invalid
-               # links will be thrown away.
+:scale FMaj      # Scale ID is a string
+65               # ROOT pitch is an integer midi note value (0-129)
+0 2 4 5 7 9 11   # Scale INTERVALS are added to the root to generate the full 
+                 # set of pitches that can be played.
+                 # Under normal circumstances, these should be in the range [0,11]
+FMaj BbMaj C7    # LINKS are ids of other scales that the player can transition to.
+                 # The player switches between scales periodically. If there are
+                 # no links, the player will just stay here forever.
+                 # Self-transitions are okay. Invalid links are ignored.
 
 :scale BbMaj
 70
-@major_pentatonic
+@scale_major
 FMaj C7
 
 :scale C7
 72
-0 2 4 7 10 12
+@scale_seventh
 FMaj BbMaj
+
+
+### PITCH SET #############################################
+# A pitch set defines the intervals in a scale that will be played by a voice.
+
+:pitchset Triad    # Pitch Set ID is a string
+1 3 5              # Pitch Set INTERVALS are harmonic intervals, not midi note offsets.
+                   # So 1 is the Tonic, 5 is the Dominant, etc.
+
+:pitchset Deep9th
+--1 --5 -1 -5 -6+ 1 3 5 7- 9    # -5 is the dominant, lowered one octave.
+                                # --5 is lowered two octaves.
+                                # 7- is a flatted subtonic.
+                                # -6+ is a sharped submediant one octave down.
+                                # 9 could (should?) also be written as +2, but
+                                # it works because the all the scales in this
+                                # script have 7 # notes (see above), and the
+                                # value is moduloed.
+
+:pitchset Pentatonic
+1 2 3 5 6 8
 
 
 ### VOICES ################################################
@@ -50,6 +71,8 @@ FMaj BbMaj
 # The player plays all voices simultaneously.
 
 :voice Tenor  # Voice ID is a string.
+Pentatonic    # Pitch Set ID defines which pitches the voice will play
+              # in whatever the current scale is.
 -12           # OFFSET is added to whatever pitch we get from the scale.
               # Usually this will be a multiple of 12 for shifting up/down
               # octaves.
@@ -61,11 +84,13 @@ FMaj BbMaj
               # periodically shift up and down the series of values.
 
 :voice Alto
+Pentatonic
 0
-4 @quarter_quarter_half @quarter_quarter_half -1 -2
+4 1 1 1 1 2 2 -1 -2
 48 64 80 96
 
 :voice Soprano
+Triad
 12
 .5 .5 1 1 1 2 -.5 -1
 32 48
