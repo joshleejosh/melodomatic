@@ -40,7 +40,6 @@ optional arguments:
 
 ### TODO
 
-* Triplets
 * Separate the pitch classes of a scale from the pitches you want to play
 * Build phrases instead of plucking random notes
   * Connectors between phrases: silence, leading notes, fills, gliss?

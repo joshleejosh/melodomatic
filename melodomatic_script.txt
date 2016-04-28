@@ -10,12 +10,15 @@
 # A '#' denotes a comment.
 # Blank lines are ignored.
 
-### MACROS ################################################
-# Macros are direct text substitutions.
+### PREPROCESSING ################################################
 
+# You can include another file. It gets pasted in verbatim before the script is processed.
+# Hotloading will only occur when *this* file is updated, though.
+:include melodomatic_include.txt
+
+# Macros are direct text substitutions.
 @major_pentatonic 0 2 4 7 9 12
 @quarter_quarter_half 1 	1  	2 # whitespace will be scrubbed, as will this comment.
-@sixteen 16
 
 ### SCALES ################################################
 # A scale defines the pitches that can be played by a voice.

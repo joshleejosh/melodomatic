@@ -1,4 +1,4 @@
-import os, time, re
+import sys, os, time, re
 import consts
 from util import *
 import player, voice, scale
@@ -38,6 +38,24 @@ class Parser:
         self.player = player
         self.reader = reader
         self.player.preparse_scrub()
+
+        # handle :include directives: paste another file directly into the buffer.
+        linei = -1
+        for line in list(lines):
+            linei += 1
+            line = line.split('#')[0].strip()
+            if len(line) == 0:
+                continue
+            if line.startswith(':include'):
+                fn = line.split()[1]
+                fp = open(fn)
+                ilines = fp.readlines()
+                fp.close()
+                del lines[linei]
+                lines[linei:1] = ilines
+                linei += len(ilines) - 1
+        for line in lines:
+            sys.stdout.write(line)
 
         scabufs = []
         vocbufs = []
@@ -96,7 +114,6 @@ class Parser:
                 elif line.startswith(':pulses_per_beat'):
                     i = line.split()[1]
                     if is_int(i):
-                        print 'what %s'%i
                         self.player.change_tempo(self.player.bpm, int(i))
 
                 elif line.startswith(':reload_interval'):

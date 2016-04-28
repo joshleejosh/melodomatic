@@ -1,0 +1,6 @@
+# This is a script file that gets pasted into melodomatic_script.txt by an :include directive. See that file for syntax notes.
+
+# Just a macro def.
+@sixteen 16
+
+
