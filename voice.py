@@ -6,7 +6,7 @@ class Note:
     def __init__(self, a, d, p, v):
         self.pitch = p
         self.velocity = v
-        self.duration = d
+        self.duration = d # This is in pulses, NOT beats
         self.at = a
         self.until = self.at + self.duration
     def __str__(self):
@@ -132,7 +132,6 @@ class Harmony(Voice):
         Voice.__init__(self, i, p)
         self.voice = ''
         self.pitchOffset = 0
-        self.stepOffset = 0
         self.velocityOffset = 0
 
     def dump(self):
@@ -141,7 +140,7 @@ class Harmony(Voice):
     # I should never generate a note on my own
     def validate(self):
         self.nextPulse = sys.maxint
-    def gen_note(self):
+    def gen_note(self, at):
         return None
 
     def harmonize(self, note):
@@ -151,24 +150,7 @@ class Harmony(Voice):
             self.play(note)
             return
 
-        # walk up/down the scale's intervals according to stepOffset, wrapping
-        # around and octaving when neccessary.
-        so = 0
-        pii = self.scale.pitch_to_interval(note.pitch)
-        if pii >= 0:
-            op = self.scale.intervals[pii]
-            pii += self.stepOffset
-            if self.stepOffset < 0:
-                if pii < 0:
-                    so -= 12
-                so += self.scale.intervals[pii] - op
-            elif self.stepOffset > 0:
-                if pii >= len(self.scale.intervals):
-                    so += 12
-                    pii = pii%len(self.scale.intervals)
-                so += self.scale.intervals[pii] - op
-
-        hnote = Note(note.at, note.duration, note.pitch + self.pitchOffset + so, note.velocity + self.velocityOffset)
+        hnote = Note(note.at, note.duration, note.pitch + self.pitchOffset, note.velocity + self.velocityOffset)
         self.play(hnote)
 
 
