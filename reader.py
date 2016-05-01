@@ -15,6 +15,7 @@ VALID_COMMANDS = {
         ':VOICE':[ 'CHANNEL', 'PITCH', 'TRANSPOSE', 'DURATION', 'VELOCITY', 'FOLLOW' ],
         }
 
+RE_EVAL = re.compile(r'\{([^}]*)\}')
 
 # I am responsible for parsing script data and configuring a Player instance
 # based on what I find.  Along the way, I am responsible for creating Scales
@@ -33,6 +34,7 @@ class Parser:
         self.player = player.Player()
         self.process_includes()
         self.process_macros()
+        self.process_evals()
         self.parse()
         self.build_player()
         if oldPlayer:
@@ -107,6 +109,21 @@ class Parser:
                 if '@' in self.text[linei]:
                     if consts.VERBOSE:
                         print 'ERROR line %d: bad macro reference [%s]'%(linei, line[:-1])
+
+    def process_evals(self):
+        for linei,line in enumerate(self.text):
+            if not '{' in line and '}' in line:
+                continue
+            for code in RE_EVAL.findall(line):
+                val = ''
+                if code.strip():
+                    val = friendly_eval(code)
+                if is_iterable(val):
+                    val = ' '.join(str(v) for v in val)
+                else:
+                    val = str(val)
+                print code, val
+                self.text[linei] = self.text[linei].replace('{%s}'%code, val, 1)
 
     def build_player(self):
         scaleIDs = set()
