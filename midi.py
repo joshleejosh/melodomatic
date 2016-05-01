@@ -9,8 +9,9 @@ class MelodomaticMidi:
         self.midiOut = mido.open_output()
 
     def close(self):
-        self.midiOut.reset()
-        self.midiOut.close()
+        if self.midiOut:
+            self.midiOut.reset()
+            self.midiOut.close()
 
     def send(self, m):
         self.midiOut.send(m)

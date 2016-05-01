@@ -24,6 +24,38 @@ def sign(n):
     else:
         return 0
 
+def clamp(v, low, high):
+    return min(high, max(low, v))
+
+def is_int(i):
+    try:
+        int(i)
+        return True
+    except ValueError:
+        return False
+
+def is_float(i):
+    try:
+        float(i)
+        return True
+    except ValueError:
+        return False
+
+def to_num(i):
+    if is_int(i):
+        return int(i)
+    elif is_float(i):
+        return float(i)
+    else:
+        raise ValueError('Can\'t parse number out of [%s]'%str(i))
+
+def split_ints(a):
+    return tuple(int(i) for i in a if is_int(i))
+
+def split_floats(a):
+    return tuple(float(i) for i in a if is_float(i))
+
+
 NOTE_NAMES = ('C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B')
 def note_name(v):
     octave = int(v/12)

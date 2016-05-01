@@ -1,323 +1,245 @@
 import os, time, re
 import consts
 from util import *
-import player, voice, scale, pitchset
+import generators, player, voice, scale
 
-def is_int(i):
-    try:
-        int(i)
-        return True
-    except ValueError:
-        return False
+VALID_COMMANDS = {
+        ':PLAYER':[
+            'BEATS_PER_MINUTE', 'BPM',
+            'PULSES_PER_BEAT', 'PPB',
+            'SCALE_CHANGE_TIMES',
+            'RELOAD_INTERVAL',
+            'START_SCALE',
+            ],
+        ':SCALE':[ 'ROOT', 'INTERVALS', 'LINKS' ],
+        ':VOICE':[ 'CHANNEL', 'PITCH', 'TRANSPOSE', 'DURATION', 'VELOCITY', 'FOLLOW' ],
+        }
 
-def is_float(i):
-    try:
-        float(i)
-        return True
-    except ValueError:
-        return False
-
-def split_ints(a):
-    return tuple(int(i) for i in a if is_int(i))
-
-def split_floats(a):
-    return tuple(float(i) for i in a if is_float(i))
-
-
-RE_MACRO = re.compile('@(\S+)')
 
 # I am responsible for parsing script data and configuring a Player instance
 # based on what I find.  Along the way, I am responsible for creating Scales
-# and Voices.
+# and Voices and attaching them to the player.
 class Parser:
     def __init__(self):
-        self.player = None
+        self.text = ''
+        self.data = []
         self.reader = None
+        self.player = None
 
-    def parse(self, lines, player, reader):
-        self.player = player
+    def make_player(self, lines, reader, oldPlayer):
+        self.text = lines
+        self.data = []
         self.reader = reader
-        self.player.preparse_scrub()
+        self.player = player.Player()
+        self.process_includes()
+        self.process_macros()
+        self.parse()
+        self.build_player()
+        if oldPlayer:
+            self.player.transfer_state(oldPlayer)
+        return self.player
 
-        # handle :include directives: paste another file directly into the buffer.
-        linei = -1
-        for line in list(lines):
-            linei += 1
-            line = line.split('#')[0].strip()
+    def parse(self):
+        self.data = []
+        self.buf = []
+
+        def clear_buf():
+            if self.buf:
+                # Slice the buffer into a command block.
+                block = []
+                bbuf = []
+                for i in self.buf:
+                    # Each command starts with '.'
+                    # But make sure we don't catch decimal numbers!
+                    if len(i) > 1 and i[0] == '.' and not is_int(i[1]):
+                        if bbuf:
+                            block.append(bbuf)
+                        bbuf = [i,]
+                    else:
+                        bbuf.append(i)
+                if bbuf:
+                    block.append(bbuf)
+                self.data.append(block)
+            self.buf = []
+
+        for linei in xrange(len(self.text)):
+            line = self.text[linei].split('#')[0].strip()
             if len(line) == 0:
                 continue
-            if line.startswith(':include'):
-                fn = line.split()[1]
-                if consts.VERBOSE:
-                    print 'Include file [%s]'%fn
+            a = line.strip().split()
+            if line[0] == ':':
+                # clean up the previous command block and start a new one.
+                clear_buf()
+                self.buf = a
+            else:
+                # The current data block spans multiple lines, so just append to it.
+                if self.buf:
+                    self.buf.extend(a)
+        clear_buf()
+
+    def process_includes(self):
+        toInsert = []
+        for linei,line in enumerate(self.text):
+            if line.upper().startswith('!INCLUDE'):
+                fn = line[len('!INCLUDE'):].split('#')[0].strip()
                 fp = open(fn)
-                ilines = fp.readlines()
+                lines = fp.readlines()
                 fp.close()
-                del lines[linei]
-                lines[linei:1] = ilines
-                linei += len(ilines) - 1
+                toInsert.append((linei, lines))
+        for i in range(len(toInsert)-1, -1, -1):
+            line = toInsert[i][0]
+            chunk = toInsert[i][1]
+            del self.text[line]
+            self.text[line:1] = chunk
 
-        scabufs = []
-        setbufs = []
-        vocbufs = []
-        self.scabuf = []
-        self.setbuf = []
-        self.vocbuf = []
-        macros = {}
-        newReloadInterval = -1
-
-        def close_blocks():
-            if self.scabuf:
-                scabufs.append(self.scabuf)
-                self.scabuf = []
-            if self.setbuf:
-                setbufs.append(self.setbuf)
-                self.setbuf = []
-            if self.vocbuf:
-                vocbufs.append(self.vocbuf)
-                self.vocbuf = []
-
-        linei = 0
-        for line in lines:
-            linei += 1
-            line = line.split('#')[0].strip()
-            if len(line) == 0:
-                continue
-
-            # handle macro definitions.
-            if line[0] == '@':
-                if not (self.scabuf or self.setbuf or self.vocbuf):
-                    a = line.split()
-                    car = a[0][1:]
-                    cdr = ' '.join(a[1:])
-                    macros[car] = cdr
+    def process_macros(self):
+        macros = []
+        for linei,line in enumerate(self.text):
+            if line.upper().startswith('!DEFINE'):
+                line = line[len('!DEFINE'):].split('#')[0]
+                a = line.split()
+                id = a[0].strip()
+                val = ' '.join(a[1:])
+                macros.append((id, val))
+            elif '@' in line:
+                for macro in macros:
+                    self.text[linei] = self.text[linei].replace('@'+macro[0], macro[1])
+                if '@' in self.text[linei]:
                     if consts.VERBOSE:
-                        print 'Macro definition [%s]->[%s]'%(car, cdr)
+                        print 'ERROR line %d: bad macro reference [%s]'%(linei, line[:-1])
 
-                    continue
+    def build_player(self):
+        scaleIDs = set()
 
-            # do macro substitutions before processing the line.
-            if '@' in line:
-                for g in RE_MACRO.findall(line):
-                    if g in macros:
-                        line = line.replace('@'+g, macros[g])
+        # Process player info first, no mattter where it was in the file (because so many things depend on ppb being set)...
+        for block in self.data:
+            btype = self.autocomplete_directive(block[0][0])
+            if btype == ':PLAYER':
+                # Do one pass just to look for ppb and bpm, since so many other things depend on them being set.
+                for ca in block[1:]:
+                    cmd = self.autocomplete_command(ca[0], btype)
+                    if cmd == 'BEATS_PER_MINUTE' or cmd == 'BPM':
+                        bpm = int(ca[1])
+                        self.player.change_tempo(bpm, self.player.ppb)
+                    elif cmd == 'PULSES_PER_BEAT' or cmd == 'PPB':
+                        ppb = int(ca[1])
+                        self.player.change_tempo(self.player.bpm, ppb)
+                # Go through again and get everything else.
+                for ca in block[1:]:
+                    cmd = self.autocomplete_command(ca[0], btype)
+                    if cmd == 'SCALE_CHANGE_TIMES':
+                        g,d,v = generators.make_generator(ca[1:], lambda x: self.player.parse_duration(x))
+                        if g:
+                            self.player.scaleChangeTimer = g
+                            self.player.scaleChangeTimerLabel = d
+                            self.player.scaleChangeTimerValues = v
+                    elif cmd == 'RELOAD_INTERVAL':
+                        # This isn't a player property at all! It's on the reader.
+                        self.reader.reloadInterval = self.player.parse_duration(ca[1])
+                    elif cmd == 'START_SCALE':
+                        self.player.startScale = ca[1]
+            # while we're here, build a list of valid scale IDs.
+            elif btype == ':SCALE':
+                scid = block[0][1].strip()
+                scaleIDs.add(scid)
+
+        # ...Then build scales...
+        for block in self.data:
+            btype = self.autocomplete_directive(block[0][0])
+            if btype == ':SCALE':
+                sc = scale.Scale(block[0][1].strip())
+                for ca in block[1:]:
+                    cmd = self.autocomplete_command(ca[0], btype)
+                    if cmd == 'ROOT':
+                        if len(ca) > 1 and is_int(ca[1]):
+                            n = int(ca[1])
+                            if n >= 0 and n <= 127:
+                                sc.root = int(ca[1])
+                    elif cmd == 'INTERVALS':
+                        if len(ca) > 1:
+                            sc.intervals = split_ints(ca[1:])
+                    elif cmd == 'LINKS':
+                        # try to strip out invalid links before setting
+                        sc.set_linker(tuple((id for id in ca[1:] if id in scaleIDs or id[0] == '$')))
                     else:
                         if consts.VERBOSE:
-                            print 'ERROR line %d: bad macro reference @%s'%(linei, g)
-                        line = line.replace('@'+g, '')
-            if len(line) == 0: # blank after substitution?
-                continue
+                            print 'ERROR: Bad scale command .%s'%cmd
+                self.player.add_scale(sc)
 
-            # handle directives.
-            if line[0] == ':':
-                close_blocks()
-                if line.startswith(':beats_per_minute'):
-                    i = line.split()[1]
-                    if is_int(i):
-                        self.player.change_tempo(int(i), self.player.ppb)
-
-                elif line.startswith(':pulses_per_beat'):
-                    i = line.split()[1]
-                    if is_int(i):
-                        self.player.change_tempo(self.player.bpm, int(i))
-
-                elif line.startswith(':reload_interval'):
-                    i = line.split()[1]
-                    if is_int(i):
-                        newReloadInterval = int(i)
-
-                elif line.startswith(':scale_change_times'):
-                    t = split_ints(line.split()[1:])
-                    if t:
-                        self.player.scaler.changeTimes = t
-
-                elif line.startswith(':scale_first'):
-                    a = line.split()
-                    if len(a) > 1:
-                        self.player.scaler.curScale = line.split()[1]
-                        # we can't check the validity of this value until we have finished loading.
-
-                elif line.startswith(':velocity_change_chance'):
-                    self.player.velocityChangeChance = float(line.split()[1])
-
-                elif line.startswith(':scale'):
-                    a = line.split()
-                    if len(a) < 2:
-                        print 'Error: no id for scale'
-                    else:
-                        self.scabuf = [a[1], ]
-
-                elif line.startswith(':pitchset'):
-                    a = line.split()
-                    if len(a) < 2:
-                        print 'Error: no id for pitchset'
-                    else:
-                        self.setbuf = [a[1], ]
-
-                elif line.startswith(':voice'):
-                    a = line.split()
-                    if len(a) < 2:
-                        print 'Error: no id for voice'
-                    else:
-                        self.vocbuf = ['voice', a[1], ]
-
-                elif line.startswith(':harmony'):
-                    a = line.split()
-                    if len(a) < 2:
-                        print 'Error: no id for harmony'
-                    else:
-                        self.vocbuf = ['harmony', a[1], ]
-
-                elif line.startswith(':loop'):
-                    a = line.split()
-                    if len(a) < 2:
-                        print 'Error: no id for loop'
-                    else:
-                        self.vocbuf = ['loop', a[1], ]
-
-                else:
-                    print 'Warning: Ignoring unrecognized directive %s'%line
-
-
-            # add data to blocks.
-            else:
-                if self.scabuf:
-                    self.scabuf.append(line)
-                if self.setbuf:
-                    self.setbuf.append(line)
-                if self.vocbuf:
-                    self.vocbuf.append(line)
-
-        close_blocks()
-        for s in scabufs:
-            ns = self.make_scale(s)
-            if ns:
-                self.player.scaler.scales[ns.id] = ns
-                if not self.player.scaler.curScale:
-                    self.player.scaler.curScale = ns.id
-        for s in setbufs:
-            sb = self.make_pitch_set(s)
-            if sb:
-                self.player.add_pitch_set(sb)
-        for v in vocbufs:
-            nv = self.make_voice(v)
-            if nv:
-                self.player.add_voice(nv)
-
-        self.player.validate()
-        if reader and newReloadInterval >= 0:
-            reader.reloadInterval = newReloadInterval * self.player.ppb
-
+        # ...And finally do voices.
+        for block in self.data:
+            btype = self.autocomplete_directive(block[0][0])
+            if btype == ':VOICE':
+                vo = voice.Voice(block[0][1].strip(), self.player)
+                for ca in block[1:]:
+                    cmd = self.autocomplete_command(ca[0], btype)
+                    if cmd == 'CHANNEL':
+                        if len(ca) > 1 and is_int(ca[1]):
+                            vo.channel = int(ca[1])
+                    elif cmd == 'TRANSPOSE':
+                        if len(ca) > 1 and is_int(ca[1]):
+                            vo.transpose = int(ca[1])
+                    elif cmd == 'FOLLOW':
+                        # The target voice must already exist in the player,
+                        # i.e., it must be defined before this one in the script.
+                        if len(ca) > 1:
+                            vo.follow = self.player.voices[ca[1]]
+                    elif cmd == 'PITCH':
+                        vo.set_pitcher(ca[1:])
+                    elif cmd == 'DURATION':
+                        vo.set_durationer(ca[1:])
+                    elif cmd == 'VELOCITY':
+                        vo.set_velocitier(ca[1:])
+                self.player.add_voice(vo)
         if consts.VERBOSE:
             self.player.dump()
 
-
-    def make_scale(self, scabuf):
-        sid = scabuf[0].strip()
-        rv = scale.Scale(sid)
-        if len(scabuf) > 1:
-            rv.root = int(scabuf[1].strip())
-        if len(scabuf) > 2:
-            rv.intervals = split_ints(scabuf[2].strip().split())
-        if len(scabuf) > 3:
-            # we can't verify the validity of the links until after we're
-            # finished loading, so just accept them all for now.
-            rv.links = scabuf[3].strip().split()
-        return rv
-
-    def make_pitch_set(self, setbuf):
-        sid = setbuf[0].strip()
-        rv = pitchset.PitchSet(sid)
-        if len(setbuf) > 1:
-            rv.set_intervals(setbuf[1].strip().split())
-        return rv
-
-    def make_voice(self, vocbuf):
-        which = vocbuf[0].strip()
-        vid = vocbuf[1].strip()
-        if which == 'voice':
-            rv = voice.Voice(vid, self.player)
-            if len(vocbuf) > 2:
-                rv.pitchSet = vocbuf[2].strip()
-            if len(vocbuf) > 3:
-                i = vocbuf[3].strip()
-                if is_int(i):
-                    rv.offset = int(i)
-            if len(vocbuf) > 4:
-                rv.durations = tuple(self.parse_duration(d) for d in vocbuf[4].strip().split())
-            if len(vocbuf) > 5:
-                rv.velocities = split_ints(vocbuf[5].strip().split())
-            return rv
-
-        elif which == 'harmony':
-            rv = voice.Harmony(vid, self.player)
-            if len(vocbuf) > 2:
-                rv.voice = vocbuf[2].strip()
-            if len(vocbuf) > 3:
-                i = vocbuf[3].strip()
-                if is_int(i):
-                    rv.pitchOffset = int(i)
-            if len(vocbuf) > 4:
-                i = vocbuf[4].strip()
-                if is_int(i):
-                    rv.velocityOffset = int(i)
-            return rv
-
-        elif which == 'loop':
-            rv = voice.Loop(vid, self.player)
-            if len(vocbuf) > 2:
-                i = vocbuf[2].strip()
-                if is_int(i):
-                    rv.offset = int(i)
-            for step in vocbuf[3:]:
-                a = step.split()
-                p = d = v = ''
-                p = a[0]
-                if len(a) > 1:
-                    d = self.parse_duration(a[1])
-                if len(a) > 2:
-                    v = a[2]
-                rv.add_step(p, d, v)
-
-            return rv
-
-    def parse_duration(self, d):
-        d = d.strip()
-        if d == '.': # magic value used in loops
-            return d
-        if d[-1] == 'p' and is_float(d[:-1]):
-            return float(d[:-1])
-        if is_float(d):
-            return float(d) * self.player.ppb
+    def autocomplete_directive(self, d):
+        if not d.startswith(':'):
+            d = ':' + d
+        d = d.upper()
+        for directive in VALID_COMMANDS.iterkeys():
+            if directive.startswith(d):
+                return directive
         return d
 
+    def autocomplete_command(self, c, ctx):
+        if c.startswith('.'):
+            c = c[1:]
+        c = c.upper()
+        if ctx not in VALID_COMMANDS:
+            return c
+        for command in VALID_COMMANDS[ctx]:
+            if command.startswith(c):
+                return command
+        return c
 
 # I am responsible for reading a script file and feeding its contents to a Parser.
 # I am also responsible for checking for changes to the file at regular
 # intervals and reconfiguring the Player when that happens.
 class Reader:
-    def __init__(self, fn, pl):
+    def __init__(self, fn):
         self.filename = fn
         self.filetime = time.time()
-        self.player = pl
-        self.player.reader = self
-        self.reloadInterval = consts.DEFAULT_RELOAD_INTERVAL
-        self.state = ''
+        self.reloadInterval = consts.DEFAULT_RELOAD_INTERVAL * consts.DEFAULT_PULSES_PER_BEAT
+        self.status = ''
 
-    def load_script(self):
+    def load_script(self, ts, oldPlayer=None):
         self.filetime = os.stat(self.filename).st_mtime
         fp = open(self.filename)
-        Parser().parse(fp.readlines(), self.player, self)
+        lines = fp.readlines()
         fp.close()
-
+        rv = Parser().make_player(lines, self, oldPlayer)
         if consts.VERBOSE:
-            print '(Re)loaded at %d, hotload interval %d'%(self.player.pulse, self.reloadInterval)
+            print '(Re)load at %d, hotload interval %d'%(ts, self.reloadInterval)
+        return rv
 
     def update(self, pulse):
-        self.state = ''
+        self.status = ''
         if pulse%self.reloadInterval == 0:
             t = os.stat(self.filename).st_mtime
             if t != self.filetime:
-                self.load_script()
-                self.state = '*'
+                self.status = '*'
+                return True
+        return False
 

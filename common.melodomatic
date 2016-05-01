@@ -1,0 +1,29 @@
+# Intervals for common scales.
+!define scale_major      0 2 4 5 7 9 11
+!define scale_minor      0 2 3 5 7 8 10
+!define scale_blue       0 2 3 5 7 9 10
+!define scale_ionian     0 2 4 5 7 9 11
+!define scale_dorian     0 2 3 5 7 9 10
+!define scale_phrygian   0 1 3 5 7 8 10
+!define scale_lydian     0 2 4 6 7 9 11
+!define scale_mixolydian 0 2 4 5 7 9 10
+!define scale_aeolian    0 2 3 5 7 8 10
+!define scale_locrian    0 1 3 5 6 8 10
+
+# Labels for scale degrees.
+# They need to be defined in a certain order for substitutions to work.
+#!define subdominant 4
+#!define submediant  6
+#!define subtonic    7
+#!define supertonic  2
+#!define dominant    5
+#!define mediant     3
+#!define tonic       1
+#!define vii 7
+#!define vi  6
+#!define iii 3
+#!define IV  4
+#!define ii  2
+#!define I   1
+#!define V   5
+

@@ -1,0 +1,4 @@
+
+!define LATEMACRO 49
+!include test/macro.melodomatic # strip comments before processing includes (or anything else, really)
+

@@ -18,7 +18,9 @@ A script-controlled procedural MIDI sequencer.
 
 ### SCRIPT FORMAT
 
-Melodomatic is controlled by a script file. See `melodomatic_script.txt` for notes on the data types.
+Melodomatic is controlled by a script file that defines *voices* that play notes, and *scales* that define what notes can/should be played.
+
+See `reference.melodomatic` for notes on the script syntax.
 
 ### RUNNING
 

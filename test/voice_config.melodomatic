@@ -1,0 +1,25 @@
+:scale S
+
+
+:voice Empty
+
+:voice JustChannel
+.c 2
+
+:voice JustDuration
+.d $random-walk .333 4 8 4 -2 # leading decimal!
+
+:voice JustVelocity
+.v $loop  48 49 50 51 50 49
+
+:voice JustTranspose
+.t -5
+
+:voice Follower
+.v -8
+.t -12
+.f JustChannel
+
+:voice BadGenerator
+.v $invalid 48 49 50 51 50 49
+

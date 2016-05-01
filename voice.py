@@ -1,12 +1,13 @@
 import sys
-import consts
+import consts, generators, scale
 from util import *
 
+# I represent a playable midi note.
 class Note:
     def __init__(self, a, d, p, v):
         self.pitch = p
         self.velocity = v
-        self.duration = d # This is in pulses, NOT beats
+        self.duration = d # This is always in pulses, NOT beats
         self.at = a
         self.until = self.at + self.duration
     def __str__(self):
@@ -15,200 +16,105 @@ class Note:
     def is_rest(self):
         return (self.velocity == 0)
 
-# I am responsible for taking pitches from a Scale and turning them into
-# playable notes. This mostly involves deciding when and how long to play each
-# note. I also decide how hard to play a note (its velocity).
+
+# I am responsible for generating actual notes to play.
 class Voice:
-    def __init__(self, i, p):
-        self.id = i;
-        self.player = p
-        self.offset = 0
-        self.durations = ()
-        self.velocities = ()
-        self.harmonies = []
-        self.state = ''
-        self.playing = False
-        self.velocity = consts.DEFAULT_VELOCITY
+    def __init__(self, id, pl):
+        self.id = id
+        self.player = pl
+        self.channel = 1
+        self.follow = None
+        self.followNote = None
+        self.transpose = 0
+        self.pitcher, self.pitcherLabel, self.pitcherValues = generators.make_generator(('$SCALAR', 1))
+        self.durationer, self.durationerLabel, self.durationerValues = generators.make_generator(('$SCALAR', consts.DEFAULT_PULSES_PER_BEAT))
+        self.velocitier, self.velocitierLabel, self.velocitierValues = generators.make_generator(('$SCALAR', 64))
+        self.status = ''
+        self.curNote = None
         self.nextPulse = 0
-        self.lastNote = None
-        self.scale = None
-        self.pitchSet = ''
 
     def dump(self):
-        print '%s: %d %s %s'%(self.id, self.offset, self.durations, self.velocities)
+        print 'VOICE "%s": channel %d'%(self.id, self.channel)
+        if self.follow:
+            print '    following %s'%self.follow.id
+        if self.transpose:
+            print '    transpose by %d'%self.transpose
+        if not self.follow:
+            print '    pitch = %s'%self.pitcherLabel
+            print '    duration = %s'%self.durationerLabel
+        print '    velocity = %s'%self.velocitierLabel
 
-    def validate(self):
-        self.validate_harmonies()
-        self.velocity = -1
-        self.change_velocity()
-        if not self.pitchSet:
-            self.pitchSet = self.player.pitchSets.values()[0].id
+    def set_pitcher(self, data):
+        g,d,v = generators.make_generator(data, lambda x: scale.ScaleDegree(x))
+        if g:
+            self.pitcher = g
+            self.pitcherLabel = d
+            self.pitcherValues = v
 
-    def validate_harmonies(self):
-        del self.harmonies[:]
-        for v in self.player.voices.itervalues():
-            if isinstance(v, Harmony):
-                if v.voice == self.id:
-                    self.harmonies.append(v)
+    def set_durationer(self, data):
+        g,d,v = generators.make_generator(data, lambda x: self.player.parse_duration(x))
+        if g:
+            self.durationer = g
+            self.durationerLabel = d
+            self.durationerValues = v
+
+    def set_velocitier(self, data):
+        g,d,v = generators.make_generator(data, lambda x: int(x))
+        if g:
+            self.velocitier = g
+            self.velocitierLabel = d
+            self.velocitierValues = v
 
     def update(self, pulse):
-        if self.lastNote and not self.lastNote.is_rest() and pulse >= self.lastNote.until:
-            self.end_last_note()
+        if self.curNote and not self.curNote.is_rest() and pulse >= self.curNote.until:
+            self.end_cur_note()
+        if self.follow:
+            if self.follow.curNote != self.followNote:
+                self.followNote = self.follow.curNote
+                note = self.follow_along(pulse)
+                if note:
+                    self.play(note)
+        else:
+            if pulse >= self.nextPulse:
+                note = self.make_note(pulse)
+                if note:
+                    self.play(note)
 
-        if pulse >= self.nextPulse:
-            if (rnd.random() < self.player.velocityChangeChance):
-                vel = self.change_velocity()
-            note = self.gen_note(pulse)
-            if note:
-                self.play(note)
-
-    def play(self, note):
-        if not note.is_rest():
-            self.player.play(note.pitch, note.velocity)
-        self.lastNote = note
-        self.nextPulse = note.until
-        if self.lastNote:
-            if not self.lastNote.is_rest():
-                self.state = str(self.lastNote)
-
-    def end_last_note(self):
-        self.player.play(self.lastNote.pitch, 0)
-        self.lastNote = None
-        self.state = ''
-
-    def gen_note(self, at):
-        if not self.scale:
-            return None
-        v = p = 0
-        d = self.make_duration()
+    def make_note(self, at):
+        d = self.durationer.next()
+        p = 0
+        v = 0
         if d < 0:
             d = abs(d)
+            # whatever, this is a rest so nothing will play, we just need a valid value
+            p = self.transpose + self.pitcherValues[0].get_pitch(self.player.curScale)
         else:
-            p = self.offset + self.make_pitch()
-            v = self.velocity
+            p = self.transpose + self.pitcher.next().get_pitch(self.player.curScale)
+            v = self.velocitier.next()
         rv = Note(at, d, p, v)
-        for h in self.harmonies:
-            h.harmonize(rv)
         return rv
 
-    def make_pitch(self):
-        return self.player.pitchSets[self.pitchSet].random_pitch(self.scale)
+    def follow_along(self, at):
+        d = self.followNote.duration
+        p = self.followNote.pitch + self.transpose
+        v = self.followNote.velocity + self.velocitier.next()
+        v = clamp(v, 0, 127)
+        if p >= 0 and p <= 127:
+            return Note(at, d, p, v)
 
-    def make_duration(self):
-        return self.rnddur()
+    def play(self, note):
+        self.curNote = note
+        self.nextPulse = note.until
+        if not note.is_rest():
+            self.player.play(note.pitch, note.velocity)
+        if self.curNote:
+            if not self.curNote.is_rest():
+                self.status = str(self.curNote)
+            else:
+                self.status = ''
 
-    # randomly walk up or down one step in my list of velocities.
-    def change_velocity(self):
-        if len(self.velocities) == 0:
-            self.velocity = consts.DEFAULT_VELOCITY
-            return self.velocity
-        if self.velocity not in self.velocities:
-            self.velocity = rnd.choice(self.velocities)
-            return self.velocity
-
-        vi = self.velocities.index(self.velocity)
-        if len(self.velocities) == 1:
-            ni = 0
-        elif vi == 0:
-            ni = 1
-        elif vi == len(self.velocities) - 1:
-            ni = len(self.velocities) - 2
-        else:
-            ni = vi + coinflip()
-        #print '%s v: %d -> %d'%(self.id, self.velocities[vi], self.velocities[ni])
-        self.velocity = self.velocities[ni]
-        return self.velocity
-
-    def rnddur(self):
-        if not self.durations:
-            return self.player.ppb
-        return rnd.choice(self.durations)
-
-
-# I am a special kind of Voice that plays along with another Voice in unison,
-# but with my pitches and velocities offset by a certain amount.
-class Harmony(Voice):
-    def __init__(self, i, p):
-        Voice.__init__(self, i, p)
-        self.voice = ''
-        self.pitchOffset = 0
-        self.velocityOffset = 0
-
-    def dump(self):
-        print '%s: Harmony of %s, %d %d'%(self.id, self.voice, self.pitchOffset, self.velocityOffset)
-
-    # I should never generate a note on my own
-    def validate(self):
-        self.nextPulse = sys.maxint
-    def gen_note(self, at):
-        return None
-
-    def harmonize(self, note):
-        if self.lastNote and not self.lastNote.is_rest():
-            self.end_last_note()
-        if note.is_rest():
-            self.play(note)
-            return
-
-        hnote = Note(note.at, note.duration, note.pitch + self.pitchOffset, note.velocity + self.velocityOffset)
-        self.play(hnote)
-
-
-# I am a special type of Voice that plays a static sequence of notes in a loop,
-# instead of generating them algorithmically.
-class Loop(Voice):
-    def __init__(self, i, p):
-        Voice.__init__(self, i, p)
-        self.steps = []
-        self.curStep = -1
-
-    # arguments are strings, since some of them might be a dot (representing a
-    # rest or carryover of the previous value) or empty (representing a carryover)
-    def add_step(self, p, d, v):
-        if p == '.':
-            p = sys.maxint
-        if not d or d == '.':
-            d = self.steps[-1].duration
-        if not v or v == '.':
-            v = self.steps[-1].velocity
-        self.steps.append(Step(int(p), float(d), int(v)))
-        self.durations = tuple(s.duration for s in self.steps) # for reporting
-
-    def dump(self):
-        print '%s: Loop: %d steps, %d beats'%(self.id, len(self.steps), sum(self.durations))
-        #for step in self.steps:
-        #    step.dump()
-
-    def validate(self):
-        self.curStep = -1
-        self.validate_harmonies()
-
-    def gen_note(self, at):
-        rv = None
-        self.curStep = (self.curStep + 1)%len(self.steps)
-        step = self.steps[self.curStep]
-
-        d = step.duration
-        p = step.pitch
-        v = step.velocity
-        if p == sys.maxint:
-            p = v = 0
-        else:
-            p += self.offset + self.scale.root
-        rv = Note(at, d, p, v)
-
-        for h in self.harmonies:
-            h.harmonize(rv)
-        return rv
-
-
-# I am used by Loop, and represent a step in its sequence.
-class Step:
-    def __init__(self, p, d, v):
-        self.pitch = p
-        self.duration = d
-        self.velocity = v
-    def dump(self):
-        print '    Step: %s %0.2f %d'%(('.' if self.pitch==sys.maxint else str(self.pitch)), self.duration, self.velocity)
-
+    def end_cur_note(self):
+        self.player.play(self.curNote.pitch, 0)
+        self.curNote = None
+        self.status = ''
 

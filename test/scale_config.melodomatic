@@ -1,0 +1,30 @@
+:scale Blank
+This text is not attached to a command, so it will hopefully be appended to the scale directive and ignored.
+
+:scale JustRoot
+.r 48
+.r 49
+.r 50
+
+:scale JustIntervals
+.i 	 0 2 	 3 5  		 7 8 10 	  # Trim whitespace and comments.
+:scale NegativeIntervals
+.i -12 -10 -9 -7 -5 -4 -2
+
+:scale JustLinks
+.l JustRoot JustIntervals
+:scale EmptyLinks
+.l
+:scale WeightedLinks
+.l $random JustLinks JustLinks EmptyLinks INVALIDLINK JustLinks
+
+:scale BadValues
+.r agbra
+.r -1
+.r 128
+.r
+.i
+.i 0 2 3 5 wve6wauh 7 8 10
+.l NotAScale
+
+
