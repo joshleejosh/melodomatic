@@ -157,7 +157,9 @@ class Parser:
                                 sc.root = int(ca[1])
                     elif cmd == 'INTERVALS':
                         if len(ca) > 1:
-                            sc.intervals = split_ints(ca[1:])
+                            a = split_ints(ca[1:])
+                            if len(a) > 0:
+                                sc.intervals = split_ints(ca[1:])
                     elif cmd == 'LINKS':
                         # try to strip out invalid links before setting
                         sc.set_linker(tuple((id for id in ca[1:] if id in scaleIDs or id[0] == '$')))

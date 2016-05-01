@@ -26,9 +26,9 @@ class Voice:
         self.follow = None
         self.followNote = None
         self.transpose = 0
-        self.pitcher, self.pitcherLabel, self.pitcherValues = generators.make_generator(('$SCALAR', 1))
-        self.durationer, self.durationerLabel, self.durationerValues = generators.make_generator(('$SCALAR', consts.DEFAULT_PULSES_PER_BEAT))
-        self.velocitier, self.velocitierLabel, self.velocitierValues = generators.make_generator(('$SCALAR', 64))
+        self.set_pitcher(('$SCALAR', '1'))
+        self.set_durationer(('$SCALAR', '4'))
+        self.set_velocitier(('$SCALAR', '64'))
         self.status = ''
         self.curNote = None
         self.nextPulse = 0
