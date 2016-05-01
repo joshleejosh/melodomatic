@@ -68,13 +68,28 @@ class Scale:
         self.id = id
         self.root = consts.DEFAULT_SCALE_ROOT
         self.intervals = consts.DEFAULT_SCALE_INTERVALS
+        self.pitches = tuple(self.root + i for i in self.intervals)
         self.linker, self.linkerLabel, self.linkerValues = generators.make_generator((self.id,))
 
     def dump(self):
         print 'SCALE %s:'%self.id
-        print '    root = %d'%self.root
-        print '    intervals = %s'%str(self.intervals)
+        print '    pitches = %s [%d + %s]'%(self.pitches, self.root, self.intervals)
         print '    links = %s'%self.linkerLabel
+
+    def set_root(self, r):
+        self.root = r
+        if self.root and self.intervals:
+            self.pitches = tuple(i + self.root for i in self.intervals)
+
+    def set_intervals(self, ia):
+        self.intervals = ia
+        if self.root and self.intervals:
+            self.pitches = tuple(i + self.root for i in self.intervals)
+
+    def set_pitches(self, pa):
+        self.pitches = pa
+        self.root = self.pitches[0]
+        self.intervals = tuple(p - self.root for p in self.pitches)
 
     def set_linker(self, data):
         if not data:
@@ -85,24 +100,8 @@ class Scale:
             self.linkerLabel = d
             self.linkerValues = v
 
-    def validate(self, scaler):
-        if self.root < 0 or self.root > 127:
-            self.root = DEFAULT_SCALE_ROOT
-        if not self.intervals:
-            self.intervals = consts.DEFAULT_SCALE_INTERVALS
-        # strip out invalid links
-        self.links = tuple(link for link in self.links if link in scaler.scales)
-
-    # for the given pitch, reverse engineer which interval in my set it indexes to.
-    # returns -1 if it can't figure something out.
-    def pitch_to_interval(self, p):
-        try:
-            return self.intervals.index(p - self.root)
-        except ValueError:
-            return -1
-
     def get_pitch(self, i):
-        return self.root + self.intervals[i]
+        return self.pitches[i]
 
     def next_scale(self):
         return self.linker.next()

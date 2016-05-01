@@ -27,4 +27,6 @@ This text is not attached to a command, so it will hopefully be appended to the 
 .i 0 2 3 5 wve6wauh 7 8 10
 .l NotAScale
 
+:sc Pitches
+.pitches 64 66 67 69 71 72 74
 

@@ -11,7 +11,7 @@ VALID_COMMANDS = {
             'RELOAD_INTERVAL',
             'START_SCALE',
             ],
-        ':SCALE':[ 'ROOT', 'INTERVALS', 'LINKS' ],
+        ':SCALE':[ 'ROOT', 'INTERVALS', 'PITCHES', 'LINKS' ],
         ':VOICE':[ 'CHANNEL', 'PITCH', 'TRANSPOSE', 'DURATION', 'VELOCITY', 'FOLLOW' ],
         }
 
@@ -154,12 +154,17 @@ class Parser:
                         if len(ca) > 1 and is_int(ca[1]):
                             n = int(ca[1])
                             if n >= 0 and n <= 127:
-                                sc.root = int(ca[1])
+                                sc.set_root(int(ca[1]))
                     elif cmd == 'INTERVALS':
                         if len(ca) > 1:
                             a = split_ints(ca[1:])
                             if len(a) > 0:
-                                sc.intervals = split_ints(ca[1:])
+                                sc.set_intervals(a)
+                    elif cmd == 'PITCHES':
+                        if len(ca) > 1:
+                            a = split_ints(ca[1:])
+                            if len(a) > 0:
+                                sc.set_pitches(a)
                     elif cmd == 'LINKS':
                         # try to strip out invalid links before setting
                         sc.set_linker(tuple((id for id in ca[1:] if id in scaleIDs or id[0] == '$')))

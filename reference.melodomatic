@@ -60,6 +60,11 @@
        FMaj FMaj FMaj BbMaj  # To weigh one scale over another in a $random or
                              # $shuffle set, add extra entries to the pool.
 
+:sc Dmin
+.pitches 62 64 65 67 69 70 72 # You can just define the pitches directly if
+                              # that feels easier than root + intervals.
+
+
 ### VOICES ################################################
 # A voice generates a sequence of notes (using the player's current scale).
 # The player plays all voices simultaneously.
