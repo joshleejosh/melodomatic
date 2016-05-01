@@ -48,8 +48,8 @@
 
 # Commands can be abbreviated.
 # Multiple commands can go on a single line.
-# The @scale_major macro will be replaced by its definition (from common.melodomatic).
-:sc BbMaj .r 70 .i @scale_major .l FMaj C7
+# The @major macro will be replaced by its definition (from common.melodomatic).
+:sc BbMaj .r 70 .i @major .l FMaj C7
 
 :sCaLe C7
 .RooT 72                     # Commands are case-insensitive.

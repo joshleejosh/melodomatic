@@ -15,18 +15,20 @@ def loop(a):
         if i >= len(a):
             i = 0
 
+# Traverse forwards and backwards through the list forever.
 def pingpong(a):
     i = 0
     dir = 1
     while True:
         yield a[i]
-        i += dir
-        if i >= len(a):
-            i = len(a)-1
+        if i >= len(a)-1:
+            i = len(a)-2
             dir = -1
-        if i < 0:
-            i = 0
+        elif i <= 0:
+            i = 1
             dir = 1
+        else:
+            i += dir
 
 def random(a):
     while True:

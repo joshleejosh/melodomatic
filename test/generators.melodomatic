@@ -1,0 +1,28 @@
+
+:s Chromatic
+.p 60 61 62 63 64 65 66 67 68 69 70 71
+
+:v Scalar
+.p $scalar 8
+.d 1
+
+:v Loop
+.p $loop 1 2 3 4 5
+.d 1
+
+:v PingPong
+.p $pInGpOnG 1 2 3 4 5
+.d 1
+
+:v Shuffle
+.p $shuffle 1 2 3 4 5
+.d 1
+
+:v Random
+.p $random 1 2 3 4 5
+.d 1
+
+:v RandomWalk
+.p $random-walk .50 1 2 3 4 5
+.d 1
+
