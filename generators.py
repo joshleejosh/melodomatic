@@ -2,27 +2,25 @@ import consts
 from util import *
 
 # Return the input value forever.
-def scalar(v):
+def scalar(data, player):
     while True:
-        yield v
+        yield data[0]
 
 # Loop through the given list on repeat forever.
-def loop(a):
+def loop(data, player):
     i = 0
     while True:
-        yield a[i]
-        i += 1
-        if i >= len(a):
-            i = 0
+        yield data[i]
+        i = (i+1)%len(data)
 
 # Traverse forwards and backwards through the list forever.
-def pingpong(a):
+def pingpong(data, player):
     i = 0
     dir = 1
     while True:
-        yield a[i]
-        if i >= len(a)-1:
-            i = len(a)-2
+        yield data[i]
+        if i >= len(data)-1:
+            i = len(data)-2
             dir = -1
         elif i <= 0:
             i = 1
@@ -30,23 +28,26 @@ def pingpong(a):
         else:
             i += dir
 
-def random(a):
+# Pick randomly from the list forever.
+def random(data, player):
     while True:
-        yield rnd.choice(a)
+        yield rnd.choice(data)
 
 # Shuffle the list, loop over it, and repeat forever.
 # Does not modify the list.
-def shuffle(a):
+def shuffle(data, player):
     while True:
-        ia = range(len(a))
+        ia = range(len(data))
         rnd.shuffle(ia)
         for i in ia:
-            yield a[i]
+            yield data[i]
 
 # Randomly walks up and down the given array forever.
 # Only steps on random occasion, based on the given chance.
 # When not at the edges of the array, step direction is an even coin flip.
-def random_walk(chance, a):
+def random_walk(data, player):
+    chance = float(data[0])
+    a = data[1:]
     i = rnd.randint(0, len(a)-1)
     while True:
         yield a[i]
@@ -60,24 +61,31 @@ def random_walk(chance, a):
 
 # ######################################################## #
 
-GENERATOR_NAMES = [
-        'SCALAR',
-        'LOOP',
-        'PINGPONG', 'PP',
-        'RANDOM',
-        'SHUFFLE',
-        'RANDOM-WALK', 'RANDOMWALK', 'RW'
-]
+GENERATORS = { }
+GENERATORS_ORDERED = []
+
+def register_generator(name, maker):
+    name = name.strip().upper()
+    GENERATORS[name] = maker
+    GENERATORS_ORDERED.append(name)
 
 def autocomplete_generator_name(n):
     n = n.strip().upper()
-    for name in GENERATOR_NAMES:
+    for name in GENERATORS_ORDERED:
         if name.startswith(n):
             return name
     return n
 
-# Returns a 3-tuple containing the generator, a description string, and a tuple with converted values.
-def make_generator(data, converter=None):
+# Binds a generator function to the given data and player.
+#
+# The first element in the data array should be a $ descriptor of which generator to use.
+# If none is given, we'll assume $SCALAR for single values and $RANDOM for multiple.
+#
+# If a converter function is given, any output from the generator will be run
+# through it on its way out.
+#
+# Returns a 2-tuple containing the generator and a text label.
+def bind_generator(data, player):
     cmd = ''
     if data[0][0] == '$':
         cmd = data[0][1:].upper()
@@ -86,28 +94,21 @@ def make_generator(data, converter=None):
         cmd = 'SCALAR'
     else:
         cmd = 'RANDOM'
+
     cmd = autocomplete_generator_name(cmd)
-    if cmd == 'SCALAR':
-        v = converter(data[0]) if converter else data[0]
-        return (scalar(v), '$%s %s'%(cmd, v), (v,))
-    elif cmd == 'LOOP':
-        a = tuple(converter(d) if converter else d for d in data)
-        return (loop(a), '$%s %s'%(cmd, tuple(str(i) for i in a)), a)
-    elif cmd == 'PINGPONG' or cmd == 'PP':
-        a = tuple(converter(d) if converter else d for d in data)
-        return (pingpong(a), '$%s %s'%(cmd, tuple(str(i) for i in a)), a)
-    elif cmd == 'RANDOM':
-        a = tuple(converter(d) if converter else d for d in data)
-        return (random(a), '$%s %s'%(cmd, tuple(str(i) for i in a)), a)
-    elif cmd == 'SHUFFLE':
-        a = tuple(converter(d) if converter else d for d in data)
-        return (shuffle(a), '$%s %s'%(cmd, tuple(str(i) for i in a)), a)
-    elif cmd == 'RANDOM-WALK' or cmd == 'RANDOMWALK' or cmd == 'RW':
-        c = float(data[0])
-        a = tuple(converter(d) if converter else d for d in data[1:])
-        return (random_walk(c, a), '$%s %f %s'%(cmd, c, tuple(str(i) for i in a)), a)
+    if cmd in GENERATORS:
+        return (GENERATORS[cmd](data, player), '$%s %s'%(cmd, str(data)))
 
     if consts.VERBOSE:
         print 'ERROR: Bad generator funtion [%s]'%cmd
-    return (None, '', ())
+    return (None, '')
+
+register_generator('SCALAR', scalar)
+register_generator('LOOP', loop)
+register_generator('PINGPONG', pingpong)
+register_generator('PP', pingpong)
+register_generator('RANDOM', random)
+register_generator('SHUFFLE', shuffle)
+register_generator('RANDOM-WALK', random_walk)
+register_generator('RW', random_walk)
 

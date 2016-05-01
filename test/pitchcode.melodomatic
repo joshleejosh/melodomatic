@@ -5,15 +5,28 @@
 
 :voice Bass
 .channel 3
-.duration 4
+.duration 2
 .velocity 48
 .pitch $loop
---5 -1 -5 -6+ 1 3 5 7- 9    # -5 is the dominant, lowered one octave.
-                            # --5 is lowered two octaves.
-                            # 7- is a flatted subtonic.
-                            # -6+ is a sharped submediant one octave down.
-                            # 9 could (should?) also be written as +2, but it
-                            # works because the all the scales in this script
-                            # have 7 notes (see above), and the value is
-                            # moduloed.
+       --5                   # --5 is the dominant tone, lowered two octaves.
+        -1                   # -1 is the tonic, lowered one octave.
+        -5                   # -5 is the dominant, lowered one octave.
+        -6+                  # -6+ is a sharped submediant, one octave down.
+         1                   # The tonic of the current scale.
+         2kgjbioj9           # Bad value should successfully (if incorrectly)
+                             # parse as '2'.
+     +-+-3+--+               # +-+-3+--+ gets lowered twice and raised twice,
+                             # then sharped twice and flatted twice, so it ends
+                             # up being a natural in the current scale.
+         5                   # The dominant of the current scale.
+         7-                  # 7- is a flatted subtonic.
+         9                   # 9 could (should?) also be written as +2, but it
+                             # works because the all the scales in this script
+                             # have 7 notes (see above), and the value is
+                             # moduloed. If your scales were chromatic,
+                             # whole-tone, etc., this would get thrown off.
+        +4
+        +6
+       ++1
+
 

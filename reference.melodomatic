@@ -1,3 +1,5 @@
+### MELODOMATIC ###############################################################
+#
 # MELODOMATIC is controlled by a script file that contains definitions of
 # SCALES to be played and VOICES that play notes in those scales.
 #
@@ -5,8 +7,9 @@
 # When this is not true, the program ends.
 #
 # If the script is updated while the program is running, it will be hotloaded.
+#
 
-### FORMATTING ###
+### FORMATTING ################################################################
 # The script consists a series of command blocks.
 # A word starting with ':' denotes a new command block.
 # A word starting with '.' denotes a command within a block.
@@ -16,46 +19,51 @@
 # Blank lines are ignored.
 
 
-### PREPROCESSING ###############################################
-# Preprocessing direcives start with '!'. They fill in text before the script is parsed.
+### PREPROCESSING #############################################################
+# Preprocessing direcives start with '!'. They modify the script before it is
+# parsed.
 
 # You can include another file. When you do, the 
 # Hotloading will only occur when the main file is updated.
 !include common.melodomatic
 
 # Macros are direct text substitutions.
-# A string starting with '@' anywhere in the script will be replaced by its macro value.
+# A string starting with '@' anywhere in the script will be replaced by its
+# macro value.
 !define randwalk-chance 0.20
 
 
-### SCALES ######################################################
+### SCALES
+###############################################################################
 # A scale defines the pitches that can be played by a voice.
 # A set of linked scales forms a directed graph of harmonic changes.
 
-:scale FMaj                 # Scale ID is a string.
-.root 65                    # ROOT pitch is an integer midi note value (0-129)
-.intervals 0 2 4 5 7 9 11   # Scale INTERVALS are a list of values to be added
-                            # to the root to generate the full set of pitches
-                            # that can be played.
-.links FMaj BbMaj C7        # LINKS are ids of other scales that the player can
-                            # transition to. The player switches between scales
-                            # periodically (see scale_change_times under
-                            # player, below).
-                            # If there are no links, the player will just stick
-                            # with this scale forever.
-                            # Self-transitions are okay.
-                            # Invalid links are ignored.
+:scale FMaj                  # Scale ID is a string.
+.root 65                     # ROOT pitch is an integer midi note value (0-129)
+.intervals 0 2 4 5 7 9 11    # Scale INTERVALS are a list of values to be added
+                             # to the root to generate the full set of pitches
+                             # that can be played.
+.links FMaj BbMaj C7         # LINKS are ids of other scales that the player
+                             # can transition to. The player switches between
+                             # scales periodically (see scale_change_times
+                             # under player, below).
+                             # If there are no links, the player will just
+                             # stay in this scale forever.
+                             # Self-transitions are okay.
+                             # Invalid links are ignored.
 
 # Commands can be abbreviated.
+# Commands are case-insensitive.
 # Multiple commands can go on a single line.
-# The @major macro will be replaced by its definition (from common.melodomatic).
-:sc BbMaj .r 70 .i @major .l FMaj C7
+# Here, the @major macro will be replaced by its definition (the definition is
+# in common.melodomatic, which was included above).
+:sc BbMaj .r 70 .i @major .LiNkS FMaj C7
 
-:sCaLe C7
-.RooT 72                     # Commands are case-insensitive.
-.interval 0 2                # A command can be spread out across multiple lines.
-4 5                          # Comments are stripped out before parsing and
-7 9 10                       # won't interrupt anything.
+:scale C7
+.root 72
+.interval 0 2                # A command can be spread out across multiple
+4 5                          # lines. Comments are stripped out before parsing
+7 9 10                       # and won't interrupt anything.
 .links $shuffle              # The link set is a generator (see below).
        FMaj FMaj FMaj BbMaj  # To weigh one scale over another in a $random or
                              # $shuffle set, add extra entries to the pool.
@@ -65,24 +73,24 @@
                               # that feels easier than root + intervals.
 
 
-### VOICES ################################################
+### VOICES ####################################################################
 # A voice generates a sequence of notes (using the player's current scale).
 # The player plays all voices simultaneously.
 
-:voice Lead           # Voice ID is a string.
-.channel 1            # MIDI CHANNEL is an integer (default is 1).
-.pitch 1 4 3 2        # PITCH is the set of notes this voice will play in
-                      # whatever the current scale is.
-                      # Values are scale degrees (not MIDI offsets like in the
-                      # scale defs above). So 1 is the Tonic, 5 is the
-                      # Dominant, etc.
-.duration 1 12p 2 -1  # DURATION is the set of lengths that notes will play for.
-                      # Values are measured in beats, unless a value ends in
-                      # 'p', in which case it's in pulses.
-                      # A negative duration represents a rest.
-.velocity 64 72 80    # VELOCITY is the set of possible velocities for notes,
-                      # determining dynamics/volume.
-                      # Values are integer MIDI values (0-127).
+:voice Lead                  # Voice ID is a string.
+.channel 1                   # MIDI CHANNEL is an integer (default is 1).
+.pitch 1 4 3 2               # PITCH is the set of notes this voice will play in
+                             # whatever the current scale is.  Values are scale
+                             # degrees (not MIDI offsets like in the scale defs
+                             # above). So 1 is the Tonic, 5 is the Dominant,
+                             # etc.
+.duration 1 12p 2 -1         # DURATION is the set of lengths that notes will
+                             # play for.  Values are measured in beats, unless a
+                             # value ends in 'p', in which case it's in pulses.
+                             # A negative duration represents a rest.
+.velocity 64 72 80           # VELOCITY is the set of possible velocities for
+                             # notes, determining dynamics/volume.  Values are
+                             # integer MIDI values (0-127).
 
 ### GENERATORS ###
 # .pitch, .duration, and .velocity are generator functions that choose values
@@ -92,27 +100,33 @@
 # - $LOOP - Iterates over its list in order.
 # - $PINGPONG - Goes back and forth through its list.
 # - $SHUFFLE - Shuffles, iterates, and reshuffles whenever it finishes.
-# - $RANDOM - Picks on a dice roll, so repeats are possible.
-# - $RANDOM-WALK - Walks up and down its list on a random basis (see example below).
+# - $RANDOM - Picks on a dice roll, so repeat runs are possible.
+# - $RANDOM-WALK - Walks up and down its list randomly (see example below).
 #
 # A bare single number will be wrapped in a $SCALAR generator by default.
 # A bare list will be wrapped in a $RANDOM generator by default.
 
 :voice Accomp
 .channel 2
-.transpose -12                    # Transpose all notes down an octave.
-.pitch 1 3 5                      # Default behavior is to pick randomly from the list.
-.duration $shuffle 2 2 2 4 4 -2   # Shuffle the given durations instead of picking randomly.
-.velocity $pingpong 40 48 48 56   # Walk back and forth through the list of velocities.
+.transpose -12               # Transpose all notes down an octave.
+.pitch 1 3 5                 # When no generator function is given, the default
+                             # behavior is to pick randomly from the list (same
+                             # as $random). This can result in runs of repeated
+                             # values.
+.duration $shuffle           # Shuffle the given durations instead of picking
+          2 2 2 4 4 -2       # randomly, avoiding long runs.
+.velocity $pingpong          # Walk back and forth through
+          40 48 48 56        # the list of velocities.
 
 # A voice can be set to follow along with another one, to set up harmonies.
 :voice Double
 .channel 2
-.follow Accomp       # Play along with whatever notes the Accomp voice is outputting.
-.transpose -5        # ...but transpose the pitch down a fourth.
-.velocity -8         # ...and also play more quietly.
-.pitch 1 2 3         # When following, any pitch spec will be ignored.
-.duration 1 1 2      # When following, any duration spec will be ignored.
+.follow Accomp               # Play whatever notes the Accomp voice
+                             # is producing, whenever it produces them.
+.transpose -5                # ...but transpose the pitch down a fourth.
+.velocity -8                 # ...and also play more quietly.
+.pitch 1                     # When following, pitch spec will be ignored.
+.duration 1                  # When following, duration spec will be ignored.
 
 :voice Bass
 .channel 3
@@ -122,69 +136,74 @@
 .pitch $loop                 # Pitch values can be encoded with octave and
                              # accidental info to step outside their prescribed
                              # scale pitches.
---5 -1 -5 -6+ 1 3+--+ 5 7- 9 # -5 is the dominant, lowered one octave.
-                             # --5 is lowered two octaves.
-                             # 7- is a flatted subtonic.
-                             # -6+ is a sharped submediant one octave down.
-                             # 9 could (should?) also be written as +2, but it
+       --5                   # --5 is the dominant tone, lowered two octaves.
+        -1                   # -1 is the tonic, lowered one octave.
+        -5                   # -5 is the dominant, lowered one octave.
+        -6+                  # -6+ is a sharped submediant, one octave down.
+         1                   # The tonic of the current scale.
+         3+--+               # 3+--+ gets sharped twice and flatted twice, so
+                             # ends up being a natural.
+         5                   # The dominant of the current scale.
+         7-                  # 7- is a flatted subtonic.
+         9                   # 9 could (should?) also be written as +2, but it
                              # works because the all the scales in this script
                              # have 7 notes (see above), and the value is
-                             # moduloed.
-                             # 3+--+ gets sharped twice and flatted twice, so
-                             # ends up being a natural.
+                             # moduloed. If your scales were chromatic,
+                             # whole-tone, etc., this would get thrown off.
 
 :voice Fill
 .channel 4
-.transpose +12                  # Transpose up an octave.
-                                # The '+' is redundant but acceptable.
+.transpose +12               # Transpose up an octave.
+                             # The '+' here is redundant but acceptable.
 .pitch 1 2 3
-.duration 4p 4p 4p 1 1 -4p -1   # A duration ending in 'p' is measured in
-                                # pulses instead of beats. Here, we set up
-                                # triplets by making notes 4 pulses long, which
-                                # is one third of 12 (see pulses_per_beat,
-                                # below).
-.velocity $random-walk          # The $RANDOM-WALK generator steps up and down
-                                # its list, but only takes a step on random
-                                # occasions.
-          @randwalk-chance      # The first value in the list is the chance
-                                # of taking a step (range 0.0-1.0) on any given
-                                # call. If it doesn't take a step, it just
-                                # returns the same value as last time.  The
-                                # direction of the step itself is 50/50, unless
-                                # we're at one end of the list (then we just
-                                # move inward)
-          32 40 48              # The rest of the list is the actual list of
-                                # velocity values.
+.duration
+       4p 4p 4p 1 1 -4p -1   # A duration ending in 'p' is measured in pulses
+                             # instead of beats. Here, we set up triplets by
+                             # making notes 4 pulses long, which is one third of
+                             # 12 (see pulses_per_beat, below).
+.velocity $random-walk       # The $RANDOM-WALK generator steps up and down its
+                             # list, but only takes a step on random occasions.
+          @randwalk-chance   # The first value in the list is the chance of
+                             # taking a step (range 0.0-1.0) on any given call.
+                             # If it doesn't take a step, it just returns the
+                             # same value as last time.  The direction of the
+                             # step itself has a 50/50 chance of going either
+                             # direction, unless we're at one end of the list
+                             # (then we always move inward).
+          32 40 48           # The rest of the list is the typical list of
+                             # velocity values.
 
 
 
-### PLAYER ######################################################
+### PLAYER ####################################################################
 # The player controls the tempo of the piece and handles changing between scales.
 # The entire player block is optional, if you're okay with the defaults.
 
 :player
 
-.beats_per_minute 108 # The overall tempo of the piece. (Default is 120)
+.beats_per_minute 108        # The overall tempo of the piece. (Default is 120)
 
-.pulses_per_beat 12   # Define the smallest fraction of a beat that we can
-                      # play.  This is used to derive the rate of processing,
-                      # so very large numbers lead to very small time slices,
-                      # which could lead to choppy performance.  On the other
-                      # hand, too few pulses risks dropping/overlapping short
-                      # notes.  So you should probably just not play with this.
-                      # (Default is 12)
+.pulses_per_beat 12          # Define the smallest fraction of a beat that we
+                             # can play.  This is used to derive the rate of
+                             # processing, so very large numbers lead to very
+                             # small time slices, which could lead to choppy
+                             # performance.  On the other hand, too few pulses
+                             # risks dropping/overlapping short notes.  So you
+                             # should probably just not play with this.
+                             # (Default is 12)
 
-.reload_interval 4    # Define how often the reader should check for
-                      # changes in this script file. This is a duration, so it
-                      # can be in beats or pulses.
+.reload_interval 4           # Define how often the reader should check for
+                             # changes in this script file. This is a duration,
+                             # so it can be in beats or pulses.
 
 .scale_change_times
- $shuffle 16 24 32    # A generator that determines how often (in beats) the
-                      # player will change between scales (as directed by the
-                      # scales' links properties).
+        $shuffle 16 24 32    # A generator that determines how often (in beats)
+                             # the player will change between scales (as
+                             # directed by the scales' links properties).
 
-.start_scale FMaj     # Which scale the player should start on when the file is
-                      # first loaded.  By default, the player will start with
-                      # the first scale in the file.  When the file is
-                      # hotloaded, this will override any current scale change.
+.start_scale FMaj            # Which scale the player should start on when the
+                             # file is first loaded.  By default, the player
+                             # will start with the first scale in the file.
+                             # When the file is hotloaded, this will override
+                             # any current scale change.
 

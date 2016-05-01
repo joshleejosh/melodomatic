@@ -4,72 +4,16 @@ from util import *
 
 RE_DEGREE = re.compile('^\s*([-+]*)(\d+)([-+]*)\s*$')
 
-# I represent an abstract degree in an arbitrary scale.
-class ScaleDegree:
-    def __init__(self, code):
-        self.degree = 1
-        self.octave = 0
-        self.accidental = 0
-        self.parse_code(code)
-
-    def parse_code(self, code):
-        m = RE_DEGREE.match(code)
-        if not m:
-            if consts.VERBOSE:
-                print 'ERROR: Bad scale degree code "%s"'%code
-            return
-        g = m.groups()
-        if g[0]:
-            for c in g[0]:
-                if c == '-':
-                    self.octave -= 1
-                elif c == '+':
-                    self.octave += 1
-        if g[1]:
-            self.degree = int(g[1])
-        if g[2]:
-            for c in g[2]:
-                if c == '-':
-                    self.accidental -= 1
-                elif c == '+':
-                    self.accidental += 1
-
-    def __str__(self):
-        s = ''
-        if self.octave < 0:
-            for c in xrange(abs(self.octave)):
-                s += '-'
-        elif self.octave > 0:
-            for c in xrange(self.octave):
-                s += '+'
-        s += str(self.degree)
-        if self.accidental < 0:
-            for c in xrange(abs(self.accidental)):
-                s += '-'
-        elif self.accidental > 0:
-            for c in xrange(self.accidental):
-                s += '+'
-        return s
-
-    # Get an actual pitch for this degree in the given scale.
-    def get_pitch(self, scale):
-        i = self.degree%len(scale.intervals)
-        o = self.octave + ((self.degree-1) // len(scale.intervals))
-        pitch = scale.get_pitch(i - 1)
-        pitch += 12 * o
-        pitch += self.accidental
-        return pitch
-
-
 # I represent a musical scale out of which notes are picked to produce melodies.
 # I also know what other scales the ScaleChanger can transition to from me.
 class Scale:
-    def __init__(self, id):
+    def __init__(self, id, player):
         self.id = id
+        self.player = player
         self.root = consts.DEFAULT_SCALE_ROOT
         self.intervals = consts.DEFAULT_SCALE_INTERVALS
         self.pitches = tuple(self.root + i for i in self.intervals)
-        self.linker, self.linkerLabel, self.linkerValues = generators.make_generator((self.id,))
+        self.linker, self.linkerLabel = generators.bind_generator((self.id,), self.player)
 
     def dump(self):
         print 'SCALE %s:'%self.id
@@ -94,15 +38,53 @@ class Scale:
     def set_linker(self, data):
         if not data:
             data = (self.id,)
-        g,d,v = generators.make_generator(data)
+        g,d = generators.bind_generator(data, self.player)
         if g:
             self.linker = g
             self.linkerLabel = d
-            self.linkerValues = v
+
+    def parse_degree(self, code):
+        code = code.strip()
+        degree = 1
+        octave = 0
+        accidental = 0
+
+        i = 0
+        while i < len(code):
+            if code[i] == '-':
+                octave -= 1
+            elif code[i] == '+':
+                octave += 1
+            else:
+                break
+            i += 1
+        dbuf = ''
+        while i < len(code):
+            if code[i].isdigit():
+                dbuf += code[i]
+            else:
+                break
+            i += 1
+        degree = int(dbuf)
+        while i < len(code):
+            if code[i] == '-':
+                accidental -= 1
+            elif code[i] == '+':
+                accidental += 1
+            else:
+                break
+            i += 1
+
+        i = degree%len(self.intervals)
+        o = octave + ((degree-1) // len(self.intervals))
+        pitch = self.get_pitch(i - 1)
+        pitch += 12 * o
+        pitch += accidental
+        return pitch
 
     def get_pitch(self, i):
         return self.pitches[i]
 
     def next_scale(self):
-        return self.linker.next()
+        return str(self.linker.next())
 

@@ -13,6 +13,7 @@
 .scale_change_times $shuffle 16 24 24 32 32 32
 .reload_interval 17.5
 .start_scale D
+.visualization_window 3p
 
 :s C .r 60
 :s D .r 62

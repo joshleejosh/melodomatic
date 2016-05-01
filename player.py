@@ -12,8 +12,8 @@ class Player:
         self.voiceOrder = []
         self.change_tempo(consts.DEFAULT_BEATS_PER_MINUTE, consts.DEFAULT_PULSES_PER_BEAT)
         self.midi = midi.MelodomaticMidi()
-        self.scaleChangeTimer, self.scaleChangeTimerLabel, self.scaleChangeTimerValues =  generators.make_generator(('$SCALAR', str(consts.DEFAULT_SCALE_CHANGE_TIME)), lambda x: self.parse_duration(x))
-        self.shortestDuration = self.parse_duration(str(consts.DEFAULT_SCALE_CHANGE_TIME))
+        self.scaleChangeTimer, self.scaleChangeTimerLabel = generators.bind_generator(('$SCALAR', str(consts.DEFAULT_SCALE_CHANGE_TIME)), self)
+        self.visualizationWindow = self.parse_duration(consts.DEFAULT_VISUALIZATION_WINDOW)
         self.startScale = ''
         self.curScale = None
         self.pulse = 0
@@ -23,7 +23,6 @@ class Player:
     def dump(self):
         print 'Player: %d bpm, %d ppb, %f pulse time'%(self.bpm, self.ppb, self.pulseTime)
         print '    Change Timer: %s'%self.scaleChangeTimerLabel
-        print '    Shortest Duration: %d'%self.shortestDuration
         for sc in self.scaleOrder:
             self.scales[sc].dump()
         for vo in self.voiceOrder:
@@ -33,8 +32,9 @@ class Player:
         old.shutdown()
         self.startup()
         self.pulse = old.pulse
-        self.nextScaleChange = self.pulse
-        print 'Transferred state from old player: pulse=%d, next change=%d'%(self.pulse, self.nextScaleChange)
+        self.nextScaleChange = self.pulse + self.parse_duration(self.scaleChangeTimer.next())
+        if consts.VERBOSE:
+            print 'Transferred state from old player: pulse=%d, next change=%d'%(self.pulse, self.nextScaleChange)
 
     def add_scale(self, s):
         if s not in self.scales.values():
@@ -47,7 +47,6 @@ class Player:
             v.player = self
             self.voices[v.id] = v
             self.voiceOrder.append(v.id)
-            self.shortestDuration = min(self.shortestDuration, min((abs(d) for d in v.durationerValues)))
 
     def is_valid(self):
         rv = True
@@ -75,7 +74,7 @@ class Player:
             self.curScale = self.scales[self.startScale]
         else:
             self.curScale = self.scales[self.scaleOrder[0]]
-        self.nextScaleChange = self.pulse + self.scaleChangeTimer.next()
+        self.nextScaleChange = self.pulse + self.parse_duration(self.scaleChangeTimer.next())
         self.status = self.curScale.id
         if consts.VERBOSE:
             print 'starting up'
@@ -91,7 +90,7 @@ class Player:
     def update(self):
         # check for a scale change
         if self.pulse >= self.nextScaleChange:
-            self.nextScaleChange = self.pulse + self.scaleChangeTimer.next()
+            self.nextScaleChange = self.pulse + self.parse_duration(self.scaleChangeTimer.next())
             self.curScale = self.scales[self.curScale.next_scale()]
             self.status = self.curScale.id
             #print 'Change to %s at %d, next change at %d'%(self.curScale.id, self.pulse, self.nextScaleChange)

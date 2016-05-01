@@ -10,6 +10,7 @@ VALID_COMMANDS = {
             'SCALE_CHANGE_TIMES',
             'RELOAD_INTERVAL',
             'START_SCALE',
+            'VISUALIZATION_WINDOW'
             ],
         ':SCALE':[ 'ROOT', 'INTERVALS', 'PITCHES', 'LINKS' ],
         ':VOICE':[ 'CHANNEL', 'PITCH', 'TRANSPOSE', 'DURATION', 'VELOCITY', 'FOLLOW' ],
@@ -122,7 +123,6 @@ class Parser:
                     val = ' '.join(str(v) for v in val)
                 else:
                     val = str(val)
-                print code, val
                 self.text[linei] = self.text[linei].replace('{%s}'%code, val, 1)
 
     def build_player(self):
@@ -145,16 +145,17 @@ class Parser:
                 for ca in block[1:]:
                     cmd = self.autocomplete_command(ca[0], btype)
                     if cmd == 'SCALE_CHANGE_TIMES':
-                        g,d,v = generators.make_generator(ca[1:], lambda x: self.player.parse_duration(x))
+                        g,d = generators.bind_generator(ca[1:], self.player)
                         if g:
                             self.player.scaleChangeTimer = g
                             self.player.scaleChangeTimerLabel = d
-                            self.player.scaleChangeTimerValues = v
                     elif cmd == 'RELOAD_INTERVAL':
                         # This isn't a player property at all! It's on the reader.
                         self.reader.reloadInterval = self.player.parse_duration(ca[1])
                     elif cmd == 'START_SCALE':
                         self.player.startScale = ca[1]
+                    elif cmd == 'VISUALIZATION_WINDOW':
+                        self.player.visualizationWindow = self.player.parse_duration(ca[1])
             # while we're here, build a list of valid scale IDs.
             elif btype == ':SCALE':
                 scid = block[0][1].strip()
@@ -164,7 +165,7 @@ class Parser:
         for block in self.data:
             btype = self.autocomplete_directive(block[0][0])
             if btype == ':SCALE':
-                sc = scale.Scale(block[0][1].strip())
+                sc = scale.Scale(block[0][1].strip(), self.player)
                 for ca in block[1:]:
                     cmd = self.autocomplete_command(ca[0], btype)
                     if cmd == 'ROOT':

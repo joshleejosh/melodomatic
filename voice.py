@@ -45,25 +45,22 @@ class Voice:
         print '    velocity = %s'%self.velocitierLabel
 
     def set_pitcher(self, data):
-        g,d,v = generators.make_generator(data, lambda x: scale.ScaleDegree(x))
+        g,d = generators.bind_generator(data, self.player)
         if g:
             self.pitcher = g
             self.pitcherLabel = d
-            self.pitcherValues = v
 
     def set_durationer(self, data):
-        g,d,v = generators.make_generator(data, lambda x: self.player.parse_duration(x))
+        g,d = generators.bind_generator(data, self.player)
         if g:
             self.durationer = g
             self.durationerLabel = d
-            self.durationerValues = v
 
     def set_velocitier(self, data):
-        g,d,v = generators.make_generator(data, lambda x: int(x))
+        g,d = generators.bind_generator(data, self.player)
         if g:
             self.velocitier = g
             self.velocitierLabel = d
-            self.velocitierValues = v
 
     def update(self, pulse):
         if self.curNote and not self.curNote.is_rest() and pulse >= self.curNote.until:
@@ -81,23 +78,23 @@ class Voice:
                     self.play(note)
 
     def make_note(self, at):
-        d = self.durationer.next()
+        d = self.player.parse_duration(self.durationer.next())
         p = 0
         v = 0
         if d < 0:
             d = abs(d)
             # whatever, this is a rest so nothing will play, we just need a valid value
-            p = self.transpose + self.pitcherValues[0].get_pitch(self.player.curScale)
+            p = self.transpose + self.player.curScale.get_pitch(0)
         else:
-            p = self.transpose + self.pitcher.next().get_pitch(self.player.curScale)
-            v = self.velocitier.next()
+            p = self.transpose + self.player.curScale.parse_degree(self.pitcher.next())
+            v = int(self.velocitier.next())
         rv = Note(at, d, p, v)
         return rv
 
     def follow_along(self, at):
         d = self.followNote.duration
         p = self.followNote.pitch + self.transpose
-        v = self.followNote.velocity + self.velocitier.next()
+        v = self.followNote.velocity + int(self.velocitier.next())
         v = clamp(v, 0, 127)
         if p >= 0 and p <= 127:
             return Note(at, d, p, v)
