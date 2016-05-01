@@ -26,3 +26,21 @@
 .p $random-walk .50 1 2 3 4 5
 .d 1
 
+# ################### #
+
+:v ShuffleAbbrev
+.p $sh 1 2 3 4 5
+.d 1
+
+:v RandomAbbrev
+.p $ra 1 2 3 4 5
+.d 1
+
+:v PingPongAlt
+.p $pp 1 2 3 4 5
+.d 1
+
+:v RandomWalkAlt
+.p $rw .50 1 2 3 4 5
+.d 1
+

@@ -58,6 +58,24 @@ def random_walk(chance, a):
             else:
                 i += coinflip()
 
+# ######################################################## #
+
+GENERATOR_NAMES = [
+        'SCALAR',
+        'LOOP',
+        'PINGPONG', 'PP',
+        'RANDOM',
+        'SHUFFLE',
+        'RANDOM-WALK', 'RANDOMWALK', 'RW'
+]
+
+def autocomplete_generator_name(n):
+    n = n.strip().upper()
+    for name in GENERATOR_NAMES:
+        if name.startswith(n):
+            return name
+    return n
+
 # Returns a 3-tuple containing the generator, a description string, and a tuple with converted values.
 def make_generator(data, converter=None):
     cmd = ''
@@ -68,13 +86,14 @@ def make_generator(data, converter=None):
         cmd = 'SCALAR'
     else:
         cmd = 'RANDOM'
+    cmd = autocomplete_generator_name(cmd)
     if cmd == 'SCALAR':
         v = converter(data[0]) if converter else data[0]
         return (scalar(v), '$%s %s'%(cmd, v), (v,))
     elif cmd == 'LOOP':
         a = tuple(converter(d) if converter else d for d in data)
         return (loop(a), '$%s %s'%(cmd, tuple(str(i) for i in a)), a)
-    elif cmd == 'PINGPONG':
+    elif cmd == 'PINGPONG' or cmd == 'PP':
         a = tuple(converter(d) if converter else d for d in data)
         return (pingpong(a), '$%s %s'%(cmd, tuple(str(i) for i in a)), a)
     elif cmd == 'RANDOM':
@@ -83,7 +102,7 @@ def make_generator(data, converter=None):
     elif cmd == 'SHUFFLE':
         a = tuple(converter(d) if converter else d for d in data)
         return (shuffle(a), '$%s %s'%(cmd, tuple(str(i) for i in a)), a)
-    elif cmd == 'RANDOM-WALK':
+    elif cmd == 'RANDOM-WALK' or cmd == 'RANDOMWALK' or cmd == 'RW':
         c = float(data[0])
         a = tuple(converter(d) if converter else d for d in data[1:])
         return (random_walk(c, a), '$%s %f %s'%(cmd, c, tuple(str(i) for i in a)), a)
