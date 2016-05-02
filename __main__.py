@@ -80,18 +80,11 @@ if __name__ == '__main__':
     parser.add_argument('-s', '--seed', dest='seed', action='store', help='Seed value for random numbers.')
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help='Don\'t print out visualization junk.')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='Print extra debug spam.')
-    parser.add_argument('-i', '--import', dest='ifile', action='store', help='Custom code to be imported. Totally unsafe!')
     args = parser.parse_args()
     if args.verbose:
         consts.set_verbose(True)
     if args.quiet:
         consts.set_quiet(True)
-
-    if args.ifile:
-        fp = open(args.ifile)
-        code = fp.read()
-        fp.close()
-        exec(code) # oh my god
 
     seed_random(args.seed)
 

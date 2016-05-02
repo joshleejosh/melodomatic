@@ -11,8 +11,8 @@ class Note:
         self.at = a
         self.until = self.at + self.duration
     def __str__(self):
-        return '%s.%d'%(note_name(self.pitch), self.velocity)
-        #return '%dv%d'%(self.pitch, self.velocity)
+        #return '%s.%d'%(note_name(self.pitch), self.velocity)
+        return '%d_%d'%(self.pitch, self.velocity)
         #return '%dv%dd%d(%d-%d)'%(self.pitch, self.velocity, self.duration, self.at, self.until)
     def is_rest(self):
         return (self.velocity == 0)

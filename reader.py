@@ -1,4 +1,4 @@
-import os, time, re
+import os, os.path, imp, sys, time, re
 import consts
 from util import *
 import generators, player, voice, scale
@@ -33,10 +33,8 @@ class Parser:
         self.data = []
         self.reader = reader
         self.player = player.Player()
-        self.process_includes()
-        #self.scrub_comments() # we don't really need to do this, we catch comments during parsing.
-        self.process_macros()
-        self.process_evals()
+        self.prepreprocess() # not funny
+        self.preprocess()
         self.parse()
         self.build_player()
         if oldPlayer:
@@ -81,21 +79,8 @@ class Parser:
                     self.buf.extend(a)
         clear_buf()
 
-    # Squeeze comments (and blank lines) from the script.
-    def scrub_comments(self):
-        todel = []
-        for linei,line in enumerate(self.text):
-            line = self.text[linei].split('#')[0].strip()
-            if line != self.text[linei]:
-                if len(line) == 0:
-                    todel.append(linei)
-                else:
-                    self.text[linei] = line + '\n'
-        for linei in reversed(todel):
-            del self.text[linei]
-
     # Replace include calls with the lines of the included file.
-    def process_includes(self):
+    def prepreprocess(self):
         toInsert = []
         for linei,line in enumerate(self.text):
             if line.upper().startswith('!INCLUDE'):
@@ -104,44 +89,65 @@ class Parser:
                 lines = fp.readlines()
                 fp.close()
                 toInsert.append((linei, lines))
-        for i in range(len(toInsert)-1, -1, -1):
-            line = toInsert[i][0]
-            chunk = toInsert[i][1]
+                if consts.VERBOSE:
+                    print '!include %s'%fn
+        for i in reversed(toInsert):
+            line = i[0]
+            chunk = i[1]
             # splice the lines in over the include call.
+            del self.text[line]
             self.text[line:1] = chunk
 
-    # Read macro definitions and make replacements.
-    # Only does one pass, so definitions need to come before references.
-    def process_macros(self):
+    # Handle preprocessing directives other than !include:
+    # !import - import python code (totally unsafe!)
+    # !define - define macros
+    # @       - perform macro substitutions. We only do one pass, so
+    #           definitions *must* come before references.
+    # { }     - evaluate inline expressions (also unsafe!)
+    def preprocess(self):
         macros = []
+        todel = []
         for linei,line in enumerate(self.text):
+            if line.strip().upper().startswith('!IMPORT'):
+                fn = line.strip()[len('!IMPORT'):].split('#')[0].strip()
+                mname,ext = os.path.splitext(os.path.split(fn)[-1])
+                imp.load_source(mname, fn)
+                todel.append(linei)
+                if consts.VERBOSE:
+                    print '!import %s'%fn
+                continue
+
             if line.strip().upper().startswith('!DEFINE'):
                 line = line.strip()[len('!DEFINE'):].split('#')[0]
                 a = line.split()
                 id = a[0].strip()
                 val = ' '.join(a[1:])
                 macros.append((id, val))
-            elif '@' in line:
+                todel.append(linei)
+                continue
+
+            if '@' in line:
                 for macro in macros:
                     self.text[linei] = self.text[linei].replace('@'+macro[0], macro[1])
-                if '@' in self.text[linei]:
+                    line = self.text[linei]
+                if '@' in line:
                     if consts.VERBOSE:
-                        print 'ERROR line %d: bad macro reference [%s]'%(linei, line[:-1])
+                        print 'ERROR line %d: unresolved macro reference [%s]'%(linei, line[:-1])
 
-    # Executing arbitrary code is never safe.
-    def process_evals(self):
-        for linei,line in enumerate(self.text):
-            if not '{' in line and '}' in line:
-                continue
-            for code in RE_EVAL.findall(line):
-                val = ''
-                if code.strip():
-                    val = friendly_eval(code)
-                if is_iterable(val):
-                    val = ' '.join(str(v) for v in val)
-                else:
-                    val = str(val)
-                self.text[linei] = self.text[linei].replace('{%s}'%code, val, 1)
+            if '{' in line and '}' in line:
+                for code in RE_EVAL.findall(line):
+                    val = ''
+                    if code.strip():
+                        val = friendly_eval(code)
+                    if is_iterable(val):
+                        val = ' '.join(str(v) for v in val)
+                    else:
+                        val = str(val)
+                    self.text[linei] = self.text[linei].replace('{%s}'%code, val, 1)
+                    line = self.text[linei]
+        # Remove preprocessor lines so they don't much with things later.
+        for linei in reversed(todel):
+            del self.text[linei]
 
     def build_player(self):
         scaleIDs = set()
@@ -231,6 +237,7 @@ class Parser:
                     elif cmd == 'VELOCITY':
                         vo.set_velocitier(ca[1:])
                 self.player.add_voice(vo)
+
         if consts.VERBOSE:
             self.player.dump()
 

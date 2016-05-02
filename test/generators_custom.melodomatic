@@ -1,10 +1,6 @@
-# Load custom_generators.py (at the command line with the -i option) to run this test.
-
+# Relative paths are sketchy. Who knows where this is being run from?
+!import      test/generators_custom_alt.py 		# also I think spaces in filenames will choke.
 :scale Chromatic .r 60 .i 0 1 2 3 4 5 6 7 8 9 10 11
-
-:v Sine
-.p $sine 16 1 24
-.d 4p
 
 :v Alternate
 .p $alt 1 2 3 4 5 6 7
@@ -13,6 +9,12 @@
 :v Glorbnotz
 .p $glo 5 6 7 8 9 10 11
 .d 20p
+
+!import test/generators_custom_sine.py
+
+:v Sine
+.p $sine 16 1 24
+.d 4p
 
 :p
 .bpm 108

@@ -2,25 +2,9 @@
 # Load these generators by running melodomatic with the -i flag.
 # Run generators_custom.melodomatic to test.
 
-import generators, scale, time, math
+import generators, math
 
-# A generator function takes in a data array (usually full of strings) and a
-# Player for context. It should always yield one of the elements from the data
-# array. The generator should never exhaust itself.
-def alternate(data, player):
-    i=0
-    while True:
-        yield data[i]
-        i = (i+2)%len(data)
-
-# Register the generator so that it can be used in scripts.
-generators.register_generator('alternate', alternate)
-
-# You can have multiple labels for the same function, if you want.
-generators.register_generator('glorbnotz', alternate)
-
-
-# A more unusual generator. Emits numbers in a sine wave stretched over a
+# A more unusual generator. Emits values in a sine wave stretched over a
 # given range.
 #
 # Takes 3 arguments: period (a duration), min, and max (both numbers).
@@ -36,7 +20,7 @@ def sine(data, player):
     start = player.pulse
     i=0
     while True:
-        s = math.sin((player.pulse/period)*2*math.pi)
+        s = -math.cos((player.pulse/period)*2*math.pi)
         t = s * rangev + rangev + minv
         i = int(round(t))
         yield str(i)
