@@ -42,8 +42,6 @@ optional arguments:
 
 ### TODO
 
-* Custom generators
-* Custom follow behavior
 * Build phrases instead of plucking random notes
   * Connectors between phrases: silence, leading notes, fills, gliss?
   * Repetition?

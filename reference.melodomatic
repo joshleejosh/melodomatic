@@ -78,7 +78,6 @@
 # The player plays all voices simultaneously.
 
 :voice Lead                  # Voice ID is a string.
-.channel 1                   # MIDI CHANNEL is an integer (default is 1).
 .pitch 1 4 3 2               # PITCH is the set of notes this voice will play in
                              # whatever the current scale is.  Values are scale
                              # degrees (not MIDI offsets like in the scale defs
@@ -106,8 +105,8 @@
 # A bare single number will be wrapped in a $SCALAR generator by default.
 # A bare list will be wrapped in a $RANDOM generator by default.
 
-:voice Accomp
-.channel 2
+:voice Accomp 2              # CHANNEL is an optional argument specifying the
+                             # MIDI channel that the voice plays on.
 .transpose -12               # Transpose all notes down an octave.
 .pitch 1 3 5                 # When no generator function is given, the default
                              # behavior is to pick randomly from the list (same
@@ -121,14 +120,16 @@
 # A voice can be set to follow along with another one, to set up harmonies.
 # The following voice should always be defined *after* the original, or things
 # might get weird.
-:voice Double
-.channel 2
-.follow Accomp               # Play whatever notes the Accomp voice
+:voice Double 2 $UNISON      # GENERATOR is an optional argument specifying
+                             # which function the voice should use to produce
+                             # notes. Each generator type requires certain
+                             # parameters, which you can see by running the
+                             # program with the -v flag.
+                             # Default is $MELODOMATIC.
+.voice Accomp                # Play whatever notes the Accomp voice
                              # is producing, whenever it produces them.
 .transpose -5                # ...but transpose the pitch down a fourth.
 .velocity -8                 # ...and also play more quietly.
-.pitch 1                     # When following, pitch spec will be ignored.
-.duration 1                  # When following, duration spec will be ignored.
 
 :voice Bass
 .channel 3
@@ -154,7 +155,6 @@
                              # whole-tone, etc., this would get thrown off.
 
 :voice Fill
-.channel 4
 .transpose +12               # Transpose up an octave.
                              # The '+' here is redundant but acceptable.
 .pitch 1 2 3

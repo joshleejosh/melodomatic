@@ -13,7 +13,7 @@ BLOCK_LABELS = {
             'VISUALIZATION_WINDOW'
             ],
         ':SCALE': [ 'ROOT', 'INTERVALS', 'PITCHES', 'LINKS' ],
-        ':VOICE': [ 'CHANNEL', 'PITCH', 'TRANSPOSE', 'DURATION', 'VELOCITY', 'FOLLOW' ],
+        ':VOICE': [ ],
         }
 
 RE_EVAL = re.compile(r'\{([^}]*)\}')
@@ -189,57 +189,69 @@ class Parser:
         for block in self.data:
             btype = self.autocomplete_type(block[0][0])
             if btype == ':SCALE':
-                sc = scale.Scale(block[0][1].strip(), self.player)
-                for ca in block[1:]:
-                    cmd = self.autocomplete_label(ca[0], btype)
-                    if cmd == 'ROOT':
-                        if len(ca) > 1 and is_int(ca[1]):
-                            n = int(ca[1])
-                            if n >= 0 and n <= 127:
-                                sc.set_root(int(ca[1]))
-                    elif cmd == 'INTERVALS':
-                        if len(ca) > 1:
-                            a = split_ints(ca[1:])
-                            if len(a) > 0:
-                                sc.set_intervals(a)
-                    elif cmd == 'PITCHES':
-                        if len(ca) > 1:
-                            a = split_ints(ca[1:])
-                            if len(a) > 0:
-                                sc.set_pitches(a)
-                    elif cmd == 'LINKS':
-                        # try to strip out invalid links before setting
-                        sc.set_linker(tuple((id for id in ca[1:] if id in scaleIDs or id[0] == '$')))
-                    else:
-                        if consts.VERBOSE:
-                            print 'ERROR: Bad scale command .%s'%cmd
-                self.player.add_scale(sc)
+                self.build_scale(block, scaleIDs)
 
         # ...And finally do voices.
         for block in self.data:
             btype = self.autocomplete_type(block[0][0])
             if btype == ':VOICE':
-                vo = voice.Voice(block[0][1].strip(), self.player)
-                for ca in block[1:]:
-                    cmd = self.autocomplete_label(ca[0], btype)
-                    if cmd == 'CHANNEL':
-                        if len(ca) > 1 and is_int(ca[1]):
-                            vo.channel = int(ca[1])
-                    elif cmd == 'TRANSPOSE':
-                        if len(ca) > 1 and is_int(ca[1]):
-                            vo.transpose = int(ca[1])
-                    elif cmd == 'FOLLOW':
-                        vo.set_follow(ca[1:])
-                    elif cmd == 'PITCH':
-                        vo.set_pitcher(ca[1:])
-                    elif cmd == 'DURATION':
-                        vo.set_durationer(ca[1:])
-                    elif cmd == 'VELOCITY':
-                        vo.set_velocitier(ca[1:])
-                self.player.add_voice(vo)
+                self.build_voice(block)
 
         if consts.VERBOSE:
             self.player.dump()
+
+    def build_scale(self, block, scaleIDs):
+        sc = scale.Scale(block[0][1].strip(), self.player)
+        for ca in block[1:]:
+            cmd = self.autocomplete_label(ca[0], ':SCALE')
+            if cmd == 'ROOT':
+                if len(ca) > 1 and is_int(ca[1]):
+                    n = int(ca[1])
+                    if n >= 0 and n <= 127:
+                        sc.set_root(int(ca[1]))
+            elif cmd == 'INTERVALS':
+                if len(ca) > 1:
+                    a = split_ints(ca[1:])
+                    if len(a) > 0:
+                        sc.set_intervals(a)
+            elif cmd == 'PITCHES':
+                if len(ca) > 1:
+                    a = split_ints(ca[1:])
+                    if len(a) > 0:
+                        sc.set_pitches(a)
+            elif cmd == 'LINKS':
+                # try to strip out invalid links before setting
+                sc.set_linker(tuple((id for id in ca[1:] if id in scaleIDs or id[0] == '$')))
+            else:
+                if consts.VERBOSE:
+                    print 'ERROR: Bad scale command .%s'%cmd
+        self.player.add_scale(sc)
+
+    def build_voice(self, block):
+        if len(block) == 0:
+            if consts.VERBOSE:
+                print 'ERROR: Voice block has no ID'
+                return
+        id = block[0][1].strip()
+        vo = voice.Voice(id, self.player)
+
+        vo.channel = 1
+        if len(block[0]) > 2:
+            if is_int(block[0][2]):
+                vo.channel = int(block[0][2])
+            elif consts.VERBOSE:
+                print 'ERROR: Bad channel [%s] on voice [%s]'%(block[1], id)
+
+        gn = ''
+        if len(block[0]) > 3:
+            gn = block[0][3]
+        vo.set_generator(gn)
+
+        for ca in block[1:]:
+            vo.set_parameter(ca)
+
+        vo.validate_generator()
+        self.player.add_voice(vo)
 
     def autocomplete_type(self, d):
         if not d.startswith(':'):

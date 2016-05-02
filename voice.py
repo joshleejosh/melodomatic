@@ -25,50 +25,42 @@ class Voice:
         self.id = id
         self.player = pl
         self.channel = 1
-        self.follow = None
-        self.followNote = None
-        self.transpose = 0
-        self.set_pitcher(('$SCALAR', '1'))
-        self.set_durationer(('$SCALAR', '4'))
-        self.set_velocitier(('$SCALAR', '64'))
         self.status = ''
         self.curNote = None
         self.pulse = 0
         self.nextPulse = 0
-        self.noter = mknote(self)
+        self.generator = None
+        self.generatorName = ''
+        self.parameters = {}
+        bind_voice_generator(self, 'MELODOMATIC')
 
     def dump(self):
-        print 'VOICE "%s": channel %d'%(self.id, self.channel)
-        if self.follow:
-            print '    following %s'%self.follow
-        if self.transpose:
-            print '    transpose by %d'%self.transpose
-        if not self.follow:
-            print '    pitch = %s'%self.pitcherLabel
-            print '    duration = %s'%self.durationerLabel
-        print '    velocity = %s'%self.velocitierLabel
+        print 'VOICE "%s" : channel %d : generator %s '%(self.id, self.channel, self.generatorName)
+        for n,i in self.parameters.iteritems():
+            print '    %s: %s'%(n, i[1])
 
-    def set_pitcher(self, data):
+    def set_generator(self, gname):
+        bind_voice_generator(self, gname)
+
+    def set_parameter(self, data):
+        pname = data[0].strip().upper()
+        if self.generatorName:
+            pname = autocomplete_voice_parameter(pname, self)
+        data = data[1:]
         g,d = generators.bind_generator(data, self.player)
         if g:
-            self.pitcher = g
-            self.pitcherLabel = d
+            self.parameters[pname] = (g, d)
 
-    def set_durationer(self, data):
-        g,d = generators.bind_generator(data, self.player)
-        if g:
-            self.durationer = g
-            self.durationerLabel = d
-
-    def set_velocitier(self, data):
-        g,d = generators.bind_generator(data, self.player)
-        if g:
-            self.velocitier = g
-            self.velocitierLabel = d
-
-    def set_follow(self, data):
-        self.follow = data[0]
-        self.noter = mkfollow(self)
+    def validate_generator(self):
+        if not self.generator or not self.generatorName:
+            if consts.VERBOSE:
+                print 'ERROR: Voice [%s] has no generator'%self.id
+                return False
+        for parm in VOICE_GENERATORS[self.generatorName][1].iterkeys():
+            if parm not in self.parameters:
+                print 'ERROR: Voice [%s] is missing parameter [%s] for generator [%s]'%(self.id, parm, self.generatorName)
+                return False
+        return True
 
     def update(self, pulse):
         self.pulse = pulse
@@ -79,7 +71,7 @@ class Voice:
             else:
                 self.status = '|' # holding a note
         if pulse >= self.nextPulse:
-            note = self.noter.next()
+            note = self.generator.next()
             if note:
                 self.play(note)
 
@@ -99,30 +91,116 @@ class Voice:
         self.player.play(self.curNote.pitch, 0)
         self.curNote = None
 
-def mknote(voice):
+
+# ############################################################################ #
+
+VOICE_GENERATORS = { }
+VOICE_GENERATORS_ORDERED = []
+
+def register_voice_generator(name, fun, parms):
+    name = name.strip().upper()
+    VOICE_GENERATORS[name] = (fun, parms)
+    VOICE_GENERATORS_ORDERED.append(name)
+
+def autocomplete_voice_generator_name(n):
+    n = n.strip().upper()
+    rv = n
+    for name in VOICE_GENERATORS_ORDERED:
+        if name.startswith(n):
+            return name
+    if consts.VERBOSE:
+        print 'ERROR: Bad generator name [%s]?'%n
+    return n
+
+def autocomplete_voice_parameter(n, v):
+    n = n.strip().upper()
+    if n[0] == '.':
+        n = n[1:]
+    gtype = 'MELODOMATIC'
+    if v and v.generatorName:
+        gtype = autocomplete_voice_generator_name(v.generatorName)
+    for parm in VOICE_GENERATORS[gtype][1].iterkeys():
+        if parm.startswith(n):
+            return parm
+    if consts.VERBOSE:
+        print 'ERROR: Bad generator parameter [%s] for [%s]?'%(n, gtype)
+    return n
+
+def bind_voice_generator(voice, gtype):
+    if not gtype:
+        gtype = 'MELODOMATIC'
+    elif gtype[0] == '$':
+        gtype = gtype[1:]
+    gtype = autocomplete_voice_generator_name(gtype)
+    if gtype in VOICE_GENERATORS:
+        gspec = VOICE_GENERATORS[gtype]
+        voice.generatorName = gtype
+        voice.generator = gspec[0](voice)
+        voice.parameters.clear()
+        for key,default in gspec[1].iteritems():
+            data = [key,]
+            data.extend(default)
+            voice.set_parameter(data)
+        return (voice.generator, voice.generatorName)
+    if consts.VERBOSE:
+        print 'ERROR: Bad voice generator [%s]'%gtype
+    return (None, '')
+
+
+# ############################################################################ #
+
+def g_melodomatic(vo):
+    pitcher = vo.parameters['PITCH'][0]
+    durationer = vo.parameters['DURATION'][0]
+    velocitier = vo.parameters['VELOCITY'][0]
+    transposer = vo.parameters['TRANSPOSE'][0]
     while True:
-        d = voice.player.parse_duration(voice.durationer.next())
+        d = vo.player.parse_duration(durationer.next())
         p = 0
         v = 0
         if d < 0:
             d = abs(d)
             # whatever, this is a rest so nothing will play, we don't even really need a valid value
-            p = voice.transpose + voice.player.curScale.get_pitch(0)
+            p = int(transposer.next()) + vo.player.curScale.get_pitch(0)
         else:
-            p = voice.transpose + voice.player.curScale.degree_to_pitch(voice.pitcher.next())
-            v = int(voice.velocitier.next())
-        yield Note(voice.pulse, d, p, v)
+            p = int(transposer.next()) + vo.player.curScale.degree_to_pitch(pitcher.next())
+            v = int(velocitier.next())
+        yield Note(vo.pulse, d, p, v)
+
+register_voice_generator('MELODOMATIC', g_melodomatic,
+        {
+            'TRANSPOSE': ('0',),
+            'PITCH': ('1',),
+            'DURATION': ('1',),
+            'VELOCITY': ('64',),
+        })
+
 
 # Play whatever the voice I'm following is currently playing.
-# As long as nothing throws off the timing, this should stay in unison with the other voice.
-def mkfollow(voice):
+# The following voice must come *after* the voice it wants to follow in script.
+# As long as nothing throws off their timing, this should stay in unison with the other voice.
+def g_unison(vo):
+    voicer = vo.parameters['VOICE'][0]
+    transposer = vo.parameters['TRANSPOSE'][0]
+    velocitier = vo.parameters['VELOCITY'][0]
     while True:
-        vf = voice.player.voices[voice.follow]
+        vn = voicer.next()
+        if vn not in vo.player.voices:
+            # don't know what to do, emit a rest
+            yield vo.Note(vo.pulse, self.player.parse_duration('1'), 1, 0)
+        vf = vo.player.voices[vn]
         notef = vf.curNote
         d = notef.duration
-        p = notef.pitch + voice.transpose
-        v = notef.velocity + int(voice.velocitier.next())
+        p = notef.pitch + int(transposer.next())
+        v = notef.velocity + int(velocitier.next())
         v = clamp(v, 0, 127)
         if p >= 0 and p <= 127:
-            yield Note(voice.pulse, d, p, v)
+            yield Note(vo.pulse, d, p, v)
+
+register_voice_generator('UNISON', g_unison,
+        {
+            'VOICE': ('X',),
+            'TRANSPOSE': ('0',),
+            'VELOCITY': ('0',),
+        })
 

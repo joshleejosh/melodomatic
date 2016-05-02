@@ -4,9 +4,7 @@
 .intervals 0 2 4 5 7 9 11
 
 :voice Bass
-.channel 3
 .duration 2
-.velocity 48
 .pitch $loop
        --5                   # --5 is the dominant tone, lowered two octaves.
         -1                   # -1 is the tonic, lowered one octave.

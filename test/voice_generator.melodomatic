@@ -1,0 +1,34 @@
+
+:S S
+
+:voice Basic
+.t +12
+.p 1 2 3 4
+.d 1 1 2 4 -1
+.v 64 72
+
+:voice BChann 3
+.t -36
+.p 1
+.d 8 16
+.v 48
+
+:voice Melo 2 $MELODOMATIC
+.t -12
+.p 1 3 5 8
+.d 2 2 4 -2
+.v 56 64
+
+:voice Uni 2 $Unison
+.vo Melo
+.t -12
+.vel +8
+
+!import test/voice_generator_custom.py
+:voice V 4 $vstretcher
+.vo Basic
+.multiplier 2.0
+.t -12
+.vel -8
+
+
