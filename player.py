@@ -32,7 +32,14 @@ class Player:
         old.shutdown()
         self.startup()
         self.pulse = old.pulse
-        self.nextScaleChange = self.pulse + self.parse_duration(self.scaleChangeTimer.next())
+        # Preserve the current scale and change time, but only if it makes sense to.
+        if old.curScale and old.curScale.id in self.scaleOrder and self.ppb == old.ppb:
+            self.curScale = self.scales[old.curScale.id]
+            self.nextScaleChange = old.nextScaleChange
+        else:
+            # use whatever scale and change time startup() decided on.
+            pass
+        self.status = self.curScale.id
         if consts.VERBOSE:
             print 'Transferred state from old player: pulse=%d, next change=%d'%(self.pulse, self.nextScaleChange)
 
