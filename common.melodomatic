@@ -2,6 +2,8 @@
 !define major      0 2 4 5 7 9 11
 !define minor      0 2 3 5 7 8 10
 !define blue       0 2 3 5 7 9 10
+!define seventh    0 2 4 5 7 9 10
+
 !define ionian     0 2 4 5 7 9 11
 !define dorian     0 2 3 5 7 9 10
 !define phrygian   0 1 3 5 7 8 10

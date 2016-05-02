@@ -11,10 +11,12 @@ class Note:
         self.at = a
         self.until = self.at + self.duration
     def __str__(self):
-        return '%dv%d'%(self.pitch, self.velocity)
+        return '%s.%d'%(note_name(self.pitch), self.velocity)
+        #return '%dv%d'%(self.pitch, self.velocity)
         #return '%dv%dd%d(%d-%d)'%(self.pitch, self.velocity, self.duration, self.at, self.until)
     def is_rest(self):
         return (self.velocity == 0)
+
 
 
 # I am responsible for generating actual notes to play.
@@ -31,12 +33,14 @@ class Voice:
         self.set_velocitier(('$SCALAR', '64'))
         self.status = ''
         self.curNote = None
+        self.pulse = 0
         self.nextPulse = 0
+        self.noter = mknote(self)
 
     def dump(self):
         print 'VOICE "%s": channel %d'%(self.id, self.channel)
         if self.follow:
-            print '    following %s'%self.follow.id
+            print '    following %s'%self.follow
         if self.transpose:
             print '    transpose by %d'%self.transpose
         if not self.follow:
@@ -62,46 +66,22 @@ class Voice:
             self.velocitier = g
             self.velocitierLabel = d
 
+    def set_follow(self, data):
+        self.follow = data[0]
+        self.noter = mkfollow(self)
+
     def update(self, pulse):
+        self.pulse = pulse
         self.status = ''
         if self.curNote and not self.curNote.is_rest():
             if pulse >= self.curNote.until:
                 self.end_cur_note()
             else:
                 self.status = '|' # holding a note
-        if self.follow:
-            if self.follow.curNote != self.followNote:
-                self.followNote = self.follow.curNote
-                note = self.follow_along(pulse)
-                if note:
-                    self.play(note)
-        else:
-            if pulse >= self.nextPulse:
-                note = self.make_note(pulse)
-                if note:
-                    self.play(note)
-
-    def make_note(self, at):
-        d = self.player.parse_duration(self.durationer.next())
-        p = 0
-        v = 0
-        if d < 0:
-            d = abs(d)
-            # whatever, this is a rest so nothing will play, we don't even really need a valid value
-            p = self.transpose + self.player.curScale.get_pitch(0)
-        else:
-            p = self.transpose + self.player.curScale.degree_to_pitch(self.pitcher.next())
-            v = int(self.velocitier.next())
-        rv = Note(at, d, p, v)
-        return rv
-
-    def follow_along(self, at):
-        d = self.followNote.duration
-        p = self.followNote.pitch + self.transpose
-        v = self.followNote.velocity + int(self.velocitier.next())
-        v = clamp(v, 0, 127)
-        if p >= 0 and p <= 127:
-            return Note(at, d, p, v)
+        if pulse >= self.nextPulse:
+            note = self.noter.next()
+            if note:
+                self.play(note)
 
     def play(self, note):
         self.curNote = note
@@ -118,4 +98,31 @@ class Voice:
     def end_cur_note(self):
         self.player.play(self.curNote.pitch, 0)
         self.curNote = None
+
+def mknote(voice):
+    while True:
+        d = voice.player.parse_duration(voice.durationer.next())
+        p = 0
+        v = 0
+        if d < 0:
+            d = abs(d)
+            # whatever, this is a rest so nothing will play, we don't even really need a valid value
+            p = voice.transpose + voice.player.curScale.get_pitch(0)
+        else:
+            p = voice.transpose + voice.player.curScale.degree_to_pitch(voice.pitcher.next())
+            v = int(voice.velocitier.next())
+        yield Note(voice.pulse, d, p, v)
+
+# Play whatever the voice I'm following is currently playing.
+# As long as nothing throws off the timing, this should stay in unison with the other voice.
+def mkfollow(voice):
+    while True:
+        vf = voice.player.voices[voice.follow]
+        notef = vf.curNote
+        d = notef.duration
+        p = notef.pitch + voice.transpose
+        v = notef.velocity + int(voice.velocitier.next())
+        v = clamp(v, 0, 127)
+        if p >= 0 and p <= 127:
+            yield Note(voice.pulse, d, p, v)
 

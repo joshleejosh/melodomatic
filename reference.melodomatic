@@ -119,6 +119,8 @@
           40 48 48 56        # the list of velocities.
 
 # A voice can be set to follow along with another one, to set up harmonies.
+# The following voice should always be defined *after* the original, or things
+# might get weird.
 :voice Double
 .channel 2
 .follow Accomp               # Play whatever notes the Accomp voice

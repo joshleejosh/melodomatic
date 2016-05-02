@@ -4,7 +4,7 @@
 
 :scale A
 .r @M44
-!define IMAJOR   	 .i    0 	 	2 3 5 	 	7 8 10
+     !define IMAJOR   	 .i    0 	 	2 3 5 	 	7 8 10
 @IMAJOR
 
 

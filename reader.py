@@ -34,6 +34,7 @@ class Parser:
         self.reader = reader
         self.player = player.Player()
         self.process_includes()
+        #self.scrub_comments() # we don't really need to do this, we catch comments during parsing.
         self.process_macros()
         self.process_evals()
         self.parse()
@@ -80,6 +81,19 @@ class Parser:
                     self.buf.extend(a)
         clear_buf()
 
+    # Squeeze comments (and blank lines) from the script.
+    def scrub_comments(self):
+        todel = []
+        for linei,line in enumerate(self.text):
+            line = self.text[linei].split('#')[0].strip()
+            if line != self.text[linei]:
+                if len(line) == 0:
+                    todel.append(linei)
+                else:
+                    self.text[linei] = line + '\n'
+        for linei in reversed(todel):
+            del self.text[linei]
+
     def process_includes(self):
         toInsert = []
         for linei,line in enumerate(self.text):
@@ -92,24 +106,27 @@ class Parser:
         for i in range(len(toInsert)-1, -1, -1):
             line = toInsert[i][0]
             chunk = toInsert[i][1]
-            del self.text[line]
             self.text[line:1] = chunk
 
     def process_macros(self):
         macros = []
+        #todel = []
         for linei,line in enumerate(self.text):
-            if line.upper().startswith('!DEFINE'):
-                line = line[len('!DEFINE'):].split('#')[0]
+            if line.strip().upper().startswith('!DEFINE'):
+                line = line.strip()[len('!DEFINE'):].split('#')[0]
                 a = line.split()
                 id = a[0].strip()
                 val = ' '.join(a[1:])
                 macros.append((id, val))
+                #todel.append(linei)
             elif '@' in line:
                 for macro in macros:
                     self.text[linei] = self.text[linei].replace('@'+macro[0], macro[1])
                 if '@' in self.text[linei]:
                     if consts.VERBOSE:
                         print 'ERROR line %d: bad macro reference [%s]'%(linei, line[:-1])
+        #for linei in reversed(todel):
+        #    del self.text[linei]
 
     def process_evals(self):
         for linei,line in enumerate(self.text):
@@ -205,10 +222,7 @@ class Parser:
                         if len(ca) > 1 and is_int(ca[1]):
                             vo.transpose = int(ca[1])
                     elif cmd == 'FOLLOW':
-                        # The target voice must already exist in the player,
-                        # i.e., it must be defined before this one in the script.
-                        if len(ca) > 1:
-                            vo.follow = self.player.voices[ca[1]]
+                        vo.set_follow(ca[1:])
                     elif cmd == 'PITCH':
                         vo.set_pitcher(ca[1:])
                     elif cmd == 'DURATION':
