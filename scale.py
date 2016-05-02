@@ -43,38 +43,8 @@ class Scale:
             self.linker = g
             self.linkerLabel = d
 
-    def parse_degree(self, code):
-        code = code.strip()
-        degree = 1
-        octave = 0
-        accidental = 0
-
-        i = 0
-        while i < len(code):
-            if code[i] == '-':
-                octave -= 1
-            elif code[i] == '+':
-                octave += 1
-            else:
-                break
-            i += 1
-        dbuf = ''
-        while i < len(code):
-            if code[i].isdigit():
-                dbuf += code[i]
-            else:
-                break
-            i += 1
-        degree = int(dbuf)
-        while i < len(code):
-            if code[i] == '-':
-                accidental -= 1
-            elif code[i] == '+':
-                accidental += 1
-            else:
-                break
-            i += 1
-
+    def degree_to_pitch(self, code):
+        degree, octave, accidental = parse_degree(code)
         i = degree%len(self.intervals)
         o = octave + ((degree-1) // len(self.intervals))
         pitch = self.get_pitch(i - 1)
@@ -87,4 +57,41 @@ class Scale:
 
     def next_scale(self):
         return str(self.linker.next())
+
+
+def parse_degree(code):
+    code = code.strip()
+    degree = 1
+    octave = 0
+    accidental = 0
+
+    i = 0
+    while i < len(code):
+        if code[i] == '-':
+            octave -= 1
+        elif code[i] == '+':
+            octave += 1
+        else:
+            break
+        i += 1
+
+    dbuf = ''
+    while i < len(code):
+        if code[i].isdigit():
+            dbuf += code[i]
+        else:
+            break
+        i += 1
+    degree = int(dbuf)
+
+    while i < len(code):
+        if code[i] == '-':
+            accidental -= 1
+        elif code[i] == '+':
+            accidental += 1
+        else:
+            break
+        i += 1
+    
+    return (degree, octave, accidental)
 

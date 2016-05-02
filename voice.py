@@ -83,10 +83,10 @@ class Voice:
         v = 0
         if d < 0:
             d = abs(d)
-            # whatever, this is a rest so nothing will play, we just need a valid value
+            # whatever, this is a rest so nothing will play, we don't even really need a valid value
             p = self.transpose + self.player.curScale.get_pitch(0)
         else:
-            p = self.transpose + self.player.curScale.parse_degree(self.pitcher.next())
+            p = self.transpose + self.player.curScale.degree_to_pitch(self.pitcher.next())
             v = int(self.velocitier.next())
         rv = Note(at, d, p, v)
         return rv
@@ -101,14 +101,15 @@ class Voice:
 
     def play(self, note):
         self.curNote = note
+        if not note:
+            self.nextPulse = self.player.pulse
+            return
         self.nextPulse = note.until
         if not note.is_rest():
             self.player.play(note.pitch, note.velocity)
-        if self.curNote:
-            if not self.curNote.is_rest():
-                self.status = str(self.curNote)
-            else:
-                self.status = ''
+            self.status = str(self.curNote)
+        else:
+            self.status = ''
 
     def end_cur_note(self):
         self.player.play(self.curNote.pitch, 0)
