@@ -93,6 +93,7 @@ class Player:
 
     def tick(self):
         self.pulse += 1
+        self.status = ''
 
     def update(self):
         # check for a scale change

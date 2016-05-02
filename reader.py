@@ -266,5 +266,7 @@ class Reader:
             if t != self.filetime:
                 self.status = '*'
                 return True
+            else:
+                self.status = '_'
         return False
 

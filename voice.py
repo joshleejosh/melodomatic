@@ -63,8 +63,12 @@ class Voice:
             self.velocitierLabel = d
 
     def update(self, pulse):
-        if self.curNote and not self.curNote.is_rest() and pulse >= self.curNote.until:
-            self.end_cur_note()
+        self.status = ''
+        if self.curNote and not self.curNote.is_rest():
+            if pulse >= self.curNote.until:
+                self.end_cur_note()
+            else:
+                self.status = '|' # holding a note
         if self.follow:
             if self.follow.curNote != self.followNote:
                 self.followNote = self.follow.curNote
@@ -114,5 +118,4 @@ class Voice:
     def end_cur_note(self):
         self.player.play(self.curNote.pitch, 0)
         self.curNote = None
-        self.status = ''
 

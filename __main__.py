@@ -7,7 +7,6 @@ class MelodomaticMain:
     def __init__(self, fn):
         self.filename = fn
         self.reader = reader.Reader(self.filename)
-        self.statuses = []
 
     def load(self):
         self.player = self.reader.load_script(0)
@@ -28,13 +27,13 @@ class MelodomaticMain:
                 dt = t - lastt
 
                 # check for a file change
-                if self.reader:
-                    if self.reader.update(self.player.pulse):
-                        self.player = self.reader.load_script(self.player.pulse, self.player)
-                        if not self.player.is_valid():
-                            if consts.VERBOSE:
-                                print 'Ending: empty script'
-                            break
+                if self.reader.update(self.player.pulse):
+                    # if the file has changed, build a new player and swap it in for the old one.
+                    self.player = self.reader.load_script(self.player.pulse, self.player)
+                    if not self.player.is_valid():
+                        if consts.VERBOSE:
+                            print 'Ending: empty script'
+                        break
 
                 # play some music!
                 if not self.player.update():
@@ -58,29 +57,21 @@ class MelodomaticMain:
             raise
         self.player.shutdown()
 
-    # Update the status string and print it out.
+    # Update our half-baked visualization string and print it out.
     def update_status(self):
-        newstats = [ self.player.status, ]
-        for v in self.player.voiceOrder:
-            newstats.append(self.player.voices[v].status)
+        statuses = [ self.player.status, ]
+        statuses.extend((self.player.voices[v].status for v in self.player.voiceOrder))
 
         doit = False
         s = '%06d'%self.player.pulse
         s += '%2s'%self.reader.status
-        for i in xrange(len(newstats)):
-            # Try not to repeat status messages.
-            if i < len(self.statuses) and self.statuses[i] == newstats[i]:
-                if i==0 or not newstats[i]:
-                    s += str.center('', 9)
-                else:
-                    s += str.center('|', 9)
-            else:
+        for i in xrange(len(statuses)):
+            if statuses[i].strip() not in ('', '|'):
                 doit = True
-                s += str.center(newstats[i], 9)
+            s += str.center(statuses[i], 9)
 
-        if doit or self.player.pulse%self.player.visualizationWindow==0:
+        if doit or self.player.pulse%self.player.visualizationWindow == 0:
             print s
-        self.statuses = newstats
 
 
 if __name__ == '__main__':
