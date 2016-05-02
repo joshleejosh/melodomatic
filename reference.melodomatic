@@ -10,17 +10,17 @@
 #
 
 ### FORMATTING ################################################################
-# The script consists a series of command blocks.
-# A word starting with ':' denotes a new command block.
-# A word starting with '.' denotes a command within a block.
+# The script consists a series of definition blocks.
+# A word starting with ':' denotes the head of a definition block.
+# A word starting with '.' denotes a parameter in a definition block.
 # A word starting with '$' denotes a generator function.
-# Commands are case-insensitive.
+# Labels are case-insensitive.
 # A '#' denotes a comment.
 # Blank lines are ignored.
 
 
 ### PREPROCESSING #############################################################
-# Preprocessing direcives start with '!'. They modify the script before it is
+# Preprocessing directives start with '!'. They modify the script before it is
 # parsed.
 
 # You can include another file. When you do, the 
@@ -52,16 +52,16 @@
                              # Self-transitions are okay.
                              # Invalid links are ignored.
 
-# Commands can be abbreviated.
-# Commands are case-insensitive.
-# Multiple commands can go on a single line.
+# Header and parameter labels can be abbreviated.
+# Labels are case-insensitive.
+# Multiple parameters can go on a single line.
 # Here, the @major macro will be replaced by its definition (the definition is
 # in common.melodomatic, which was included above).
 :sc BbMaj .r 70 .i @major .LiNkS FMaj C7
 
 :scale C7
 .root 72
-.interval 0 2                # A command can be spread out across multiple
+.interval 0 2                # A parameter can be spread out across multiple
 4 5                          # lines. Comments are stripped out before parsing
 7 9 10                       # and won't interrupt anything.
 .links $shuffle              # The link set is a generator (see below).
@@ -183,7 +183,8 @@
 
 :player
 
-.beats_per_minute 108        # The overall tempo of the piece. (Default is 120)
+.beats_per_minute 108        # The overall tempo of the piece.
+                             # (Default is 120)
 
 .pulses_per_beat 12          # Define the smallest fraction of a beat that we
                              # can play.  This is used to derive the rate of
@@ -191,21 +192,28 @@
                              # small time slices, which could lead to choppy
                              # performance.  On the other hand, too few pulses
                              # risks dropping/overlapping short notes.  So you
-                             # should probably just not play with this.
+                             # should probably just not play with this unless
+                             # you have really specific meter needs.
                              # (Default is 12)
 
 .reload_interval 4           # Define how often the reader should check for
                              # changes in this script file. This is a duration,
                              # so it can be in beats or pulses.
+                             # (Default is 8 beats)
 
 .scale_change_times
         $shuffle 16 24 32    # A generator that determines how often (in beats)
                              # the player will change between scales (as
                              # directed by the scales' links properties).
+                             # (Default is 16 beats)
+
+.visualization_window 4p     # How often the program spits out status lines to
+                             # the console. This should be set to align with
+                             # the smallest duration slice you expect your
+                             # voices to generate.
+                             # (Default is .5 beats)
 
 .start_scale FMaj            # Which scale the player should start on when the
-                             # file is first loaded.  By default, the player
-                             # will start with the first scale in the file.
-                             # When the file is hotloaded, this will override
-                             # any current scale change.
+                             # file is first loaded.
+                             # (Default is the first scale in the script)
 

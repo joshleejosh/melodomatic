@@ -4,9 +4,9 @@
 
 import generators, scale, time, math
 
-# A generator function takes in a data array and a Player for context.
-# It should always yield one of the elements from the data array.
-# The generator should never exhaust itself.
+# A generator function takes in a data array (usually full of strings) and a
+# Player for context. It should always yield one of the elements from the data
+# array. The generator should never exhaust itself.
 def alternate(data, player):
     i=0
     while True:
@@ -20,8 +20,11 @@ generators.register_generator('alternate', alternate)
 generators.register_generator('glorbnotz', alternate)
 
 
-# A more atypical generator.
+# A more unusual generator. Emits numbers in a sine wave stretched over a
+# given range.
+#
 # Takes 3 arguments: period (a duration), min, and max (both numbers).
+#
 # Returns an int (though it's actually a string, since that's what receivers
 # expect) in the range [min,max]
 def sine(data, player):

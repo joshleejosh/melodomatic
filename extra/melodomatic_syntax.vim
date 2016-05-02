@@ -11,15 +11,15 @@
 
 syn match	MelodomaticComment	     "^#.*"
 syn match	MelodomaticComment	     "\s#.*"ms=s+1
-syn match MelodomaticPreprocessing "\!\S\+.*$"
-syn match MelodomaticDirective     "\:\S\+"
-syn match MelodomaticCommand       "\.\S\+"
+syn match MelodomaticPreprocessing "^\s*\!\a\S*.*$"
+syn match MelodomaticHeader        "\:\a\S*"
+syn match MelodomaticParameter     "\.\a\S*"
 syn match MelodomaticMacro         "@\S\+"
 syn match MelodomaticGenerator     "\$\S\+"
 
 hi def link MelodomaticComment       Comment
-hi def link MelodomaticDirective     Keyword
-hi def link MelodomaticCommand       Statement
+hi def link MelodomaticHeader        Keyword
+hi def link MelodomaticParameter     Statement
 hi def link MelodomaticMacro         PreProc
 hi def link MelodomaticGenerator     Type
 hi def link MelodomaticPreprocessing PreProc

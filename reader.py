@@ -3,8 +3,8 @@ import consts
 from util import *
 import generators, player, voice, scale
 
-VALID_COMMANDS = {
-        ':PLAYER':[
+BLOCK_LABELS = {
+        ':PLAYER': [
             'BEATS_PER_MINUTE', 'BPM',
             'PULSES_PER_BEAT', 'PPB',
             'SCALE_CHANGE_TIMES',
@@ -12,8 +12,8 @@ VALID_COMMANDS = {
             'START_SCALE',
             'VISUALIZATION_WINDOW'
             ],
-        ':SCALE':[ 'ROOT', 'INTERVALS', 'PITCHES', 'LINKS' ],
-        ':VOICE':[ 'CHANNEL', 'PITCH', 'TRANSPOSE', 'DURATION', 'VELOCITY', 'FOLLOW' ],
+        ':SCALE': [ 'ROOT', 'INTERVALS', 'PITCHES', 'LINKS' ],
+        ':VOICE': [ 'CHANNEL', 'PITCH', 'TRANSPOSE', 'DURATION', 'VELOCITY', 'FOLLOW' ],
         }
 
 RE_EVAL = re.compile(r'\{([^}]*)\}')
@@ -49,11 +49,11 @@ class Parser:
 
         def clear_buf():
             if self.buf:
-                # Slice the buffer into a command block.
+                # Slice the buffer into a definition block.
                 block = []
                 bbuf = []
                 for i in self.buf:
-                    # Each command starts with '.'
+                    # Each parameter starts with '.'
                     # But make sure we don't catch decimal numbers!
                     if len(i) > 1 and i[0] == '.' and not is_int(i[1]):
                         if bbuf:
@@ -72,7 +72,7 @@ class Parser:
                 continue
             a = line.strip().split()
             if line[0] == ':':
-                # clean up the previous command block and start a new one.
+                # clean up the previous block and start a new one.
                 clear_buf()
                 self.buf = a
             else:
@@ -94,6 +94,7 @@ class Parser:
         for linei in reversed(todel):
             del self.text[linei]
 
+    # Replace include calls with the lines of the included file.
     def process_includes(self):
         toInsert = []
         for linei,line in enumerate(self.text):
@@ -106,11 +107,13 @@ class Parser:
         for i in range(len(toInsert)-1, -1, -1):
             line = toInsert[i][0]
             chunk = toInsert[i][1]
+            # splice the lines in over the include call.
             self.text[line:1] = chunk
 
+    # Read macro definitions and make replacements.
+    # Only does one pass, so definitions need to come before references.
     def process_macros(self):
         macros = []
-        #todel = []
         for linei,line in enumerate(self.text):
             if line.strip().upper().startswith('!DEFINE'):
                 line = line.strip()[len('!DEFINE'):].split('#')[0]
@@ -118,16 +121,14 @@ class Parser:
                 id = a[0].strip()
                 val = ' '.join(a[1:])
                 macros.append((id, val))
-                #todel.append(linei)
             elif '@' in line:
                 for macro in macros:
                     self.text[linei] = self.text[linei].replace('@'+macro[0], macro[1])
                 if '@' in self.text[linei]:
                     if consts.VERBOSE:
                         print 'ERROR line %d: bad macro reference [%s]'%(linei, line[:-1])
-        #for linei in reversed(todel):
-        #    del self.text[linei]
 
+    # Executing arbitrary code is never safe.
     def process_evals(self):
         for linei,line in enumerate(self.text):
             if not '{' in line and '}' in line:
@@ -147,11 +148,11 @@ class Parser:
 
         # Process player info first, no mattter where it was in the file (because so many things depend on ppb being set)...
         for block in self.data:
-            btype = self.autocomplete_directive(block[0][0])
+            btype = self.autocomplete_type(block[0][0])
             if btype == ':PLAYER':
                 # Do one pass just to look for ppb and bpm, since so many other things depend on them being set.
                 for ca in block[1:]:
-                    cmd = self.autocomplete_command(ca[0], btype)
+                    cmd = self.autocomplete_label(ca[0], btype)
                     if cmd == 'BEATS_PER_MINUTE' or cmd == 'BPM':
                         bpm = int(ca[1])
                         self.player.change_tempo(bpm, self.player.ppb)
@@ -160,7 +161,7 @@ class Parser:
                         self.player.change_tempo(self.player.bpm, ppb)
                 # Go through again and get everything else.
                 for ca in block[1:]:
-                    cmd = self.autocomplete_command(ca[0], btype)
+                    cmd = self.autocomplete_label(ca[0], btype)
                     if cmd == 'SCALE_CHANGE_TIMES':
                         g,d = generators.bind_generator(ca[1:], self.player)
                         if g:
@@ -180,11 +181,11 @@ class Parser:
 
         # ...Then build scales...
         for block in self.data:
-            btype = self.autocomplete_directive(block[0][0])
+            btype = self.autocomplete_type(block[0][0])
             if btype == ':SCALE':
                 sc = scale.Scale(block[0][1].strip(), self.player)
                 for ca in block[1:]:
-                    cmd = self.autocomplete_command(ca[0], btype)
+                    cmd = self.autocomplete_label(ca[0], btype)
                     if cmd == 'ROOT':
                         if len(ca) > 1 and is_int(ca[1]):
                             n = int(ca[1])
@@ -210,11 +211,11 @@ class Parser:
 
         # ...And finally do voices.
         for block in self.data:
-            btype = self.autocomplete_directive(block[0][0])
+            btype = self.autocomplete_type(block[0][0])
             if btype == ':VOICE':
                 vo = voice.Voice(block[0][1].strip(), self.player)
                 for ca in block[1:]:
-                    cmd = self.autocomplete_command(ca[0], btype)
+                    cmd = self.autocomplete_label(ca[0], btype)
                     if cmd == 'CHANNEL':
                         if len(ca) > 1 and is_int(ca[1]):
                             vo.channel = int(ca[1])
@@ -233,29 +234,29 @@ class Parser:
         if consts.VERBOSE:
             self.player.dump()
 
-    def autocomplete_directive(self, d):
+    def autocomplete_type(self, d):
         if not d.startswith(':'):
             d = ':' + d
         d = d.upper()
-        for directive in VALID_COMMANDS.iterkeys():
+        for directive in BLOCK_LABELS.iterkeys():
             if directive.startswith(d):
                 return directive
         return d
 
-    def autocomplete_command(self, c, ctx):
+    def autocomplete_label(self, c, ctx):
         if c.startswith('.'):
             c = c[1:]
         c = c.upper()
-        if ctx not in VALID_COMMANDS:
+        if ctx not in BLOCK_LABELS:
             return c
-        for command in VALID_COMMANDS[ctx]:
+        for command in BLOCK_LABELS[ctx]:
             if command.startswith(c):
                 return command
         return c
 
 # I am responsible for reading a script file and feeding its contents to a Parser.
 # I am also responsible for checking for changes to the file at regular
-# intervals and reconfiguring the Player when that happens.
+# intervals and rebuilding the Player when that happens.
 class Reader:
     def __init__(self, fn):
         self.filename = fn
