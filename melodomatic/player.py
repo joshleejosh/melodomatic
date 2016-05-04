@@ -1,4 +1,4 @@
-import consts
+import consts, random, time
 from util import *
 import generators, voice, scale, midi
 
@@ -6,6 +6,9 @@ import generators, voice, scale, midi
 # I am configured by a Reader.
 class Player:
     def __init__(self):
+        self.rng = random.Random()
+        self.player = self # Generators frequently want a ref to their context's player, so make sure we match the interface.
+        self.set_seed(time.time())
         self.scales = {}
         self.scaleOrder = []
         self.voices = {}
@@ -20,10 +23,15 @@ class Player:
 
     def dump(self):
         print 'Player: %d bpm, %d ppb, %f pulse time'%(self.bpm, self.ppb, self.pulseTime)
+        print '    seed %s'%self.rngSeed
         for sc in self.scaleOrder:
             self.scales[sc].dump()
         for vo in self.voiceOrder:
             self.voices[vo].dump()
+
+    def set_seed(self, sv):
+        self.rngSeed = sv
+        self.rng.seed(self.rngSeed)
 
     def transfer_state(self, old):
         old.shutdown()

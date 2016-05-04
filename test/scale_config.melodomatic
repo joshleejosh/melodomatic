@@ -16,6 +16,7 @@ This text is not attached to a command, so it will hopefully be appended to the 
 :scale EmptyLinks
 .l
 :scale WeightedLinks
+.seed RANDOMHASH
 .l $random JustLinks JustLinks EmptyLinks INVALIDLINK JustLinks
 
 :scale BadValues

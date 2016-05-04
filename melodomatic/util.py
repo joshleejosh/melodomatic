@@ -1,17 +1,9 @@
 import random, time
 import consts
 
-rnd = random.Random()
-
-def seed_random(s):
-    if not s:
-        s = time.time()
-    if consts.VERBOSE:
-        print 'Seed = %d'%float(s)
-    rnd.seed(s)
-
-def coinflip():
-    if rnd.random() < .5:
+def coinflip(ctx=None):
+    r = ctx.rng.random() if ctx else random.random()
+    if r < .5:
         return -1
     else:
         return +1

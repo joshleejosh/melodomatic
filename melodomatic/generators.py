@@ -2,19 +2,19 @@ import consts
 from util import *
 
 # Return the input value forever.
-def scalar(data, player):
+def scalar(data, ctx):
     while True:
         yield data[0]
 
 # Loop through the given list on repeat forever.
-def loop(data, player):
+def loop(data, ctx):
     i = 0
     while True:
         yield data[i]
         i = (i+1)%len(data)
 
 # Traverse forwards and backwards through the list forever.
-def pingpong(data, player):
+def pingpong(data, ctx):
     i = 0
     dir = 1
     while True:
@@ -29,29 +29,29 @@ def pingpong(data, player):
             i += dir
 
 # Pick randomly from the list forever.
-def random(data, player):
+def random(data, ctx):
     while True:
-        yield rnd.choice(data)
+        yield ctx.rng.choice(data)
 
 # Shuffle the list, loop over it, and repeat forever.
 # Does not modify the list.
-def shuffle(data, player):
+def shuffle(data, ctx):
     while True:
         ia = range(len(data))
-        rnd.shuffle(ia)
+        ctx.rng.shuffle(ia)
         for i in ia:
             yield data[i]
 
 # Randomly walks up and down the given array forever.
 # Only steps on random occasion, based on the given chance.
 # When not at the edges of the array, step direction is an even coin flip.
-def random_walk(data, player):
+def random_walk(data, ctx):
     chance = float(data[0])
     a = data[1:]
-    i = rnd.randint(0, len(a)-1)
+    i = ctx.rng.randint(0, len(a)-1)
     while True:
         yield a[i]
-        if rnd.random() < chance:
+        if ctx.rng.random() < chance:
             if i == 0:
                 i = 1
             elif i == len(a)-1:
@@ -76,7 +76,7 @@ def autocomplete_generator_name(n):
             return name
     return n
 
-# Binds a generator function to the given data and player.
+# Binds a generator function to the given data and context object.
 #
 # The first element in the data array should be a $ descriptor of which generator to use.
 # If none is given, we'll assume $SCALAR for single values and $RANDOM for multiple.
@@ -84,8 +84,12 @@ def autocomplete_generator_name(n):
 # If a converter function is given, any output from the generator will be run
 # through it on its way out.
 #
+# The context object should be either a Player, Scale, or Voice. The default
+# generators depend on the `rng` property of each of these types for random
+# number generation.
+#
 # Returns a 2-tuple containing the generator and a text label.
-def bind_generator(data, player):
+def bind_generator(data, ctx):
     cmd = ''
     if data[0][0] == '$':
         cmd = data[0][1:].upper()
@@ -97,7 +101,7 @@ def bind_generator(data, player):
 
     cmd = autocomplete_generator_name(cmd)
     if cmd in GENERATORS:
-        return (GENERATORS[cmd](data, player), '$%s %s'%(cmd, str(data)))
+        return (GENERATORS[cmd](data, ctx), '$%s %s'%(cmd, str(data)))
 
     if consts.VERBOSE:
         print 'ERROR: Bad generator funtion [%s]'%cmd

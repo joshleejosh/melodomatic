@@ -7,7 +7,7 @@ import generators
 # A generator function takes in a data array (usually full of strings) and a
 # Player for context. It should always yield one of the elements from the data
 # array. The generator should never exhaust itself.
-def alternate(data, player):
+def alternate(data, ctx):
     i=0
     while True:
         yield data[i]

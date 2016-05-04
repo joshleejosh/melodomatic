@@ -1,4 +1,4 @@
-import sys
+import sys, random
 import consts, generators, scale
 from util import *
 
@@ -24,6 +24,8 @@ class Voice:
     def __init__(self, id, pl):
         self.id = id
         self.player = pl
+        self.rng = random.Random()
+        self.set_seed(self.player.rng.random())
         self.channel = 1
         self.status = ''
         self.curNote = None
@@ -35,9 +37,15 @@ class Voice:
         bind_voice_generator(self, 'MELODOMATIC')
 
     def dump(self):
-        print 'VOICE "%s" : channel %d : generator %s '%(self.id, self.channel, self.generatorName)
+        print 'VOICE "%s" : generator %s '%(self.id, self.generatorName)
+        print '    channel %s'%self.channel
+        print '    seed %s'%self.rngSeed
         for n,i in self.parameters.iteritems():
             print '    %s: %s'%(n, i[1])
+
+    def set_seed(self, sv):
+        self.rngSeed = sv
+        self.rng.seed(self.rngSeed)
 
     def set_generator(self, gname):
         bind_voice_generator(self, gname)
@@ -46,10 +54,13 @@ class Voice:
         pname = data[0].strip().upper()
         if self.generatorName:
             pname = autocomplete_voice_parameter(pname, self)
+            if not pname:
+                return ''
         data = data[1:]
         g,d = generators.bind_generator(data, self.player)
         if g:
             self.parameters[pname] = (g, d)
+            return pname
 
     def validate_generator(self):
         if not self.generator or not self.generatorName:
@@ -123,7 +134,8 @@ def autocomplete_voice_parameter(n, v):
         if parm.startswith(n):
             return parm
     if consts.VERBOSE:
-        print 'ERROR: Bad generator parameter [%s] for [%s]?'%(n, gtype)
+        #print 'ERROR: Bad generator parameter [%s] for [%s]?'%(n, gtype)
+        return ''
     return n
 
 def bind_voice_generator(voice, gtype):
@@ -165,6 +177,8 @@ def g_melodomatic(vo):
         else:
             p = int(transposer.next()) + vo.player.curScale.degree_to_pitch(pitcher.next())
             v = int(velocitier.next())
+        p = clamp(p, 0, 127)
+        v = clamp(v, 0, 127)
         yield Note(vo.pulse, d, p, v)
 
 register_voice_generator('MELODOMATIC', g_melodomatic,
@@ -187,11 +201,12 @@ def g_unison(vo):
         vn = voicer.next()
         if vn not in vo.player.voices:
             # don't know what to do, emit a rest
-            yield vo.Note(vo.pulse, self.player.parse_duration('1'), 1, 0)
+            yield Note(vo.pulse, vo.player.parse_duration('1'), 1, 0)
         vf = vo.player.voices[vn]
         notef = vf.curNote
         d = notef.duration
         p = notef.pitch + int(transposer.next())
+        p = clamp(p, 0, 127)
         v = notef.velocity + int(velocitier.next())
         v = clamp(v, 0, 127)
         if p >= 0 and p <= 127:

@@ -9,10 +9,11 @@ BLOCK_LABELS = {
             'PULSES_PER_BEAT', 'PPB',
             'RELOAD_INTERVAL',
             'START_SCALE',
-            'VISUALIZATION_WINDOW'
+            'VISUALIZATION_WINDOW',
+            'SEED',
             ],
-        ':SCALE': [ 'ROOT', 'INTERVALS', 'PITCHES', 'DURATION', 'LINKS' ],
-        ':VOICE': [ ],
+        ':SCALE': [ 'ROOT', 'INTERVALS', 'PITCHES', 'DURATION', 'LINKS', 'SEED', ],
+        ':VOICE': [ 'CHANNEL', 'SEED', ],
         }
 
 RE_EVAL = re.compile(r'\{([^}]*)\}')
@@ -90,12 +91,10 @@ class Parser:
                 toInsert.append((linei, lines))
                 if consts.VERBOSE:
                     print '!include %s'%fn
-        for i in reversed(toInsert):
-            line = i[0]
-            chunk = i[1]
+        for linei,chunk in reversed(toInsert):
             # splice the lines in over the include call.
-            del self.text[line]
-            self.text[line:1] = chunk
+            self.text[linei+1:1] = chunk
+            del self.text[linei]
 
     # Handle preprocessing directives other than !include:
     # !import - import python code (totally unsafe!)
@@ -167,13 +166,19 @@ class Parser:
                 # Go through again and get everything else.
                 for ca in block[1:]:
                     cmd = self.autocomplete_label(ca[0], btype)
-                    if cmd == 'RELOAD_INTERVAL':
+                    if cmd == 'BEATS_PER_MINUTE' or cmd == 'BPM' or cmd == 'PULSES_PER_BEAT' or cmd == 'PPB':
+                        continue
+                    elif cmd == 'RELOAD_INTERVAL':
                         # This isn't a player property at all! It's on the reader.
                         self.reader.reloadInterval = self.player.parse_duration(ca[1])
                     elif cmd == 'START_SCALE':
                         self.player.startScale = ca[1]
                     elif cmd == 'VISUALIZATION_WINDOW':
                         self.player.visualizationWindow = self.player.parse_duration(ca[1])
+                    elif cmd == 'SEED':
+                        self.player.set_seed(ca[1])
+                    elif consts.VERBOSE:
+                        print 'ERROR: Bad player command .%s'%cmd
             # while we're here, build a list of valid scale IDs.
             elif btype == ':SCALE':
                 scid = block[0][1].strip()
@@ -218,9 +223,10 @@ class Parser:
             elif cmd == 'LINKS':
                 # try to strip out invalid links before setting
                 sc.set_linker(tuple((id for id in ca[1:] if id in scaleIDs or id[0] == '$')))
-            else:
-                if consts.VERBOSE:
-                    print 'ERROR: Bad scale command .%s'%cmd
+            elif cmd == 'SEED':
+                sc.set_seed(ca[1])
+            elif consts.VERBOSE:
+                print 'ERROR: Bad scale command .%s'%cmd
         self.player.add_scale(sc)
 
     def build_voice(self, block):
@@ -231,20 +237,23 @@ class Parser:
         id = block[0][1].strip()
         vo = voice.Voice(id, self.player)
 
-        vo.channel = 1
-        if len(block[0]) > 2:
-            if is_int(block[0][2]):
-                vo.channel = int(block[0][2])
-            elif consts.VERBOSE:
-                print 'ERROR: Bad channel [%s] on voice [%s]'%(block[1], id)
-
         gn = ''
-        if len(block[0]) > 3:
-            gn = block[0][3]
+        if len(block[0]) > 2:
+            gn = block[0][2]
         vo.set_generator(gn)
 
         for ca in block[1:]:
-            vo.set_parameter(ca)
+            if not vo.set_parameter(ca):
+                cmd = self.autocomplete_label(ca[0], ':VOICE')
+                if cmd == 'CHANNEL':
+                    if len(ca) > 1 and is_int(ca[1]):
+                        vo.channel = int(ca[1])
+                elif cmd == 'SEED':
+                    if len(ca) > 1:
+                        vo.set_seed(ca[1])
+                elif consts.VERBOSE:
+                    print 'ERROR: Bad voice command .%s'%cmd
+
 
         vo.validate_generator()
         self.player.add_voice(vo)

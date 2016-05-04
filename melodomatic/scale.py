@@ -10,6 +10,8 @@ class Scale:
     def __init__(self, id, player):
         self.id = id
         self.player = player
+        self.rng = random.Random()
+        self.set_seed(self.player.rng.random())
         self.root = consts.DEFAULT_SCALE_ROOT
         self.intervals = consts.DEFAULT_SCALE_INTERVALS
         self.pitches = tuple(self.root + i for i in self.intervals)
@@ -21,9 +23,14 @@ class Scale:
 
     def dump(self):
         print 'SCALE %s:'%self.id
+        print '    seed %s'%self.rngSeed
         print '    pitches = %s [%d + %s]'%(self.pitches, self.root, self.intervals)
         print '    duration = %s'%self.durationerLabel
         print '    links = %s'%self.linkerLabel
+
+    def set_seed(self, sv):
+        self.rngSeed = sv
+        self.rng.seed(self.rngSeed)
 
     def set_root(self, r):
         self.root = r
@@ -43,7 +50,7 @@ class Scale:
     def set_durationer(self, data):
         if not data:
             data = (str(consts.DEFAULT_SCALE_CHANGE_TIME),)
-        g,d = generators.bind_generator(data, self.player)
+        g,d = generators.bind_generator(data, self)
         if g:
             self.durationer = g
             self.durationerLabel = d
@@ -51,7 +58,7 @@ class Scale:
     def set_linker(self, data):
         if not data:
             data = (self.id,)
-        g,d = generators.bind_generator(data, self.player)
+        g,d = generators.bind_generator(data, self)
         if g:
             self.linker = g
             self.linkerLabel = d
@@ -72,8 +79,8 @@ class Scale:
         self.pulse = pulse
         self.changeTime = self.pulse + self.player.parse_duration(self.durationer.next())
         self.status = self.id
-        if consts.VERBOSE:
-            print 'Begin scale %s at %d, next change at %d'%(self.id, self.pulse, self.changeTime)
+        #if consts.VERBOSE:
+        #    print 'Begin scale %s at %d, next change at %d'%(self.id, self.pulse, self.changeTime)
 
     def update(self, pulse):
         self.status = ''
