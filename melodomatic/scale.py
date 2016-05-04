@@ -13,11 +13,16 @@ class Scale:
         self.root = consts.DEFAULT_SCALE_ROOT
         self.intervals = consts.DEFAULT_SCALE_INTERVALS
         self.pitches = tuple(self.root + i for i in self.intervals)
-        self.linker, self.linkerLabel = generators.bind_generator((self.id,), self.player)
+        self.set_durationer([])
+        self.set_linker([])
+        self.pulse = 0
+        self.changeTime = 0
+        self.status = ''
 
     def dump(self):
         print 'SCALE %s:'%self.id
         print '    pitches = %s [%d + %s]'%(self.pitches, self.root, self.intervals)
+        print '    duration = %s'%self.durationerLabel
         print '    links = %s'%self.linkerLabel
 
     def set_root(self, r):
@@ -35,6 +40,14 @@ class Scale:
         self.root = self.pitches[0]
         self.intervals = tuple(p - self.root for p in self.pitches)
 
+    def set_durationer(self, data):
+        if not data:
+            data = (str(consts.DEFAULT_SCALE_CHANGE_TIME),)
+        g,d = generators.bind_generator(data, self.player)
+        if g:
+            self.durationer = g
+            self.durationerLabel = d
+        
     def set_linker(self, data):
         if not data:
             data = (self.id,)
@@ -55,8 +68,19 @@ class Scale:
     def get_pitch(self, i):
         return self.pitches[i]
 
-    def next_scale(self):
-        return str(self.linker.next())
+    def begin(self, pulse):
+        self.pulse = pulse
+        self.changeTime = self.pulse + self.player.parse_duration(self.durationer.next())
+        self.status = self.id
+        if consts.VERBOSE:
+            print 'Begin scale %s at %d, next change at %d'%(self.id, self.pulse, self.changeTime)
+
+    def update(self, pulse):
+        self.status = ''
+        self.pulse = pulse
+        if self.pulse >= self.changeTime:
+            n = str(self.linker.next())
+            self.player.change_scale(n)
 
 
 def parse_degree(code):

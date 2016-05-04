@@ -43,10 +43,13 @@
 .intervals 0 2 4 5 7 9 11    # Scale INTERVALS are a list of values to be added
                              # to the root to generate the full set of pitches
                              # that can be played.
+.duration 8 16 32            # DURATION is the amount of time we will spend in
+                             # this scale before moving onto another one. Time
+                             # is measured in beats. If multiple values are
+                             # listed, the player will pick one of them
+                             # randomly when this scale starts.
 .links FMaj BbMaj C7         # LINKS are ids of other scales that the player
-                             # can transition to. The player switches between
-                             # scales periodically (see scale_change_times
-                             # under player, below).
+                             # can transition to when it's time to change.
                              # If there are no links, the player will just
                              # stay in this scale forever.
                              # Self-transitions are okay.
@@ -57,13 +60,14 @@
 # Multiple parameters can go on a single line.
 # Here, the @major macro will be replaced by its definition (the definition is
 # in common.melodomatic, which was included above).
-:sc BbMaj .r 70 .i @major .LiNkS FMaj C7
+:sc BbMaj .r 70 .i @major .d 4 .LiNkS FMaj C7
 
 :scale C7
 .root 72
 .interval 0 2                # A parameter can be spread out across multiple
 4 5                          # lines. Comments are stripped out before parsing
 7 9 10                       # and won't interrupt anything.
+.duration 4 8
 .links $shuffle              # The link set is a generator (see below).
        FMaj FMaj FMaj BbMaj  # To weigh one scale over another in a $random or
                              # $shuffle set, add extra entries to the pool.
@@ -200,12 +204,6 @@
                              # changes in this script file. This is a duration,
                              # so it can be in beats or pulses.
                              # (Default is 8 beats)
-
-.scale_change_times
-        $shuffle 16 24 32    # A generator that determines how often (in beats)
-                             # the player will change between scales (as
-                             # directed by the scales' links properties).
-                             # (Default is 16 beats)
 
 .visualization_window 4p     # How often the program spits out status lines to
                              # the console. This should be set to align with

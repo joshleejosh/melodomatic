@@ -109,7 +109,7 @@ def autocomplete_voice_generator_name(n):
         if name.startswith(n):
             return name
     if consts.VERBOSE:
-        print 'ERROR: Bad generator name [%s]?'%n
+        print 'ERROR: Bad voice generator name [%s]?'%n
     return n
 
 def autocomplete_voice_parameter(n, v):

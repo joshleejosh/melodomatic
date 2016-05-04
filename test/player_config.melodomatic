@@ -10,7 +10,6 @@
 :player
 .beats_per_minute 108
 .pulses_per_beat 8
-.scale_change_times $shuffle 16 24 24 32 32 32
 .reload_interval 17.5
 .start_scale D
 .visualization_window 3p

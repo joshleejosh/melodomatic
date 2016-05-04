@@ -59,7 +59,11 @@ class MelodomaticMain:
 
     # Update our half-baked visualization string and print it out.
     def update_status(self):
-        statuses = [ self.player.status, ]
+        statuses = [ ]
+        if self.player.curScale:
+            statuses.append(self.player.curScale.status)
+        else:
+            statuses.append('')
         statuses.extend((self.player.voices[v].status for v in self.player.voiceOrder))
 
         doit = False

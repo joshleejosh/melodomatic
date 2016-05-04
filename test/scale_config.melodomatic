@@ -30,3 +30,6 @@ This text is not attached to a command, so it will hopefully be appended to the 
 :sc Pitches
 .pitches 64 66 67 69 71 72 74
 
+:sc Durations
+.d $loop 4 8 16
+

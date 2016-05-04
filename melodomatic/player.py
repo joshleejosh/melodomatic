@@ -12,17 +12,14 @@ class Player:
         self.voiceOrder = []
         self.change_tempo(consts.DEFAULT_BEATS_PER_MINUTE, consts.DEFAULT_PULSES_PER_BEAT)
         self.midi = midi.MelodomaticMidi()
-        self.scaleChangeTimer, self.scaleChangeTimerLabel = generators.bind_generator(('$SCALAR', str(consts.DEFAULT_SCALE_CHANGE_TIME)), self)
         self.visualizationWindow = self.parse_duration(consts.DEFAULT_VISUALIZATION_WINDOW)
         self.startScale = ''
         self.curScale = None
         self.pulse = 0
         self.nextScaleChange = 0
-        self.status = ''
 
     def dump(self):
         print 'Player: %d bpm, %d ppb, %f pulse time'%(self.bpm, self.ppb, self.pulseTime)
-        print '    Change Timer: %s'%self.scaleChangeTimerLabel
         for sc in self.scaleOrder:
             self.scales[sc].dump()
         for vo in self.voiceOrder:
@@ -39,7 +36,6 @@ class Player:
         else:
             # use whatever scale and change time startup() decided on.
             pass
-        self.status = self.curScale.id
         if consts.VERBOSE:
             print 'Transferred state from old player: pulse=%d, next change=%d'%(self.pulse, self.nextScaleChange)
 
@@ -78,11 +74,9 @@ class Player:
         self.midi.open()
         self.pulse = 0
         if self.startScale and self.startScale in self.scaleOrder:
-            self.curScale = self.scales[self.startScale]
+            self.change_scale(self.startScale)
         else:
-            self.curScale = self.scales[self.scaleOrder[0]]
-        self.nextScaleChange = self.pulse + self.parse_duration(self.scaleChangeTimer.next())
-        self.status = self.curScale.id
+            self.change_scale(self.scaleOrder[0])
         if consts.VERBOSE:
             print 'starting up'
 
@@ -93,21 +87,24 @@ class Player:
 
     def tick(self):
         self.pulse += 1
-        self.status = ''
 
     def update(self):
-        # check for a scale change
-        if self.pulse >= self.nextScaleChange:
-            self.nextScaleChange = self.pulse + self.parse_duration(self.scaleChangeTimer.next())
-            self.curScale = self.scales[self.curScale.next_scale()]
-            self.status = self.curScale.id
-            #print 'Change to %s at %d, next change at %d'%(self.curScale.id, self.pulse, self.nextScaleChange)
+        if self.curScale:
+            self.curScale.update(self.pulse)
 
         # generate some notes and play them
         for vid in self.voiceOrder:
             self.voices[vid].update(self.pulse)
 
         return True
+
+    def change_scale(self, ns):
+        newScale = self.curScale
+        if ns in self.scales:
+            newScale = self.scales[ns]
+        if newScale != self.curScale:
+            self.curScale = newScale
+            self.curScale.begin(self.pulse)
 
     def parse_duration(self, d):
         d = d.strip()

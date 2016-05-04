@@ -7,12 +7,11 @@ BLOCK_LABELS = {
         ':PLAYER': [
             'BEATS_PER_MINUTE', 'BPM',
             'PULSES_PER_BEAT', 'PPB',
-            'SCALE_CHANGE_TIMES',
             'RELOAD_INTERVAL',
             'START_SCALE',
             'VISUALIZATION_WINDOW'
             ],
-        ':SCALE': [ 'ROOT', 'INTERVALS', 'PITCHES', 'LINKS' ],
+        ':SCALE': [ 'ROOT', 'INTERVALS', 'PITCHES', 'DURATION', 'LINKS' ],
         ':VOICE': [ ],
         }
 
@@ -168,12 +167,7 @@ class Parser:
                 # Go through again and get everything else.
                 for ca in block[1:]:
                     cmd = self.autocomplete_label(ca[0], btype)
-                    if cmd == 'SCALE_CHANGE_TIMES':
-                        g,d = generators.bind_generator(ca[1:], self.player)
-                        if g:
-                            self.player.scaleChangeTimer = g
-                            self.player.scaleChangeTimerLabel = d
-                    elif cmd == 'RELOAD_INTERVAL':
+                    if cmd == 'RELOAD_INTERVAL':
                         # This isn't a player property at all! It's on the reader.
                         self.reader.reloadInterval = self.player.parse_duration(ca[1])
                     elif cmd == 'START_SCALE':
@@ -219,6 +213,8 @@ class Parser:
                     a = split_ints(ca[1:])
                     if len(a) > 0:
                         sc.set_pitches(a)
+            elif cmd == 'DURATION':
+                sc.set_durationer(ca[1:])
             elif cmd == 'LINKS':
                 # try to strip out invalid links before setting
                 sc.set_linker(tuple((id for id in ca[1:] if id in scaleIDs or id[0] == '$')))
