@@ -1,0 +1,49 @@
+
+:s S
+
+:v V1
+.t -12
+
+# Parenthesized lists that don't have expander functions are just concatenated.
+.p (1 (2 3 (4 5) 6) 7 8) (    9 10 (11)) 12 (%list 13 14 15)
+
+# %range min max step
+# min and max are inclusive.
+# step is optional
+.v $loop (%range 32 96 8)
+
+# %xerox n values...
+# makes n duplicates of the list
+.d (%xerox 4 .5) (%x 2 12p 2 -1) (%x 1 (%r 8 4 -4))
+
+
+:v V2
+
+# %pingpong min max step
+# Works like %range, but then adds on a back half that comes back down.
+# If you $loop over a %pingpong, you get the same results as $pingpong (i.e., no repeats at the ends).
+.p $loop (%pp 1 8 -1)
+
+.d (%ease quad i 8 (.5 1 2 -1))
+
+
+:v V3
+.d .25
+.p $pp (%range 1 15)
+
+# %ease function direction period values...
+# distributes the list over PERIOD values using the given easing function
+# function is the name of a common easing function (see http://easings.net/):
+#     LINEAR, SINE, QUADRATIC, CUBIC, QUARTIC, QUINTIC, EXPONENTIAL, CIRCULAR, BOUNCE
+# direction is IN, OUT, or INOUT. In and out can be abbreviated as 'i' and 'o', inout as 'io'
+# period is the number of values that will be in the resulting list.
+.v $pp (%e quad io 15 (%r 32 96 8))
+
+
+:v V4
+.t +24
+.p 5
+.d .25
+# This should make a straight line of 15 values from 32 to 46.
+.v $pp (%e lin i 15 (%r 32 46))
+

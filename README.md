@@ -15,6 +15,7 @@ A script-controlled procedural MIDI sequencer.
 * A MIDI device to receive data from this program
 * Mido (http://mido.readthedocs.org/)
   * Mido requires PortMIDI (http://portmedia.sourceforge.net/portmidi/)
+* Pytweening for easing functions (https://pypi.python.org/pypi/PyTweening/1.0.0 or https://github.com/asweigart/pytweening)
 
 ### SCRIPT FORMAT
 

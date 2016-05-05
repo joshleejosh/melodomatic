@@ -1,7 +1,7 @@
 import os, os.path, imp, sys, time, re
 import consts
 from util import *
-import generators, player, voice, scale
+import generators, expanders, player, voice, scale
 
 BLOCK_LABELS = {
         ':PLAYER': [
@@ -68,6 +68,7 @@ class Parser:
             line = self.text[linei].split('#')[0].strip()
             if len(line) == 0:
                 continue
+            line = line.replace('(',' ( ').replace(')', ' ) ')
             a = line.strip().split()
             if line[0] == ':':
                 # clean up the previous block and start a new one.
@@ -201,7 +202,7 @@ class Parser:
 
     def build_scale(self, block, scaleIDs):
         sc = scale.Scale(block[0][1].strip(), self.player)
-        for ca in block[1:]:
+        for ca in (expanders.expand_list(b) for b in block[1:]):
             cmd = self.autocomplete_label(ca[0], ':SCALE')
             if cmd == 'ROOT':
                 if len(ca) > 1 and is_int(ca[1]):
@@ -242,7 +243,7 @@ class Parser:
             gn = block[0][2]
         vo.set_generator(gn)
 
-        for ca in block[1:]:
+        for ca in (expanders.expand_list(b) for b in block[1:]):
             if not vo.set_parameter(ca):
                 cmd = self.autocomplete_label(ca[0], ':VOICE')
                 if cmd == 'CHANNEL':
@@ -277,6 +278,7 @@ class Parser:
             if command.startswith(c):
                 return command
         return c
+
 
 # I am responsible for reading a script file and feeding its contents to a Parser.
 # I am also responsible for checking for changes to the file at regular
