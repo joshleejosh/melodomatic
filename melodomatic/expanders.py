@@ -52,8 +52,9 @@ def ex_range(data):
     a = int(data[0])
     b = int(data[1])
     step = int(data[2]) if len(data)>2 else 1
-    if step < 0 and a < b:
-        a,b = b,a
+    if step < 0:
+        if a < b:
+            a,b = b,a
     elif a > b:
         a,b = b,a
     return range(a, b+step, step)
@@ -63,8 +64,9 @@ def ex_pingpong(data):
     a = int(data[0])
     b = int(data[1])
     step = int(data[2]) if len(data) > 2 else 1
-    if step < 0 and a < b:
-        a,b = b,a
+    if step < 0:
+        if a < b:
+            a,b = b,a
     elif a > b:
         a,b = b,a
     return range(a, b+step, step) + range(b-step, a, -step)
