@@ -1,0 +1,47 @@
+### PLAYER #################################################
+# The player is the conductor of the piece, handling timing
+# and control.
+# Everything here is optional, if you're okay with the
+# defaults values.
+
+:player
+
+# The overall tempo of the piece.
+# (Default is 120)
+.beats_per_minute 108
+
+# Define the smallest fraction of a beat that we can play.
+# This is used to derive the rate of processing, so very
+# large numbers lead to very small time slices, which could
+# lead to choppy performance. On the other hand, too few
+# pulses risks dropping/overlapping short notes. So you
+# should probably just not play with this unless you have
+# really specific meter needs.
+# (Default is 12)
+.pulses_per_beat 12
+
+# Define how often the reader should check for changes in
+# this script file. This is a duration, so it can be in
+# beats or pulses.
+# (Default is 8 beats)
+.reload_interval 4
+
+# How often the program spits out status lines to the
+# console. This should be set to align with the smallest
+# duration slice you expect your voices to generate.
+# (Default is .5 beats)
+.visualization_window 4p
+
+# Which scale the player should start on when the file is
+# first loaded.
+# (Default is the first scale in the script)
+.start_scale FMaj
+
+# Seed for any random numbers the player needs to generate.
+# Scales and voices do all the random number generating, but
+# if you don't specify seeds on them, they get their default
+# seeds from the player, so this isn't completely
+# irrelevant.
+# (Default is time)
+.seed WHATEVER
+

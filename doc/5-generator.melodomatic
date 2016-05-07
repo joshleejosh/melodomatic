@@ -1,0 +1,114 @@
+### GENERATOR ##############################################
+# Most parameter values are produced by GENERATOR functions
+# that perform some logic to pick a value out of a list. The
+# default generator picks randomly from the set, but you can
+# override this behavior by specifying a different generator
+# function with a '$' before the list of values.
+#
+# There are a number of generator functions to choose from:
+#
+# - $SCALAR        Returns a single value every time.
+# - $LOOP          Iterates over its list in order.
+# - $PINGPONG      Goes back and forth through its list.
+# - $RANDOM        Picks a random value out of the list.
+# - $SHUFFLE       Shuffles the list, goes through it, then
+#                  reshuffles and goes through again.
+# - $RANDOM-WALK   Walks up and down its list randomly based
+#                  on a probability.
+#
+# A bare single number is wrapped in a $SCALAR generator.
+# A bare list is wrapped in a $RANDOM generator.
+#
+
+
+# For voices, all parameters (EXCEPT for .channel and .seed)
+# are generators.
+:voice A
+
+# The $LOOP function just goes through its values in order,
+# then repeats.
+.pitch $loop 1 2 3 4
+
+# The $SCALAR function just returns a single value over and
+# over again. In this example, the second value will be
+# ignored.
+.duration $scalar 2 1
+
+# When a parameter only has a single value, the generator
+# defaults to $SCALAR.
+.velocity 64
+
+
+# ---------------------------
+
+:voice B
+
+# The $RANDOM function picks randomly from the list every
+# time it's called, as if you were rolling a dice to choose.
+# This can result in long runs of repeated values.
+.pitch $random 5 6 7 8
+
+# The $SHUFFLE function works more like a deck of cards: the
+# list is randomized, then gone through in order, and
+# reshuffled when it's done to go through again. This will
+# prevent long runs of repeated values.
+.duration $shuffle 1 1 2 4 -1
+
+# The $PINGONG function walks back and forth through the
+# list. In this case, the voice will crescendo up the list,
+# then decrescendo back down it.
+.velocity $pingpong 48 56 64 72 80 88 96
+
+
+# ---------------------------
+
+:voice C
+.pitch 1
+.duration 1
+
+# Even .transpose is a generator! You can use a function to
+# transpose by different amounts each time. Weird, but you
+# never know?
+.transpose $random -12 -8 -5
+
+# The $RANDOM-WALK function returns one of the values from
+# the list repeatedly, until it randomly decides to shift
+# one step up or down the list.
+#
+# When the generator changes values, it always does a coin
+# flip to decide whether to go up or down the list, unless
+# it's at the beginning or end, in which case it always
+# moves inward.
+.velocity $random-walk
+ 0.333             # The first argument to $RANDOM-WALK is
+                   # NOT a velocity value – it's the
+                   # probability that the function will
+                   # change values on each call.
+                   # Valid values are in the [0.0-1.0]
+                   # range.
+                   # In this example, we have a 33.3% chance
+                   # to change velocities after each note.
+ 32 40 48 56 64    # The rest of the arguments are the list
+                   # of values to be evaluated.
+
+
+# ##########################################################
+
+# For scales, only the .duration and .links parameters are
+# generators.
+# .intervals and .pitches are NOT generator functions,
+# despite being lists.
+:scale C
+.root 60
+.intervals 0 2 4 5 7 9 11
+.duration $loop 16 16 32
+.links $shuffle F F G
+
+:scale F
+.pitches 65 67 69 70 72 74 76
+.links C G
+
+:scale G
+.pitches 67 69 71 72 74 76 77
+.links $scalar C
+
