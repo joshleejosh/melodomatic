@@ -201,9 +201,13 @@ def g_unison(vo):
         vn = voicer.next()
         if vn not in vo.player.voices:
             # don't know what to do, emit a rest
-            yield Note(vo.pulse, vo.player.parse_duration('1'), 1, 0)
+            yield Note(vo.pulse, 1, 1, 0)
+            continue
         vf = vo.player.voices[vn]
         notef = vf.curNote
+        if not notef:
+            yield Note(vo.pulse, 1, 1, 0)
+            continue
         d = notef.duration
         p = notef.pitch + int(transposer.next())
         p = clamp(p, 0, 127)

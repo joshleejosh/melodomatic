@@ -7,8 +7,13 @@
 .d 1 1 2 4 -1
 .v 64 72
 
+# uhoh, unison voice defined before its target
+:voice UB $Unison .vo BChann
+.ch 3 .t +12 .vel -4
+
 :voice BChann
 .ch 3
+.se dfa;dfkja
 .t -36
 .p 1
 .d 8 16

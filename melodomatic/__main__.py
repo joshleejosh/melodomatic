@@ -80,7 +80,7 @@ class MelodomaticMain:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('filename', help='File containing player data.')
+    parser.add_argument('filename', help='File containing player script.')
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help='Don\'t print out visualization junk.')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='Print extra debug spam.')
     args = parser.parse_args()
