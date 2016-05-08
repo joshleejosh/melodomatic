@@ -112,7 +112,7 @@ class Player:
             newScale = self.scales[ns]
         if newScale != self.curScale:
             self.curScale = newScale
-            self.curScale.begin(self.pulse)
+        self.curScale.begin(self.pulse)
 
     def parse_duration(self, d):
         d = d.strip()
