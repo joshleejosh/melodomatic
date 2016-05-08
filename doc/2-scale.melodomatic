@@ -18,7 +18,7 @@
 # before moving onto another one. Time is measured in beats.
 # If multiple values are listed, the player will pick one of
 # them randomly when this scale starts.
-.duration 8 16 32
+.duration 8 16
 
 # LINKS are ids of other scales that the player can
 # transition to. After playing in this scale for a while,

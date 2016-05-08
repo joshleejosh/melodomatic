@@ -37,7 +37,7 @@
 .t 0
 
 
-# The $UNISION voice generator plays notes in unison with
+# The $UNISON voice generator plays notes in unison with
 # another voice. It can be used to set up choruses or
 # harmonies.
 #
@@ -56,9 +56,9 @@
 # we'll always be one pulse off.
 :voice U $unison
 .voice M
-.transpose 4
+.transpose 7
 .velocity -8
 
 
-:scale S .root 60 .intervals 1 2 4 5 7 9 11
+:scale S .root 60 .intervals 0 2 4 5 7 9 11
 
