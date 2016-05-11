@@ -20,8 +20,6 @@
 :v V2
 
 # %pingpong min max step
-# Works like %range, but then adds on a back half that comes back down.
-# If you $loop over a %pingpong, you get the same results as $pingpong (i.e., no repeats at the ends).
 .p $loop (%pp 1 8 -1)
 
 .d (%ease quad i 8 (.5 1 2 -1))
@@ -32,11 +30,6 @@
 .p $pp (%range 1 15)
 
 # %ease function direction period values...
-# distributes the list over PERIOD values using the given easing function
-# function is the name of a common easing function (see http://easings.net/):
-#     LINEAR, SINE, QUADRATIC, CUBIC, QUARTIC, QUINTIC, EXPONENTIAL, CIRCULAR, BOUNCE
-# direction is IN, OUT, or INOUT. In and out can be abbreviated as 'i' and 'o', inout as 'io'
-# period is the number of values that will be in the resulting list.
 .v $pp (%e quad io 15 (%r 32 96 8))
 
 
