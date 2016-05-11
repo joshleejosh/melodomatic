@@ -168,17 +168,16 @@ def g_melodomatic(vo):
     transposer = vo.parameters['TRANSPOSE'][0]
     while True:
         d = vo.player.parse_duration(durationer.next())
-        p = 0
+        p = 1
         v = 0
         if d < 0:
             d = abs(d)
-            # whatever, this is a rest so nothing will play, we don't even really need a valid value
-            p = int(transposer.next()) + vo.player.curScale.get_pitch(0)
         else:
-            p = int(transposer.next()) + vo.player.curScale.degree_to_pitch(pitcher.next())
+            t = int(transposer.next())
+            p = vo.player.curScale.degree_to_pitch(pitcher.next())
+            p = clamp(p+t, 0, 127)
             v = int(velocitier.next())
-        p = clamp(p, 0, 127)
-        v = clamp(v, 0, 127)
+            v = clamp(v, 0, 127)
         yield Note(vo.pulse, d, p, v)
 
 register_voice_generator('MELODOMATIC', g_melodomatic,
