@@ -119,8 +119,8 @@ class Player:
     def parse_duration(self, d):
         d = d.strip()
         if d[-1] == 'p' and is_float(d[:-1]):
-            return float(d[:-1])
+            return int(d[:-1])
         if is_float(d):
-            return float(d) * self.ppb
-        return d
+            return int(float(d) * self.ppb)
+        return int(d)
 
