@@ -52,6 +52,8 @@ class Player:
             s.player = self
             self.scales[s.id] = s
             self.scaleOrder.append(s.id)
+            if not self.curScale:
+                self.curScale = s
 
     def add_voice(self, v):
         if v not in self.voices.values():
