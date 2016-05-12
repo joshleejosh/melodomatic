@@ -1,0 +1,18 @@
+!include common.melodomatic
+
+
+:v A
+.ch 1
+.p @scale
+.d 1 1 2
+.v 64
+
+:v B
+.ch 2
+.p @triad
+.d 2 2 4
+.v 64
+.t -24
+
+:s S .r 60 .i @major
+

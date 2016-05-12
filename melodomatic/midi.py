@@ -16,11 +16,11 @@ class MelodomaticMidi:
     def send(self, m):
         self.midiOut.send(m)
 
-    def note_on(self, n, v):
-        self.send(mido.Message('note_on', note=n, velocity=v))
+    def note_on(self, ch, n, v):
+        self.send(mido.Message('note_on', channel=ch, note=n, velocity=v))
 
-    def note_off(self, n, v):
-        self.send(mido.Message('note_off', note=n, velocity=v))
+    def note_off(self, ch, n, v):
+        self.send(mido.Message('note_off', channel=ch, note=n, velocity=v))
 
 class TestMidi(MelodomaticMidi):
     def __init__(self):

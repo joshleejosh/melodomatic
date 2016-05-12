@@ -74,9 +74,9 @@ class Player:
         self.ppb = ppb
         self.pulseTime = 60.0 / self.bpm / self.ppb
 
-    def play(self, n, v):
+    def play(self, ch, n, v):
         # note-off is sent as a note-on with velocity 0.
-        self.midi.note_on(n, v)
+        self.midi.note_on(ch, n, v)
 
     def startup(self):
         if not self.is_valid():

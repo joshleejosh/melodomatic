@@ -26,7 +26,7 @@ class Voice:
         self.player = pl
         self.rng = random.Random()
         self.set_seed(self.player.rng.random())
-        self.channel = 1
+        self.channel = 0
         self.status = ''
         self.curNote = None
         self.pulse = 0
@@ -93,13 +93,13 @@ class Voice:
             return
         self.nextPulse = note.until
         if not note.is_rest():
-            self.player.play(note.pitch, note.velocity)
+            self.player.play(self.channel, note.pitch, note.velocity)
             self.status = str(self.curNote)
         else:
             self.status = ''
 
     def end_cur_note(self):
-        self.player.play(self.curNote.pitch, 0)
+        self.player.play(self.channel, self.curNote.pitch, 0)
         self.curNote = None
 
 

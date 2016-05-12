@@ -247,8 +247,10 @@ class Parser:
             if not vo.set_parameter(ca):
                 cmd = self.autocomplete_label(ca[0], ':VOICE')
                 if cmd == 'CHANNEL':
+                    # Channel comes in on range [1-16], but should be stored
+                    # and sent on range [0-15]!
                     if len(ca) > 1 and is_int(ca[1]):
-                        vo.channel = int(ca[1])
+                        vo.channel = clamp(int(ca[1])-1, 0, 127)
                 elif cmd == 'SEED':
                     if len(ca) > 1:
                         vo.set_seed(ca[1])

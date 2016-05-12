@@ -37,6 +37,11 @@
 # A negative duration represents a rest.
 .duration 2 2 -2
 
+# CHANNEL is an optional parameter that declares the MIDI
+# channel that this voice will output on. Values are
+# [1-16], default is 1.
+.channel 2
+
 # ---------------------------
 
 :voice Ninths
