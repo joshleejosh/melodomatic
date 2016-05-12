@@ -60,8 +60,4 @@ optional arguments:
 * Build phrases instead of plucking random notes
   * Connectors between phrases: silence, leading notes, fills, gliss?
   * Repetition?
-* Better MIDIing
-  * Channels
-  * Aftertouch, pitchbend, etc.
-  * When should we use note-off instead of note-on with velocity=0?
 

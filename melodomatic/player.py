@@ -13,6 +13,8 @@ class Player:
         self.scaleOrder = []
         self.voices = {}
         self.voiceOrder = []
+        self.controls = {}
+        self.controlOrder = []
         self.change_tempo(consts.DEFAULT_BEATS_PER_MINUTE, consts.DEFAULT_PULSES_PER_BEAT)
         self.midi = midi.MelodomaticMidi()
         self.visualizationWindow = self.parse_duration(consts.DEFAULT_VISUALIZATION_WINDOW)
@@ -28,6 +30,8 @@ class Player:
             self.scales[sc].dump()
         for vo in self.voiceOrder:
             self.voices[vo].dump()
+        for co in self.controlOrder:
+            self.controls[co].dump()
 
     def set_seed(self, sv):
         self.rngSeed = sv
@@ -60,6 +64,12 @@ class Player:
             v.player = self
             self.voices[v.id] = v
             self.voiceOrder.append(v.id)
+
+    def add_control(self, c):
+        if c not in self.controls.values():
+            c.player = self
+            self.controls[c.id] = c
+            self.controlOrder.append(c.id)
 
     def is_valid(self):
         rv = True
@@ -105,6 +115,9 @@ class Player:
         # generate some notes and play them
         for vid in self.voiceOrder:
             self.voices[vid].update(self.pulse)
+
+        for cid in self.controlOrder:
+            self.controls[cid].update(self.pulse)
 
         return True
 

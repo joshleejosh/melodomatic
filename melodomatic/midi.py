@@ -22,6 +22,19 @@ class MelodomaticMidi:
     def note_off(self, ch, n, v):
         self.send(mido.Message('note_off', channel=ch, note=n, velocity=v))
 
+    def control(self, ch, id, v):
+        self.send(mido.Message('control_change', channel=ch, control=id, value=v))
+
+    # value is in range [-8192,+8191]
+    def pitchbend(self, ch, p):
+        self.send(mido.Message('pitchwheel', channel=ch, pitch=p))
+
+    def aftertouch_channel(self, ch, v):
+        self.send(mido.Message('aftertouch', channel=ch, value=v))
+
+    def aftertouch_note(self, ch, n, v):
+        self.send(mido.Message('polytouch', channel=ch, note=n, value=v))
+
 class TestMidi(MelodomaticMidi):
     def __init__(self):
         MelodomaticMidi.__init__(self)

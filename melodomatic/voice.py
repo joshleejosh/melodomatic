@@ -38,7 +38,7 @@ class Voice:
 
     def dump(self):
         print 'VOICE "%s" : generator %s '%(self.id, self.generatorName)
-        print '    channel %s'%self.channel
+        print '    channel %d'%self.channel
         print '    seed %s'%self.rngSeed
         for n,i in self.parameters.iteritems():
             print '    %s: %s'%(n, i[1])

@@ -1,7 +1,7 @@
 import os, os.path, imp, sys, time, re
 import consts
 from util import *
-import generators, expanders, player, voice, scale
+import generators, expanders, player, voice, scale, control
 
 BLOCK_LABELS = {
         ':PLAYER': [
@@ -14,6 +14,7 @@ BLOCK_LABELS = {
             ],
         ':SCALE': [ 'ROOT', 'INTERVALS', 'PITCHES', 'DURATION', 'LINKS', 'SEED', ],
         ':VOICE': [ 'CHANNEL', 'SEED', ],
+        ':CONTROL': [ 'CHANNEL', 'SEED', 'RATE', 'VOICE', 'CONTROL_ID', 'CID', 'CONTROL_VALUE', 'CVAL', 'PITCHBEND', 'AFTERTOUCH' ],
         }
 
 RE_EVAL = re.compile(r'\{([^}]*)\}')
@@ -191,11 +192,17 @@ class Parser:
             if btype == ':SCALE':
                 self.build_scale(block, scaleIDs)
 
-        # ...And finally do voices.
+        # ...Then build voices...
         for block in self.data:
             btype = self.autocomplete_type(block[0][0])
             if btype == ':VOICE':
                 self.build_voice(block)
+
+        # ...Then build controls.
+        for block in self.data:
+            btype = self.autocomplete_type(block[0][0])
+            if btype == ':CONTROL':
+                self.build_control(block)
 
         if consts.VERBOSE:
             self.player.dump()
@@ -260,6 +267,30 @@ class Parser:
 
         vo.validate_generator()
         self.player.add_voice(vo)
+
+    def build_control(self, block):
+        if len(block) == 0:
+            if consts.VERBOSE:
+                print 'ERROR: Control block has no ID'
+                return
+        id = block[0][1].strip()
+        co = control.Control(id, self.player)
+
+        for ca in (expanders.expand_list(b) for b in block[1:]):
+            cmd = self.autocomplete_label(ca[0], ':CONTROL')
+            if cmd == 'CHANNEL':
+                # Channel comes in on range [1-16], but should be stored
+                # and sent on range [0-15]!
+                if len(ca) > 1 and is_int(ca[1]):
+                    co.channel = clamp(int(ca[1])-1, 0, 127)
+            elif cmd == 'SEED':
+                if len(ca) > 1:
+                    co.set_seed(ca[1])
+            else:
+                if len(ca) > 1:
+                    co.set_parameter(cmd, ca[1:])
+
+        self.player.add_control(co)
 
     def autocomplete_type(self, d):
         if not d.startswith(':'):
