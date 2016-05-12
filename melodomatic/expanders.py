@@ -86,7 +86,7 @@ register_expander('XEROX', ex_xerox)
 
 
 # Easing functions take values in range [0.0-1.0] and return values in the same range.
-EASE_FUNCTIONS = {
+CURVE_FUNCTIONS = {
         'LINEAR'     : [ pytweening.linear        , pytweening.linear         , pytweening.linear           ],
         'SINE'       : [ pytweening.easeInSine    , pytweening.easeOutSine    , pytweening.easeInOutSine    ],
         'QUADRATIC'  : [ pytweening.easeInQuad    , pytweening.easeOutQuad    , pytweening.easeInOutQuad    ],
@@ -100,19 +100,19 @@ EASE_FUNCTIONS = {
         #'ELASTIC'    : [ pytweening.easeInElastic , pytweening.easeOutElastic , pytweening.easeInOutElastic ],
         'BACK'       : [ pytweening.easeInBack    , pytweening.easeOutBack    , pytweening.easeInOutBack    ],
         }
-EASE_FUNCTIONS_ORDERED = [ 'LINEAR', 'SINE', 'QUADRATIC', 'CUBIC', 'QUARTIC', 'QUINTIC', 'EXPONENTIAL', 'CIRCULAR', 'BOUNCE', 'BACK' ]
-def autocomplete_ease_function(s):
+CURVE_FUNCTIONS_ORDERED = [ 'LINEAR', 'SINE', 'QUADRATIC', 'CUBIC', 'QUARTIC', 'QUINTIC', 'EXPONENTIAL', 'CIRCULAR', 'BOUNCE', 'BACK' ]
+def autocomplete_curve_function(s):
     s = s.strip().upper()
     if not s:
-        return EASE_FUNCTIONS_ORDERED[0]
-    for i in EASE_FUNCTIONS_ORDERED:
+        return CURVE_FUNCTIONS_ORDERED[0]
+    for i in CURVE_FUNCTIONS_ORDERED:
         if i.startswith(s):
             return i
     if consts.VERBOSE:
-        print 'ERROR: Bad easing function %s'%s
-    return EASE_FUNCTIONS_ORDERED[0]
+        print 'ERROR: Bad curve function %s'%s
+    return CURVE_FUNCTIONS_ORDERED[0]
 
-def autocomplete_ease_direction(s):
+def autocomplete_curve_direction(s):
     s = s.strip().upper()
     if s == 'IO' or s == 'INOUT':
         return 2
@@ -121,17 +121,17 @@ def autocomplete_ease_direction(s):
     elif s[0] == 'O':
         return 1
     if consts.VERBOSE:
-        print 'ERROR: Bad ease direction %s'%s
+        print 'ERROR: Bad curve direction %s'%s
     return 0
 
-def ex_ease(data):
+def ex_curve(data):
     rv = []
     try:
-        ef = autocomplete_ease_function(data[0])
-        ed = autocomplete_ease_direction(data[1])
+        ef = autocomplete_curve_function(data[0])
+        ed = autocomplete_curve_direction(data[1])
         period = int(data[2])
         data = data[3:]
-        f = EASE_FUNCTIONS[ef][ed]
+        f = CURVE_FUNCTIONS[ef][ed]
         maxi = len(data)-1
         for i in xrange(period):
             v = f(float(i) / float(period-1))
@@ -140,9 +140,9 @@ def ex_ease(data):
 
     except Exception as e:
         if consts.VERBOSE:
-            print 'ERROR: Easing failed [%s]'%e
+            print 'ERROR: Curve failed [%s]'%e
 
     return rv
-register_expander('EASE', ex_ease)
+register_expander('CURVE', ex_curve)
 
 

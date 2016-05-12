@@ -10,7 +10,7 @@
 # - %RANGE         Creates a linear series of values.
 # - %PINGPONG      Works like %RANGE, but adds on a back
 #                  half that walks back down the range.
-# - %EASE          Redistributes the values in a list on a
+# - %CURVE         Redistributes the values in a list on a
 #                  curve.
 #
 
@@ -55,10 +55,10 @@
 # This example expands to (1 3 5 7 9 11 13 15 13 11 9 7 5 3)
 .pitch $loop (%pingpong 1 15 2)
 
-# %EASE redistributes a set of values on a curve.
-# Usage: (%ease <curve> <direction> <length> <values...>)
+# %CURVE redistributes a set of values on a curve.
+# Usage: (%curve <function> <direction> <length> <values...>)
 # 
-# Curve is the name of a common easing function (see
+# Function is the name of a common easing function (see
 # <http://easings.net/> for examples):
 #     LINEAR, SINE, QUADRATIC, CUBIC, QUARTIC, QUINTIC,
 #     EXPONENTIAL, CIRCULAR, BOUNCE
@@ -72,13 +72,13 @@
 # Values is a list of values to be distributed.
 #
 # This example expands to (.5 .5 .5 .5 1 1 1 2)
-.duration $loop (%ease quadratic in 8 (.5 1 2))
+.duration $loop (%curve quadratic in 8 (.5 1 2))
 
-# The list of values for %ease can itself be an expander.
+# The list of values for %curve can itself be an expander.
 #
 # This example expands to
 #       (48 48 48 56 56 56 64 72 72 80 80 88 88 96 96 96)
-.velocity $pingpong (%ease sine io 16 (%range 48 96 8))
+.velocity $pingpong (%curve sine io 16 (%range 48 96 8))
 
 
 :scale S

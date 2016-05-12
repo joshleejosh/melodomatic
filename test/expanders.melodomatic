@@ -22,15 +22,15 @@
 # %pingpong min max step
 .p $loop (%pp 1 8 -1)
 
-.d (%ease quad i 8 (.5 1 2 -1))
+.d (%curve quad i 8 (.5 1 2 -1))
 
 
 :v V3
 .d .25
 .p $pp (%range 1 15)
 
-# %ease function direction period values...
-.v $pp (%e quad io 15 (%r 32 96 8))
+# %curve function direction period values...
+.v $pp (%c quad io 15 (%r 32 96 8))
 
 
 :v V4
@@ -38,5 +38,5 @@
 .p 5
 .d .25
 # This should make a straight line of 15 values from 32 to 46.
-.v $pp (%e lin i 15 (%r 32 46))
+.v $pp (%c lin i 15 (%r 32 46))
 
