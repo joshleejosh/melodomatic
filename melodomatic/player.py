@@ -131,6 +131,10 @@ class Player:
 
     def parse_duration(self, d):
         d = d.strip()
+        # 'b' is for 'beat', which is redundant (but is sometimes useful for clairty)
+        if d[-1] == 'b':
+            d = d[:-1]
+        # 'p' is for 'pulse'
         if d[-1] == 'p' and is_float(d[:-1]):
             return int(d[:-1])
         if is_float(d):

@@ -1,5 +1,5 @@
 
-!define 112 		 1 8p	 		2 	 # omg a comment here?!
+!define 112 		 1 8p	 		2b 	 # omg a comment here?!
 !define ch1 .channel 1
 
 :sCaLe F
@@ -16,7 +16,7 @@
 .pitch 1 2
        3 5
        -++-@submediant+-+-+ 8
-.duration @112 @112 -1 -2
+.duration @112 @112 -1b -2
 .velocity $random-walk 0.25 40 48 56 64
 
 # Scale defined after voice
@@ -26,5 +26,4 @@
 :p
 .beats_per_minute 108
 .pulses_per_beat 8
-.scale_change_times 8 8 16
 
