@@ -15,6 +15,8 @@
 #                  reshuffles and goes through again.
 # - $RANDOM-WALK   Walks up and down its list randomly based
 #                  on a probability.
+# - $WAVE          Generates a cycle of values on a curve,
+#                  rather than picking from a list.
 #
 # A bare single number is wrapped in a $SCALAR generator.
 # A bare list is wrapped in a $RANDOM generator.
@@ -90,6 +92,39 @@
                    # to change velocities after each note.
  32 40 48 56 64    # The rest of the arguments are the list
                    # of values to be evaluated.
+
+
+:voice D
+.pitch 1
+.duration 1
+
+# The $WAVE function generates a cyclical distribution of
+# values on a curve. Unlike the other functions, this is a
+# wholly generative function -- there is no list of values
+# to pick from.
+.velocity $wave
+       inout       # The first argument is the EASING
+                   # DIRECTION of the curve. This can be
+                   # 'IN', 'OUT', or 'INOUT' (which can be
+                   # abbreviated to 'I', 'O', or 'IO').
+       sine        # The EASING FUNCTION to use to generate
+                   # the curve. This can be any of the
+                   # common easing functions (see
+                   # <http://easings.net/> for examples):
+                   # LINEAR, SINE, QUADRATIC, CUBIC,
+                   # QUARTIC, QUINTIC, EXPONENTIAL,
+                   # CIRCULAR, BOUNCE
+       32          # The PERIOD of the wave, or the number
+                   # of values it will output before
+                   # starting over. This is the total
+                   # period, so half of it will be spent
+                   # rising, and half falling.
+       48          # The MINIMUM VALUE returned. This is the
+                   # value that will be returned at the
+                   # beginning and end of the cycle.
+       96          # The MAXIMUM VALUE returned. This is the
+                   # value that will be returned at the
+                   # halfway point of the cycle.
 
 
 # ##########################################################

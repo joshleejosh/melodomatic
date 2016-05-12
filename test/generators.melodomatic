@@ -26,6 +26,11 @@
 .p $random-walk .50 1 2 3 4 5
 .d 1
 
+:v Wave
+.p 1
+.d .50
+.v $wave io sine 32 48 96
+
 # ################### #
 
 :v ShuffleAbbrev

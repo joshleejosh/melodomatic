@@ -1,4 +1,4 @@
-import consts
+import consts, expanders
 from util import *
 
 # Return the input value forever.
@@ -59,6 +59,26 @@ def random_walk(data, ctx):
             else:
                 i += coinflip()
 
+
+def wave(data, ctx):
+    edir = expanders.autocomplete_curve_direction(data[0]) if len(data) > 0 else 2 # inout
+    nease = expanders.autocomplete_curve_function(data[1]) if len(data) > 1 else 'LINEAR'
+    fease = expanders.CURVE_FUNCTIONS[nease][edir]
+    period = int(data[2]) if len(data) > 2 else 64
+    vmin = int(data[3]) if len(data) > 3 else 0
+    vmax = int(data[4]) if len(data) > 4 else 127
+
+    while True:
+        for i in xrange(period):
+            # Result should cycle from 0 to 1 back to 0 over period
+            t = 2.0 * float(i) / float(period)
+            if t > 1.0:
+                t = 2.0 - t
+            t = fease(t)
+            v = int(round(t*(vmax-vmin) + vmin))
+            #print '%0.6f %3d'%(t,v)
+            yield str(v)
+
 # ######################################################## #
 
 GENERATORS = { }
@@ -115,4 +135,5 @@ register_generator('RANDOM', random)
 register_generator('SHUFFLE', shuffle)
 register_generator('RANDOM-WALK', random_walk)
 register_generator('RW', random_walk)
+register_generator('WAVE', wave)
 
