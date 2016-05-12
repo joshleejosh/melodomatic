@@ -10,14 +10,14 @@
 .voice V
 
 .control_id 1
-.control_value $wave io sine 384 0 127
+.control_value $wave sine io 384 0 127
 
-.pitchbend $wave io sine 24 -8192 8191
+.pitchbend $wave sine io 24 -8192 8191
 
 # If .voice is specified, this will send poly aftertouch
 # events for whatever note the monitored voice is currently
 # playing; otherwise, it will send channel aftertouch.
-.aftertouch 127 #$wave io sine 48 0 127
+.aftertouch 127 #$wave sine io 48 0 127
 
 :v V
 .ch 1

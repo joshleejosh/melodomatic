@@ -2,50 +2,50 @@
 :s Chromatic
 .p 60 61 62 63 64 65 66 67 68 69 70 71
 
-:v Scalar
+:X Scalar
 .p $scalar 8
 .d 1
 
-:v Loop
+:X Loop
 .p $loop 1 2 3 4 5
 .d 1
 
-:v PingPong
+:X PingPong
 .p $pInGpOnG 1 2 3 4 5
 .d 1
 
-:v Shuffle
+:X Shuffle
 .p $shuffle 1 2 3 4 5
 .d 1
 
-:v Random
+:X Random
 .p $random 1 2 3 4 5
 .d 1
 
-:v RandomWalk
+:X RandomWalk
 .p $random-walk .50 1 2 3 4 5
 .d 1
 
 :v Wave
 .p 1
 .d .50
-.v $wave io sine 32 48 96
+.v $wave sine io 32 48 96
 
 # ################### #
 
-:v ShuffleAbbrev
+:X ShuffleAbbrev
 .p $sh 1 2 3 4 5
 .d 1
 
-:v RandomAbbrev
+:X RandomAbbrev
 .p $ra 1 2 3 4 5
 .d 1
 
-:v PingPongAlt
+:X PingPongAlt
 .p $pp 1 2 3 4 5
 .d 1
 
-:v RandomWalkAlt
+:X RandomWalkAlt
 .p $rw .50 1 2 3 4 5
 .d 1
 

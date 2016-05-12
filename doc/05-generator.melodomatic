@@ -65,7 +65,7 @@
 # ---------------------------
 
 :voice C
-.pitch 1
+.pitch 1 2 3 4
 .duration 1
 
 # Even .transpose is a generator! You can use a function to
@@ -95,7 +95,8 @@
 
 
 :voice D
-.pitch 1
+.transpose -12
+.pitch 5 6 7 8
 .duration 1
 
 # The $WAVE function generates a cyclical distribution of
@@ -103,17 +104,17 @@
 # wholly generative function -- there is no list of values
 # to pick from.
 .velocity $wave
-       inout       # The first argument is the EASING
-                   # DIRECTION of the curve. This can be
-                   # 'IN', 'OUT', or 'INOUT' (which can be
-                   # abbreviated to 'I', 'O', or 'IO').
-       sine        # The EASING FUNCTION to use to generate
-                   # the curve. This can be any of the
-                   # common easing functions (see
+       sine        # The FUNCTION to use to generate the
+                   # curve. This can be any of the common
+                   # easing functions (see
                    # <http://easings.net/> for examples):
-                   # LINEAR, SINE, QUADRATIC, CUBIC,
-                   # QUARTIC, QUINTIC, EXPONENTIAL,
-                   # CIRCULAR, BOUNCE
+                   #     LINEAR, SINE, QUADRATIC, CUBIC,
+                   #     QUARTIC, QUINTIC, EXPONENTIAL,
+                   #     CIRCULAR, BOUNCE
+       inout       # The EASING DIRECTION of the curve. This
+                   # can be 'IN', 'OUT', or 'INOUT' (which
+                   # can be abbreviated to 'I', 'O', or
+                   # 'IO').
        32          # The PERIOD of the wave, or the number
                    # of values it will output before
                    # starting over. This is the total
@@ -122,7 +123,7 @@
        48          # The MINIMUM VALUE returned. This is the
                    # value that will be returned at the
                    # beginning and end of the cycle.
-       96          # The MAXIMUM VALUE returned. This is the
+       96          # The PEAK VALUE returned. This is the
                    # value that will be returned at the
                    # halfway point of the cycle.
 
