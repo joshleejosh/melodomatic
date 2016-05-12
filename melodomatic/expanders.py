@@ -57,7 +57,7 @@ def ex_range(data):
             a,b = b,a
     elif a > b:
         a,b = b,a
-    return range(a, b+step, step)
+    return range(a, b+1, step)
 register_expander('RANGE', ex_range)
 
 def ex_pingpong(data):
@@ -69,7 +69,7 @@ def ex_pingpong(data):
             a,b = b,a
     elif a > b:
         a,b = b,a
-    return range(a, b+step, step) + range(b-step, a, -step)
+    return range(a, b+1, step) + range(b-1, a, -1)
 register_expander('PINGPONG', ex_pingpong)
 register_expander('PP', ex_pingpong)
 
