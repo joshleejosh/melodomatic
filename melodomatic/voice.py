@@ -57,7 +57,7 @@ class Voice:
             if not pname:
                 return ''
         data = data[1:]
-        g,d = generators.bind_generator(data, self.player)
+        g,d = generators.bind_generator(data, self)
         if g:
             self.parameters[pname] = (g, d)
             return pname
