@@ -138,7 +138,11 @@ def parse_degree(code):
         else:
             break
         i += 1
-    degree = int(dbuf)
+    degree = 1
+    try:
+        degree = int(dbuf)
+    except ValueError:
+        pass
 
     while i < len(code):
         if code[i] == '-':

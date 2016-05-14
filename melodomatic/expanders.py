@@ -15,7 +15,7 @@ def autocomplete_expander_name(n):
     for name in EXPANDERS_ORDERED:
         if name.startswith(n):
             return name
-    return n
+    return 'LIST'
 
 def expand_list(a):
     rv, i = expand_sublist(a, 0)
@@ -48,33 +48,45 @@ def ex_list(data):
     return tuple(data)
 register_expander('LIST', ex_list)
 
-def ex_range(data):
-    a = int(data[0])
-    b = int(data[1])
-    step = int(data[2]) if len(data)>2 else 1
+def _cleanse_range_args(data):
+    a = b = 0
+    step = 1
+    try:
+        a = int(data[0])
+        b = int(data[1])
+        if len(data) > 2:
+            step = int(data[2])
+    except ValueError:
+        pass
+    if step == 0:
+        step = 1
     if step < 0:
         if a < b:
             a,b = b,a
     elif a > b:
         a,b = b,a
+    return a, b, step
+
+def ex_range(data):
+    a, b, step = _cleanse_range_args(data)
     return range(a, b+1, step)
 register_expander('RANGE', ex_range)
 
 def ex_pingpong(data):
-    a = int(data[0])
-    b = int(data[1])
-    step = int(data[2]) if len(data) > 2 else 1
-    if step < 0:
-        if a < b:
-            a,b = b,a
-    elif a > b:
-        a,b = b,a
-    return range(a, b+1, step) + range(b-1, a, -1)
+    a, b, step = _cleanse_range_args(data)
+    rv = range(a, b+sign(step), step)
+    if rv:
+        rv += range(rv[-1]-step, a, -step)
+    return rv
 register_expander('PINGPONG', ex_pingpong)
 register_expander('PP', ex_pingpong)
 
 def ex_xerox(data):
-    n = int(data[0])
+    n = 1
+    try:
+        n = int(data[0])
+    except ValueError:
+        pass
     data = data[1:]
     rv = []
     for i in xrange(n):
@@ -83,7 +95,6 @@ def ex_xerox(data):
 register_expander('XEROX', ex_xerox)
 
 # ---------------------------
-
 
 # Easing functions take values in range [0.0-1.0] and return values in the same range.
 CURVE_FUNCTIONS = {
@@ -98,7 +109,7 @@ CURVE_FUNCTIONS = {
         'BOUNCE'     : [ pytweening.easeInBounce  , pytweening.easeOutBounce  , pytweening.easeInOutBounce  ],
         # These try to stretch out of their bounds, so they don't work too well.
         #'ELASTIC'    : [ pytweening.easeInElastic , pytweening.easeOutElastic , pytweening.easeInOutElastic ],
-        'BACK'       : [ pytweening.easeInBack    , pytweening.easeOutBack    , pytweening.easeInOutBack    ],
+        #'BACK'       : [ pytweening.easeInBack    , pytweening.easeOutBack    , pytweening.easeInOutBack    ],
         }
 CURVE_FUNCTIONS_ORDERED = [ 'LINEAR', 'SINE', 'QUADRATIC', 'CUBIC', 'QUARTIC', 'QUINTIC', 'EXPONENTIAL', 'CIRCULAR', 'BOUNCE', 'BACK' ]
 def autocomplete_curve_function(s):
@@ -129,8 +140,18 @@ def ex_curve(data):
     try:
         ef = autocomplete_curve_function(data[0])
         ed = autocomplete_curve_direction(data[1])
-        period = int(data[2])
+        period = 2
+        try:
+            period = int(data[2])
+            if period < 2:
+                period = 2
+        except ValueError:
+            pass
         data = data[3:]
+        if not data:
+            if consts.VERBOSE:
+                print 'ERROR: No data for curve'
+            return []
         f = CURVE_FUNCTIONS[ef][ed]
         maxi = len(data)-1
         for i in xrange(period):

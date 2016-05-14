@@ -15,18 +15,11 @@ def loop(data, ctx):
 
 # Traverse forwards and backwards through the list forever.
 def pingpong(data, ctx):
-    i = 0
-    dir = 1
+    a = ('%PINGPONG', '0', str(len(data)-1), '1')
+    indices = tuple(int(i) for i in expanders.expand_list(a))
     while True:
-        yield data[i]
-        if i >= len(data)-1:
-            i = len(data)-2
-            dir = -1
-        elif i <= 0:
-            i = 1
-            dir = 1
-        else:
-            i += dir
+        for i in indices:
+            yield data[i]
 
 # Pick randomly from the list forever.
 def random(data, ctx):
@@ -46,27 +39,54 @@ def shuffle(data, ctx):
 # Only steps on random occasion, based on the given chance.
 # When not at the edges of the array, step direction is an even coin flip.
 def random_walk(data, ctx):
-    chance = float(data[0])
-    a = data[1:]
+    chance = 1
+    a = ['1',]
+    try:
+        if data:
+            try:
+                chance = float(data[0])
+            except Exception:
+                pass
+        if len(data) > 1:
+            a = data[1:]
+    except Exception:
+        pass
     i = ctx.rng.randint(0, len(a)-1)
     while True:
         yield a[i]
+        if len(a) == 1:
+            continue
         if ctx.rng.random() < chance:
             if i == 0:
                 i = 1
             elif i == len(a)-1:
                 i = len(a)-2
             else:
-                i += coinflip()
+                i += coinflip(ctx)
 
 
 def wave(data, ctx):
     curf = expanders.autocomplete_curve_function(data[0]) if len(data) > 0 else 'LINEAR'
     curd = expanders.autocomplete_curve_direction(data[1]) if len(data) > 1 else 2 # inout
     fcurve = expanders.CURVE_FUNCTIONS[curf][curd]
-    period = int(data[2]) if len(data) > 2 else 64
-    vmin = int(data[3]) if len(data) > 3 else 0
-    vmax = int(data[4]) if len(data) > 4 else 127
+    period = 16
+    try:
+        if len(data) > 2:
+            period = int(data[2])
+    except Exception:
+        pass
+    vmin = 0
+    try:
+        if len(data) > 3:
+            vmin = int(data[3])
+    except Exception:
+        pass
+    vmax = 127
+    try:
+        if len(data) > 4:
+            vmax = int(data[4])
+    except Exception:
+        pass
 
     while True:
         for i in xrange(period):
@@ -111,13 +131,19 @@ def autocomplete_generator_name(n):
 # Returns a 2-tuple containing the generator and a text label.
 def bind_generator(data, ctx):
     cmd = ''
-    if data[0][0] == '$':
+    if not data:
+        cmd = 'SCALAR'
+    elif data[0][0] == '$':
         cmd = data[0][1:].upper()
         data = data[1:]
     elif len(data) == 1:
         cmd = 'SCALAR'
     else:
         cmd = 'RANDOM'
+
+    # guarantee that there's some data for the function.
+    if not data:
+        data = ['1'] # who even knows? this works in a lot of contexts, I guess
 
     cmd = autocomplete_generator_name(cmd)
     if cmd in GENERATORS:
