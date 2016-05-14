@@ -63,18 +63,6 @@ class Scale:
             self.linker = g
             self.linkerLabel = d
 
-    def degree_to_pitch(self, code):
-        degree, octave, accidental = parse_degree(code)
-        i = degree%len(self.intervals)
-        o = octave + ((degree-1) // len(self.intervals))
-        pitch = self.get_pitch(i - 1)
-        pitch += 12 * o
-        pitch += accidental
-        return pitch
-
-    def get_pitch(self, i):
-        return self.pitches[i]
-
     def begin(self, pulse):
         self.pulse = pulse
         self.changeTime = self.pulse + self.player.parse_duration(self.durationer.next())
@@ -88,6 +76,43 @@ class Scale:
         if self.pulse >= self.changeTime:
             n = str(self.linker.next())
             self.player.change_scale(n)
+
+    def get_pitch(self, i):
+        return self.pitches[i]
+
+    # -----------------------------------------------------
+    # pitch arithmetic
+
+    def degree_to_pitch(self, code):
+        degree, octave, accidental = self.parse_code(code)
+        pitch = self.get_pitch(degree - 1)
+        pitch += 12 * octave
+        pitch += accidental
+        return pitch
+
+    # Make sure degree is within the range of this scale, and adjust octave
+    # accordingly.
+    def parse_code(self, code):
+        d, o, a = parse_degree(code)
+        while d > len(self.intervals):
+            d -= len(self.intervals)
+            o += 1
+        return (d, o, a)
+
+    # join a degree and octave into single degree offset, with the tonic at 0.
+    # So for codes: --2 -1 -5 -7 1 3 5 7 8 +4
+    # You get:      -13 -7 -3 -1 0 2 4 6 7 10
+    def join_degree(self, degree, octave):
+        rv = degree - 1
+        rv += octave * len(self.intervals)
+        return rv
+
+    # Take a degree offset (probably produced from join_degree) and split it
+    # into (normalized) degree and octave.
+    def split_degree(self, d):
+        octave = d // len(self.intervals)
+        degree = d % len(self.intervals) + 1
+        return (degree, octave)
 
 
 def parse_degree(code):
@@ -125,4 +150,21 @@ def parse_degree(code):
         i += 1
     
     return (degree, octave, accidental)
+
+
+def format_degree(degree, octave, accidental):
+    rv = ''
+    for i in xrange(abs(octave)):
+        if octave < 0:
+            rv += '-'
+        else:
+            rv += '+'
+    rv += str(degree)
+    for i in xrange(abs(accidental)):
+        if accidental < 0:
+            rv += '-'
+        else:
+            rv += '+'
+    return rv
+
 

@@ -75,3 +75,8 @@ FRIENDLY_EVAL_FUNCTIONS = {
 def friendly_eval(code):
     return eval(code, {'__builtins__':None}, FRIENDLY_EVAL_FUNCTIONS)
 
+
+# for stashing global values without getting clobbered (by players rebuilding,
+# custom modules getting re-imported, etc). Bad programming practices ahoy!
+SECRET = {}
+
