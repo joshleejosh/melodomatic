@@ -25,8 +25,8 @@ class Scale:
         print 'SCALE %s:'%self.id
         print '    seed %s'%self.rngSeed
         print '    pitches = %s [%d + %s]'%(self.pitches, self.root, self.intervals)
-        print '    duration = %s'%self.durationerLabel
-        print '    links = %s'%self.linkerLabel
+        print '    duration = %s'%self.durationer
+        print '    links = %s'%self.linker
 
     def set_seed(self, sv):
         self.rngSeed = sv
@@ -50,18 +50,16 @@ class Scale:
     def set_durationer(self, data):
         if not data:
             data = (str(consts.DEFAULT_SCALE_CHANGE_TIME),)
-        g,d = generators.bind_generator(data, self)
+        g = generators.bind_generator(data, self)
         if g:
             self.durationer = g
-            self.durationerLabel = d
         
     def set_linker(self, data):
         if not data:
             data = (self.id,)
-        g,d = generators.bind_generator(data, self)
+        g = generators.bind_generator(data, self)
         if g:
             self.linker = g
-            self.linkerLabel = d
 
     def begin(self, pulse):
         self.pulse = pulse

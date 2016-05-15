@@ -5,6 +5,10 @@ if mydir not in sys.path:
 
 import reader
 
+def tokenize(s):
+    s = s.replace('(',' ( ').replace(')', ' ) ')
+    return s.strip().split()
+
 def mkplayer(script):
     parser = reader.Parser()
     lines = script.split('\n')

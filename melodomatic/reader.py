@@ -247,6 +247,7 @@ class Parser:
         vo = voice.Voice(id, self.player)
 
         # set special parameters before custom ones
+        skipit = []
         for ca in (expanders.expand_list(b) for b in block[1:]):
             cmd = self.autocomplete_label(ca[0], ':VOICE')
             if cmd == 'CHANNEL':
@@ -254,9 +255,11 @@ class Parser:
                 # and sent on range [0-15]!
                 if len(ca) > 1 and is_int(ca[1]):
                     vo.channel = clamp(int(ca[1])-1, 0, 127)
+                skipit.append(ca[0])
             elif cmd == 'SEED':
                 if len(ca) > 1:
                     vo.set_seed(ca[1])
+                skipit.append(ca[0])
 
         gn = ''
         if len(block[0]) > 2:
@@ -264,6 +267,8 @@ class Parser:
         vo.set_generator(gn)
 
         for ca in (expanders.expand_list(b) for b in block[1:]):
+            if ca[0] in skipit:
+                continue
             if not vo.set_parameter(ca) and consts.VERBOSE:
                 print 'ERROR: Bad voice command .%s'%cmd
 

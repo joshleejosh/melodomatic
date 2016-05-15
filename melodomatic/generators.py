@@ -1,6 +1,87 @@
 import consts, expanders
 from util import *
 
+# ######################################################## #
+
+# Wraps a generator function in an iterator w/ additional relevant data/metadata
+class GeneratorBinding:
+    def __init__(self, n, d, c):
+        self.name = n
+        self.data = d
+        self.context = c
+        self._f = GENERATORS[self.name](self.data, self.context)
+
+    def __str__(self):
+        return '$%s %s'%(self.name, str(self.data))
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        return self._f.next()
+
+# ----------------------------
+
+GENERATORS = {}
+GENERATORS_ORDERED = []
+
+def register_generator(name, maker):
+    name = name.strip().upper()
+    GENERATORS[name] = maker
+    GENERATORS_ORDERED.append(name)
+
+def autocomplete_generator_name(n):
+    n = n.strip().upper()
+    for name in GENERATORS_ORDERED:
+        if name.startswith(n):
+            return name
+    return n
+
+# ----------------------------
+
+# Binds a generator function to the given data and context object.
+#
+# The first element in the data array should be a $ descriptor of which generator to use.
+# If none is given, we'll assume $SCALAR for single values and $RANDOM for multiple.
+#
+# If a converter function is given, any output from the generator will be run
+# through it on its way out.
+#
+# The context object should be either a Player, Scale, or Voice. The default
+# generators depend on the `rng` property of each of these types for random
+# number generation.
+#
+# Returns a 2-tuple containing the generator and a text label.
+def bind_generator(data, ctx):
+    cmd = ''
+    if not data:
+        cmd = 'SCALAR'
+    elif data[0][0] == '$':
+        cmd = data[0][1:].upper()
+        data = data[1:]
+    elif len(data) == 1:
+        cmd = 'SCALAR'
+    else:
+        cmd = 'RANDOM'
+
+    # guarantee that there's some data for the function.
+    if not data:
+        data = ('1',) # who even knows? this works in a lot of contexts, I guess
+
+    cmd = autocomplete_generator_name(cmd)
+    if cmd in GENERATORS:
+        gb = GeneratorBinding(cmd, data, ctx)
+        return gb
+        #return (GENERATORS[cmd](data, ctx), '$%s %s'%(cmd, str(data)))
+
+    if consts.VERBOSE:
+        print 'ERROR: Bad generator funtion [%s]'%cmd
+    return (None, '')
+
+
+# ######################################################## #
+
+
 # Return the input value forever.
 def scalar(data, ctx):
     while True:
@@ -99,59 +180,6 @@ def wave(data, ctx):
             #print '%0.6f %3d'%(t,v)
             yield str(v)
 
-# ######################################################## #
-
-GENERATORS = { }
-GENERATORS_ORDERED = []
-
-def register_generator(name, maker):
-    name = name.strip().upper()
-    GENERATORS[name] = maker
-    GENERATORS_ORDERED.append(name)
-
-def autocomplete_generator_name(n):
-    n = n.strip().upper()
-    for name in GENERATORS_ORDERED:
-        if name.startswith(n):
-            return name
-    return n
-
-# Binds a generator function to the given data and context object.
-#
-# The first element in the data array should be a $ descriptor of which generator to use.
-# If none is given, we'll assume $SCALAR for single values and $RANDOM for multiple.
-#
-# If a converter function is given, any output from the generator will be run
-# through it on its way out.
-#
-# The context object should be either a Player, Scale, or Voice. The default
-# generators depend on the `rng` property of each of these types for random
-# number generation.
-#
-# Returns a 2-tuple containing the generator and a text label.
-def bind_generator(data, ctx):
-    cmd = ''
-    if not data:
-        cmd = 'SCALAR'
-    elif data[0][0] == '$':
-        cmd = data[0][1:].upper()
-        data = data[1:]
-    elif len(data) == 1:
-        cmd = 'SCALAR'
-    else:
-        cmd = 'RANDOM'
-
-    # guarantee that there's some data for the function.
-    if not data:
-        data = ['1'] # who even knows? this works in a lot of contexts, I guess
-
-    cmd = autocomplete_generator_name(cmd)
-    if cmd in GENERATORS:
-        return (GENERATORS[cmd](data, ctx), '$%s %s'%(cmd, str(data)))
-
-    if consts.VERBOSE:
-        print 'ERROR: Bad generator funtion [%s]'%cmd
-    return (None, '')
 
 register_generator('SCALAR', scalar)
 register_generator('LOOP', loop)

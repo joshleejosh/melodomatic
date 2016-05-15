@@ -33,7 +33,8 @@
 .vel +8
 
 !import test/voice_generator_custom.py
-:voice V 4 $vstretcher
+:voice V $vstretcher
+.ch 4
 .vo Basic
 .multiplier 2.0
 .t -12

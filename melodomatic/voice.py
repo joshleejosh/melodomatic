@@ -12,8 +12,8 @@ class Note:
         self.until = self.at + self.duration
     def __str__(self):
         #return '%s.%d'%(note_name(self.pitch), self.velocity)
-        return '%d_%d'%(self.pitch, self.velocity)
-        #return '%dv%dd%d(%d-%d)'%(self.pitch, self.velocity, self.duration, self.at, self.until)
+        #return '%d_%d'%(self.pitch, self.velocity)
+        return '%dv%dd%d(%d-%d)'%(self.pitch, self.velocity, self.duration, self.at, self.until)
     def is_rest(self):
         return (self.velocity == 0)
 
@@ -32,16 +32,15 @@ class Voice:
         self.pulse = 0
         self.nextPulse = 0
         self.generator = None
-        self.generatorName = ''
         self.parameters = {}
         bind_voice_generator(self, 'MELODOMATIC')
 
     def dump(self):
-        print 'VOICE "%s" : generator %s '%(self.id, self.generatorName)
+        print 'VOICE "%s" : generator %s '%(self.id, self.generator.name)
         print '    channel %d'%self.channel
         print '    seed %s'%self.rngSeed
         for n,i in self.parameters.iteritems():
-            print '    %s: %s'%(n, i[1])
+            print '    %s: %s'%(n, i)
 
     def set_seed(self, sv):
         self.rngSeed = sv
@@ -52,24 +51,24 @@ class Voice:
 
     def set_parameter(self, data):
         pname = data[0].strip().upper()
-        if self.generatorName:
+        if self.generator:
             pname = autocomplete_voice_parameter(pname, self)
             if not pname:
                 return ''
         data = data[1:]
-        g,d = generators.bind_generator(data, self)
+        g = generators.bind_generator(data, self)
         if g:
-            self.parameters[pname] = (g, d)
+            self.parameters[pname] = g
             return pname
 
     def validate_generator(self):
-        if not self.generator or not self.generatorName:
+        if not self.generator:
             if consts.VERBOSE:
                 print 'ERROR: Voice [%s] has no generator'%self.id
                 return False
-        for parm in VOICE_GENERATORS[self.generatorName][1].iterkeys():
+        for parm in VOICE_GENERATORS[self.generator.name][1].iterkeys():
             if parm not in self.parameters:
-                print 'ERROR: Voice [%s] is missing parameter [%s] for generator [%s]'%(self.id, parm, self.generatorName)
+                print 'ERROR: Voice [%s] is missing parameter [%s] for generator [%s]'%(self.id, parm, self.generator)
                 return False
         return True
 
@@ -105,6 +104,19 @@ class Voice:
 
 # ############################################################################ #
 
+class VoiceGenerator:
+    def __init__(self, n, v):
+        self.name = n
+        self.parameters = VOICE_GENERATORS[self.name][1].keys()
+        self.voice = v
+        self._f = VOICE_GENERATORS[self.name][0](v)
+    def __str__(self):
+        return '$%s'%self.name
+    def __iter__(self):
+        return self
+    def next(self):
+        return self._f.next()
+
 VOICE_GENERATORS = { }
 VOICE_GENERATORS_ORDERED = []
 
@@ -128,8 +140,8 @@ def autocomplete_voice_parameter(n, v):
     if n[0] == '.':
         n = n[1:]
     gtype = 'MELODOMATIC'
-    if v and v.generatorName:
-        gtype = autocomplete_voice_generator_name(v.generatorName)
+    if v and v.generator:
+        gtype = v.generator.name
     for parm in VOICE_GENERATORS[gtype][1].iterkeys():
         if parm.startswith(n):
             return parm
@@ -144,28 +156,27 @@ def bind_voice_generator(voice, gtype):
     elif gtype[0] == '$':
         gtype = gtype[1:]
     gtype = autocomplete_voice_generator_name(gtype)
-    if gtype in VOICE_GENERATORS:
-        gspec = VOICE_GENERATORS[gtype]
-        voice.generatorName = gtype
-        voice.generator = gspec[0](voice)
-        voice.parameters.clear()
-        for key,default in gspec[1].iteritems():
-            data = [key,]
-            data.extend(default)
-            voice.set_parameter(data)
-        return (voice.generator, voice.generatorName)
-    if consts.VERBOSE:
-        print 'ERROR: Bad voice generator [%s]'%gtype
-    return (None, '')
+    if gtype not in VOICE_GENERATORS:
+        if consts.VERBOSE:
+            print 'ERROR: Bad voice generator [%s]'%gtype
+        return (None, '')
+    gspec = VOICE_GENERATORS[gtype]
+    voice.generator = VoiceGenerator(gtype, voice)
+    voice.parameters.clear()
+    for key,default in gspec[1].iteritems():
+        data = [key,]
+        data.extend(default)
+        voice.set_parameter(data)
+    return voice.generator
 
 
 # ############################################################################ #
 
 def g_melodomatic(vo):
-    pitcher = vo.parameters['PITCH'][0]
-    durationer = vo.parameters['DURATION'][0]
-    velocitier = vo.parameters['VELOCITY'][0]
-    transposer = vo.parameters['TRANSPOSE'][0]
+    pitcher = vo.parameters['PITCH']
+    durationer = vo.parameters['DURATION']
+    velocitier = vo.parameters['VELOCITY']
+    transposer = vo.parameters['TRANSPOSE']
     while True:
         d = vo.player.parse_duration(durationer.next())
         p = 1
@@ -193,9 +204,9 @@ register_voice_generator('MELODOMATIC', g_melodomatic,
 # The following voice must come *after* the voice it wants to follow in script.
 # As long as nothing throws off their timing, this should stay in unison with the other voice.
 def g_unison(vo):
-    voicer = vo.parameters['VOICE'][0]
-    transposer = vo.parameters['TRANSPOSE'][0]
-    velocitier = vo.parameters['VELOCITY'][0]
+    voicer = vo.parameters['VOICE']
+    transposer = vo.parameters['TRANSPOSE']
+    velocitier = vo.parameters['VELOCITY']
     while True:
         vn = voicer.next()
         if vn not in vo.player.voices:

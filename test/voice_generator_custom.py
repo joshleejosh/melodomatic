@@ -3,10 +3,10 @@ import voice, math, util
 
 # Play whatever note I see the other voice playing, but stretch it out twice as long.
 def vstretch(vo):
-    voicer = vo.parameters['VOICE'][0]
-    multiplier = vo.parameters['MULTIPLIER'][0]
-    transposer = vo.parameters['TRANSPOSE'][0]
-    velocitier = vo.parameters['VELOCITY'][0]
+    voicer = vo.parameters['VOICE']
+    multiplier = vo.parameters['MULTIPLIER']
+    transposer = vo.parameters['TRANSPOSE']
+    velocitier = vo.parameters['VELOCITY']
     while True:
         vn = voicer.next()
         if vn not in vo.player.voices:

@@ -7,11 +7,8 @@ class ExpanderTest(unittest.TestCase):
         testhelper.setUp()
     def tearDown(self):
         testhelper.tearDown()
-    def tokenize(self, s):
-        s = s.replace('(',' ( ').replace(')', ' ) ')
-        return s.strip().split()
     def doit(self, s):
-        a = s.replace('(',' ( ').replace(')', ' ) ').strip().split()
+        a = testhelper.tokenize(s)
         return expanders.expand_list(a)
 
     def test_bare(self):
