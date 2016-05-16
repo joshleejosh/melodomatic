@@ -15,6 +15,19 @@ class Control:
         self.parameters = {}
         self.set_parameter('RATE', ('1',))
 
+    def __eq__(self, o):
+        if not o: return False
+        if self.id != o.id: return False
+        #if self.rngSeed != o.rngSeed: return False
+        if self.channel != o.channel: return False
+        a, r, m, s = dict_compare(self.parameters, o.parameters)
+        if a or r or m: return False
+        # Don't check player or current time; we expect those
+        return True
+
+    def __ne__(self, o):
+        return not self.__eq__(o)
+
     def dump(self):
         print 'CONTROL "%s"'%self.id
         print '    channel %d'%self.channel

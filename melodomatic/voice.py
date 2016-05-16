@@ -12,8 +12,8 @@ class Note:
         self.until = self.at + self.duration
     def __str__(self):
         #return '%s.%d'%(note_name(self.pitch), self.velocity)
-        #return '%d_%d'%(self.pitch, self.velocity)
-        return '%dv%dd%d(%d-%d)'%(self.pitch, self.velocity, self.duration, self.at, self.until)
+        return '%d_%d'%(self.pitch, self.velocity)
+        #return '%dv%dd%d(%d-%d)'%(self.pitch, self.velocity, self.duration, self.at, self.until)
     def is_rest(self):
         return (self.velocity == 0)
 
@@ -34,6 +34,20 @@ class Voice:
         self.generator = None
         self.parameters = {}
         bind_voice_generator(self, 'MELODOMATIC')
+
+    def __eq__(self, o):
+        if not o: return False
+        if self.id != o.id: return False
+        if self.channel != o.channel: return False
+        #if self.rngSeed != o.rngSeed: return False
+        if self.generator != o.generator: return False
+        a, r, m, s = dict_compare(self.parameters, o.parameters)
+        if a or r or m: return False
+        # don't check player or time, we expect that to be different.
+        return True
+
+    def __ne__(self, o):
+        return not self.__eq__(o)
 
     def dump(self):
         print 'VOICE "%s" : generator %s '%(self.id, self.generator.name)
@@ -110,6 +124,14 @@ class VoiceGenerator:
         self.parameters = VOICE_GENERATORS[self.name][1].keys()
         self.voice = v
         self._f = VOICE_GENERATORS[self.name][0](v)
+    def __eq__(self, o):
+        if not o: return False
+        if self.name != o.name: return False
+        if self.parameters != o.parameters: return False
+        # don't check the voice, we expect that to be different.
+        return True
+    def __ne__(self, o):
+        return not self.__eq__(o)
     def __str__(self):
         return '$%s'%self.name
     def __iter__(self):

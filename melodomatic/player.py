@@ -41,6 +41,21 @@ class Player:
         old.shutdown()
         self.startup()
         self.pulse = old.pulse
+
+        # Look for unchanged scales, voices, and controls
+        for sid in self.scaleOrder:
+            if sid in old.scales and self.scales[sid] == old.scales[sid]:
+                self.scales[sid] = old.scales[sid]
+                self.scales[sid].player = self
+        for vid in self.voiceOrder:
+            if vid in old.voices and self.voices[vid] == old.voices[vid]:
+                self.voices[vid] = old.voices[vid]
+                self.voices[vid].player = self
+        for cid in self.controlOrder:
+            if cid in old.controls and self.controls[cid] == old.controls[cid]:
+                self.controls[cid] = old.controls[cid]
+                self.controls[cid].player = self
+
         # Preserve the current scale and change time, but only if it makes sense to.
         if old.curScale and old.curScale.id in self.scaleOrder and self.ppb == old.ppb:
             self.curScale = self.scales[old.curScale.id]

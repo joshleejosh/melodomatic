@@ -40,6 +40,8 @@ class Parser:
         self.build_player()
         if oldPlayer:
             self.player.transfer_state(oldPlayer)
+        if consts.VERBOSE:
+            self.player.dump()
         return self.player
 
     def parse(self):
@@ -204,9 +206,6 @@ class Parser:
             btype = self.autocomplete_type(block[0][0])
             if btype == ':CONTROL':
                 self.build_control(block)
-
-        if consts.VERBOSE:
-            self.player.dump()
 
     def build_scale(self, block, scaleIDs):
         sc = scale.Scale(block[0][1].strip(), self.player)

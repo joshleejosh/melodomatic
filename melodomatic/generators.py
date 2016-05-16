@@ -11,6 +11,19 @@ class GeneratorBinding:
         self.context = c
         self._f = GENERATORS[self.name](self.data, self.context)
 
+    def __eq__(self, o):
+        if not o:
+            return False
+        if self.name != o.name:
+            return False
+        if self.data != o.data:
+            return False
+        # don't check context, we expect that to be different
+        return True
+
+    def __ne__(self, o):
+        return not self.__eq__(o)
+
     def __str__(self):
         return '$%s %s'%(self.name, str(self.data))
 

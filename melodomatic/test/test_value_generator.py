@@ -22,6 +22,16 @@ class ValueGeneratorTest(unittest.TestCase):
         for i in xrange(len(a)):
             self.assertEqual(f.next(), a[i])
 
+    def test_eq(self):
+        f = self.bindit('BLEH')
+        g = self.bindit('$SCALAR BLEH')
+        self.assertEqual(f, g)
+        f = self.bindit('$wave SINE INOUT 13 0 30')
+        g = self.bindit('$wave sin io 13 0 30')
+        self.assertNotEqual(f, g)
+        g = self.bindit('$wave SINE INOUT 13 0 30')
+        self.assertEqual(f, g)
+
     def test_scalar(self):
         fg = self.bindit('BLEH')
         self.assertEqual(str(fg), "$SCALAR ['BLEH']")

@@ -18,6 +18,11 @@ class VoiceGeneratorTest(unittest.TestCase):
         self.assertEqual(note.duration, d)
         self.assertEqual(note.velocity, v)
 
+    def test_eq(self):
+        p,v = self.bindit(':VOICE V .channel 2 .seed SEEDS .pitch 3 .duration 2 .velocity 57')
+        q,w = self.bindit(':v V .ch 2 .seed SEEDS .p 3 .d 2 .v 57')
+        self.assertEqual(v, w)
+
     def test_bare(self):
         p,v = self.bindit("""
                 :v V
@@ -58,5 +63,6 @@ class VoiceGeneratorTest(unittest.TestCase):
         self.checkit(v.generator.next(), 50, 12, 64)
         self.checkit(v.generator.next(), 1, 12, 0)
         self.checkit(v.generator.next(), 1, 12, 0)
+
 
 

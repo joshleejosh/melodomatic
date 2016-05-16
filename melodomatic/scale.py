@@ -21,8 +21,23 @@ class Scale:
         self.changeTime = 0
         self.status = ''
 
+    def __eq__(self, o):
+        if not o: return False
+        if self.id != o.id: return False
+        #if self.rngSeed != o.rngSeed: return False
+        if self.root != o.root: return False
+        if self.intervals != o.intervals: return False
+        if self.durationer != o.durationer: return False
+        if self.linker != o.linker: return False
+        # Assume pitches was set up correctly based on root+intervals
+        # Don't check player or current time; we expect those
+        return True
+
+    def __ne__(self, o):
+        return not self.__eq__(o)
+
     def dump(self):
-        print 'SCALE %s:'%self.id
+        print 'SCALE %s %d:'%(self.id, id(self))
         print '    seed %s'%self.rngSeed
         print '    pitches = %s [%d + %s]'%(self.pitches, self.root, self.intervals)
         print '    duration = %s'%self.durationer
