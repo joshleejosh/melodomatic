@@ -30,10 +30,10 @@
 .v $ran@grossm 48 56 64
 
 
-# Macros should be processed before evals.
-!define eval1 {9/3}
+# Macros should be processed before expansion
+!define eval1 (%r 4 2 -1)
 :voice W
-.p 1 @eval1 {@leading - 2}
+.p $loop 1 @eval1 (%r @leading 5 -1)
 
 
 # blah

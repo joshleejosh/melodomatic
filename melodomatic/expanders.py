@@ -69,7 +69,7 @@ def _cleanse_range_args(data):
 
 def ex_range(data):
     a, b, step = _cleanse_range_args(data)
-    return range(a, b+1, step)
+    return range(a, b+sign(step), step)
 register_expander('RANGE', ex_range)
 
 def ex_pingpong(data):

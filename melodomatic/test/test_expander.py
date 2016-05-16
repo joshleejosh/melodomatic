@@ -64,6 +64,20 @@ class ExpanderTest(unittest.TestCase):
         list = self.doit('%ra 11 19 4')
         self.assertEqual(list, ('11', '15', '19'))
 
+        # negative step
+        list = self.doit('%r 4 2 -1')
+        self.assertEqual(list, ('4', '3', '2'))
+
+        # edges
+        list = self.doit('%r 3 3 -1')
+        self.assertEqual(list, ('3',))
+        list = self.doit('%r -3 -3 1')
+        self.assertEqual(list, ('-3',))
+        list = self.doit('%r 3 4 1')
+        self.assertEqual(list, ('3', '4'))
+        list = self.doit('%r 4 3 -1')
+        self.assertEqual(list, ('4', '3'))
+
         # swapped + negative step + uneven ending:
         # first step is guaranteed to be min/max
         # last value is not guaranteed to be min/max if the step is uneven
@@ -122,6 +136,16 @@ class ExpanderTest(unittest.TestCase):
         self.assertEqual(list, ('0',))
         list = self.doit('%p 5 0 -8')
         self.assertEqual(list, ('5',))
+
+        # edges
+        list = self.doit('%p 3 3 -1')
+        self.assertEqual(list, ('3',))
+        list = self.doit('%p -3 -3 1')
+        self.assertEqual(list, ('-3',))
+        list = self.doit('%p 3 4 1')
+        self.assertEqual(list, ('3', '4'))
+        list = self.doit('%p 4 3 -1')
+        self.assertEqual(list, ('4', '3'))
 
         # bad values: same test cases as for %range
         list = self.doit('%p Funky Cold Medina')

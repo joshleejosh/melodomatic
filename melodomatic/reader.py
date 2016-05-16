@@ -17,8 +17,6 @@ BLOCK_LABELS = {
         ':CONTROL': [ 'CHANNEL', 'SEED', 'RATE', 'VOICE', 'CONTROL_ID', 'CID', 'CONTROL_VALUE', 'CVAL', 'PITCHBEND', 'AFTERTOUCH' ],
         }
 
-RE_EVAL = re.compile(r'\{([^}]*)\}')
-
 # I am responsible for parsing script data and configuring a Player instance
 # based on what I find.  Along the way, I am responsible for creating Scales
 # and Voices and attaching them to the player.
@@ -105,7 +103,6 @@ class Parser:
     # !define - define macros
     # @       - perform macro substitutions. We only do one pass, so
     #           definitions *must* come before references.
-    # { }     - evaluate inline expressions (also unsafe!)
     def preprocess(self):
         macros = []
         todel = []
@@ -136,17 +133,6 @@ class Parser:
                     if consts.VERBOSE:
                         print 'ERROR line %d: unresolved macro reference [%s]'%(linei, line[:-1])
 
-            if '{' in line and '}' in line:
-                for code in RE_EVAL.findall(line):
-                    val = ''
-                    if code.strip():
-                        val = friendly_eval(code)
-                    if is_iterable(val):
-                        val = ' '.join(str(v) for v in val)
-                    else:
-                        val = str(val)
-                    self.text[linei] = self.text[linei].replace('{%s}'%code, val, 1)
-                    line = self.text[linei]
         # Remove preprocessor lines so they don't much with things later.
         for linei in reversed(todel):
             del self.text[linei]
