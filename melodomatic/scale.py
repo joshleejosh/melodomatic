@@ -78,7 +78,7 @@ class Scale:
 
     def begin(self, pulse):
         self.pulse = pulse
-        self.changeTime = self.pulse + self.player.parse_duration(self.durationer.next())
+        self.changeTime = self.pulse + self.player.parse_duration(self.durationer.next())[0]
         self.status = self.id
         #if consts.VERBOSE:
         #    print 'Begin scale %s at %d, next change at %d'%(self.id, self.pulse, self.changeTime)

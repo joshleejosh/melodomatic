@@ -4,12 +4,15 @@ from util import *
 
 # I represent a playable midi note.
 class Note:
-    def __init__(self, a, d, p, v):
+    def __init__(self, a, d, p, v, h):
+        self.at = a
         self.pitch = p
         self.velocity = v
+        self.hold = h
+        self.release = self.at + self.hold
         self.duration = d # This is always in pulses, NOT beats
-        self.at = a
         self.until = self.at + self.duration
+        self.playing = False
     def __str__(self):
         #return '%s.%d'%(note_name(self.pitch), self.velocity)
         return '%d_%d'%(self.pitch, self.velocity)
@@ -90,9 +93,11 @@ class Voice:
         self.pulse = pulse
         self.status = ''
         if self.curNote and not self.curNote.is_rest():
+            if pulse >= self.curNote.release:
+                self.release_cur_note()
             if pulse >= self.curNote.until:
                 self.end_cur_note()
-            else:
+            if self.curNote and self.curNote.playing:
                 self.status = '|' # holding a note
         if pulse >= self.nextPulse:
             note = self.generator.next()
@@ -107,12 +112,18 @@ class Voice:
         self.nextPulse = note.until
         if not note.is_rest():
             self.player.play(self.channel, note.pitch, note.velocity)
+            note.playing = True
             self.status = str(self.curNote)
         else:
             self.status = ''
 
-    def end_cur_note(self):
+    def release_cur_note(self):
         self.player.play(self.channel, self.curNote.pitch, 0)
+        note.playing = False
+
+    def end_cur_note(self):
+        if self.curNote.playing:
+            self.release_cur_note()
         self.curNote = None
 
 
@@ -200,10 +211,10 @@ def g_melodomatic(vo):
     velocitier = vo.parameters['VELOCITY']
     transposer = vo.parameters['TRANSPOSE']
     while True:
-        d = vo.player.parse_duration(durationer.next())
+        d,h = vo.player.parse_duration(durationer.next())
         p = 1
         v = 0
-        if d < 0:
+        if d < 0 or h == 0:
             d = abs(d)
         else:
             t = int(transposer.next())
@@ -211,7 +222,7 @@ def g_melodomatic(vo):
             p = clamp(p+t, 0, 127)
             v = int(velocitier.next())
             v = clamp(v, 0, 127)
-        yield Note(vo.pulse, d, p, v)
+        yield Note(vo.pulse, d, p, v, h)
 
 register_voice_generator('MELODOMATIC', g_melodomatic,
         {

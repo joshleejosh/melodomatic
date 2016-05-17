@@ -53,7 +53,7 @@ class Control:
         self.pulse = pulse
         self.status = ''
         if pulse >= self.nextPulse:
-            self.nextPulse = self.pulse + self.player.parse_duration(self.parameters['RATE'].next())
+            self.nextPulse = self.pulse + self.player.parse_duration(self.parameters['RATE'].next())[0]
             self.set_control()
 
     def set_control(self):

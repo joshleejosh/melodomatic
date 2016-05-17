@@ -17,7 +17,7 @@ class Player:
         self.controlOrder = []
         self.change_tempo(consts.DEFAULT_BEATS_PER_MINUTE, consts.DEFAULT_PULSES_PER_BEAT)
         self.midi = midi.MelodomaticMidi()
-        self.visualizationWindow = self.parse_duration(consts.DEFAULT_VISUALIZATION_WINDOW)
+        self.visualizationWindow = self.parse_duration(consts.DEFAULT_VISUALIZATION_WINDOW)[0]
         self.startScale = ''
         self.curScale = None
         self.pulse = 0
@@ -144,8 +144,10 @@ class Player:
             self.curScale = newScale
         self.curScale.begin(self.pulse)
 
-    def parse_duration(self, d):
-        d = d.strip()
+    # Assumes the code has been split and scrubbed.
+    def _parse_duration_code(self, d):
+        if not d:
+            return 0
         # 'b' is for 'beat', which is redundant (but is sometimes useful for clairty)
         if d[-1] == 'b':
             d = d[:-1]
@@ -155,4 +157,15 @@ class Player:
         if is_float(d):
             return int(float(d) * self.ppb)
         return int(d)
+
+    # returns a 2-tuple containing a duration and an optional hold time.
+    # if hold is not specified, it will match duration.
+    def parse_duration(self, code):
+        a = code.strip().split(',')
+        d = a[0] if len(a) > 0 else '0'
+        d = self._parse_duration_code(d)
+        h = a[1] if len(a) > 1 else str(d)+'p'
+        h = self._parse_duration_code(h)
+        h = min(h, d)
+        return d, h
 

@@ -161,11 +161,11 @@ class Parser:
                     elif cmd == 'RELOAD_INTERVAL':
                         # This isn't a player property at all! It's on the reader.
                         if self.reader:
-                            self.reader.reloadInterval = self.player.parse_duration(ca[1])
+                            self.reader.reloadInterval = self.player.parse_duration(ca[1])[0]
                     elif cmd == 'START_SCALE':
                         self.player.startScale = ca[1]
                     elif cmd == 'VISUALIZATION_WINDOW':
-                        self.player.visualizationWindow = self.player.parse_duration(ca[1])
+                        self.player.visualizationWindow = self.player.parse_duration(ca[1])[0]
                     elif cmd == 'SEED':
                         self.player.set_seed(ca[1])
                     elif consts.VERBOSE:
