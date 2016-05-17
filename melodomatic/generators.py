@@ -1,3 +1,4 @@
+import math
 import consts, expanders
 from util import *
 
@@ -194,6 +195,51 @@ def wave(data, ctx):
             yield str(v)
 
 
+def _mod289(x):
+    return x - math.floor(x * (1.0 / 289.0)) * 289.0;
+def _permute(x):
+    return _mod289(((x*34.0)+1.0)*x);
+def _fade(t):
+    return t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
+def _lerp(t, a, b):
+    return t * (b - a) + a
+def _map(t, imin, imax, omin, omax):
+    return ((t-imin)/(imax-imin)) * (omax-omin) + omin
+def _grad(hash, x):
+    return -x if (hash&8) else x * ((hash & 7) + 1)
+def _noise1(x):
+    xf = math.floor(x)
+    xm = x - xf
+    pa = int(_permute(xf))
+    pb = int(_permute(xf+1))
+    t = _fade(xm)
+    return _lerp(t, _grad(pa, xm), _grad(pb, xm - 1)) * 0.4;
+
+def perlin(data, ctx):
+    minv = maxv = 0
+    step = 0.05
+    try:
+        if len(data) > 0:
+            minv = int(data[0])
+    except:
+        pass
+    try:
+        if len(data) > 1:
+            maxv = int(data[1])
+    except:
+        pass
+    try:
+        if len(data) > 2:
+            step = float(data[2])
+    except:
+        pass
+    i = 255.0 * ctx.rng.random()
+    while True:
+        p = _noise1(i)
+        v = _map(p, -1, 1, minv, maxv)
+        yield str(int(v))
+        i += step
+
 register_generator('SCALAR', scalar)
 register_generator('LOOP', loop)
 register_generator('PINGPONG', pingpong)
@@ -203,4 +249,5 @@ register_generator('SHUFFLE', shuffle)
 register_generator('RANDOM-WALK', random_walk)
 register_generator('RW', random_walk)
 register_generator('WAVE', wave)
+register_generator('PERLIN', perlin)
 

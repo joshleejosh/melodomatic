@@ -197,3 +197,9 @@ class ValueGeneratorTest(unittest.TestCase):
         self.assertEqual(str(fg), "$WAVE ('1',)")
         self.checkit(fg, '0 16 32 48 64 79 95 111 127 111 95 79 64 48 32 16 0 16 32 48 64 79 95 111 127 111 95 79 64 48 32 ')
 
+    def test_perlin(self):
+        pass
+        fg = self.bindit('$perlin 0 32 .1')
+        self.assertEqual(str(fg), "$PERLIN ['0', '32', '.1']")
+        self.checkit(fg, '27 27 26 23 20 17 16 15 15 15 15 15 16 16 16 16 16 15 15 15 15 15 16 16 16 16 16 15 13 10 6 2')
+
