@@ -36,7 +36,7 @@ class PlayerTest(unittest.TestCase):
         p = self.bindit(':PLAYER .bpm 120 .ppb 8')
         self.assertEqual(p.parse_duration('2b'), (16, 16))
         self.assertEqual(p.parse_duration('5p'), (5, 5))
-        self.assertEqual(p.parse_duration('1,.5'), (8, 3))
+        self.assertEqual(p.parse_duration('1,.5'), (8, 4))
         self.assertEqual(p.parse_duration('2b,2b'), (16, 16))
         self.assertEqual(p.parse_duration('5p,3p'), (5, 3))
         self.assertEqual(p.parse_duration('-3b'), (-24, -24))
