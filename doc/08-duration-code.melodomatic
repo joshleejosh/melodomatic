@@ -1,0 +1,91 @@
+### DURATION CODE ##########################################
+# Duration values can be encoded with extra information for
+# more complex rhythms and expression.
+#
+# A 'b' at the end of a duration means it's measured in
+# beats.
+# If there is no suffix on a duration, it defaults to beats.
+# Decimal fractions of beats are allowed.
+#
+# A 'p' at the end of a duration means it's measured in
+# pulses. The number of pulses in a beat is set on the
+# :player.
+#
+# A '-' before the duration means that the voice will REST
+# for that amount of time.
+#
+# Two duration values joined by a ',' mean that the DURATION
+# of the note is separate from the HOLD time.
+# - HOLD is the time that the note audibly plays for.
+# - DURATION is the time until the next note.
+#
+
+:voice Lead
+.pitch 1 5
+.velocity 64
+.duration $loop
+     2             # 2 beats
+    -1            # Rest for 1 beat
+
+     2b            # 2 beats
+    -12p          # Rest for 12 pulses = 1 beat
+
+     36p           # 36 pulses = 3 beats
+
+    -2
+     .5            # .5 beats = 6 pulses
+     .25           # .25 beats = 3 pulses
+     0.25          # Leading 0 before a decimal is fine
+
+     2
+    -1
+
+     4p            # 4p = one third of one beat
+     4p
+     4p
+     12p
+     4p
+    -4p
+     4p
+     12p
+     8p,2p         # Only play for 2 pulses out of 8, for a
+     8p,2p         # more staccato feel.
+     8p,2p
+     36p,1b
+
+
+:voice Click
+.transpose -12
+.pitch 1
+.velocity 48
+.duration 1,2p
+
+
+:scale C
+.root 60
+.intervals 0 2 4 5 7 9 11
+.links D
+# The .duration parameter on :scale is indeed a duration
+# code. Hold time has no meaning here, natch.
+.duration 24b,1
+
+:scale D
+.root 62
+.intervals 0 2 3 5 7 9 10
+.links C
+.duration 288p
+
+
+
+# The player has 12 pulses per beat by default. See
+# 04-player for notes on how to change this value (tl;dr -
+# try not to if you can help it)
+:player
+.beats_per_minute 96
+.pulses_per_beat 12
+
+# The .visualization_window and .reload_interval parameters
+# are also durations!
+.visualization_window 2p
+.reload_interval 24b
+
