@@ -30,8 +30,15 @@ class PlayerTest(unittest.TestCase):
 
         # hold cannot be greater than duration.
         self.assertEqual(p.parse_duration('1,13p'), (12, 12))
-        self.assertEqual(p.parse_duration('-3,3'), (-36, -36))
         self.assertEqual(p.parse_duration(',2p'), (0, 0))
+
+        # can't have a postive hold with negative duration.
+        self.assertEqual(p.parse_duration('-3,3'), (-36, -36))
+        # Can't have a negative hold with a positive duration.
+        self.assertEqual(p.parse_duration('1,-6p'), (12, 12))
+
+        # fractional pulse is a no-no, gets thrown away
+        self.assertEqual(p.parse_duration('1.2p'), (0,0))
 
         p = self.bindit(':PLAYER .bpm 120 .ppb 8')
         self.assertEqual(p.parse_duration('2b'), (16, 16))

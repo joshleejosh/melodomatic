@@ -119,7 +119,7 @@ class Voice:
 
     def release_cur_note(self):
         self.player.play(self.channel, self.curNote.pitch, 0)
-        note.playing = False
+        self.curNote.playing = False
 
     def end_cur_note(self):
         if self.curNote.playing:

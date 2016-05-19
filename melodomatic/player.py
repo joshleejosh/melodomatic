@@ -1,4 +1,5 @@
-import consts, random, time
+import math, random, time
+import consts
 from util import *
 import generators, voice, scale, midi
 
@@ -152,8 +153,9 @@ class Player:
         if d[-1] == 'b':
             d = d[:-1]
         # 'p' is for 'pulse'
-        if d[-1] == 'p' and is_float(d[:-1]):
-            return int(d[:-1])
+        if d[-1] == 'p':
+            d = d[:-1]
+            return int(d) if is_int(d) else 0
         if is_float(d):
             return int(float(d) * self.ppb)
         return int(d)
@@ -167,5 +169,7 @@ class Player:
         h = a[1] if len(a) > 1 else str(d)+'p'
         h = self._parse_duration_code(h)
         h = min(h, d)
+        if d > 0 and h < 0:
+            h = d
         return d, h
 
