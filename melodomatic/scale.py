@@ -15,8 +15,8 @@ class Scale:
         self.root = consts.DEFAULT_SCALE_ROOT
         self.intervals = consts.DEFAULT_SCALE_INTERVALS
         self.pitches = tuple(self.root + i for i in self.intervals)
-        self.set_durationer([])
-        self.set_linker([])
+        self.set_move_timer([])
+        self.set_move_linker([])
         self.pulse = 0
         self.changeTime = 0
         self.status = ''
@@ -27,8 +27,8 @@ class Scale:
         #if self.rngSeed != o.rngSeed: return False
         if self.root != o.root: return False
         if self.intervals != o.intervals: return False
-        if self.durationer != o.durationer: return False
-        if self.linker != o.linker: return False
+        if self.moveTimer != o.moveTimer: return False
+        if self.moveLinker != o.moveLinker: return False
         # Assume pitches was set up correctly based on root+intervals
         # Don't check player or current time; we expect those
         return True
@@ -40,8 +40,8 @@ class Scale:
         print 'SCALE %s %d:'%(self.id, id(self))
         print '    seed %s'%self.rngSeed
         print '    pitches = %s [%d + %s]'%(self.pitches, self.root, self.intervals)
-        print '    duration = %s'%self.durationer
-        print '    links = %s'%self.linker
+        print '    move time = %s'%self.moveTimer
+        print '    move link = %s'%self.moveLinker
 
     def set_seed(self, sv):
         self.rngSeed = sv
@@ -62,23 +62,23 @@ class Scale:
         self.root = self.pitches[0]
         self.intervals = tuple(p - self.root for p in self.pitches)
 
-    def set_durationer(self, data):
+    def set_move_timer(self, data):
         if not data:
-            data = (str(consts.DEFAULT_SCALE_CHANGE_TIME),)
+            data = (consts.DEFAULT_MOVE_TIME,)
         g = generators.bind_generator(data, self)
         if g:
-            self.durationer = g
+            self.moveTimer = g
         
-    def set_linker(self, data):
+    def set_move_linker(self, data):
         if not data:
             data = (self.id,)
         g = generators.bind_generator(data, self)
         if g:
-            self.linker = g
+            self.moveLinker = g
 
     def begin(self, pulse):
         self.pulse = pulse
-        self.changeTime = self.pulse + self.player.parse_duration(self.durationer.next())[0]
+        self.changeTime = self.pulse + self.player.parse_duration(self.moveTimer.next())[0]
         self.status = self.id
         #if consts.VERBOSE:
         #    print 'Begin scale %s at %d, next change at %d'%(self.id, self.pulse, self.changeTime)
@@ -87,8 +87,9 @@ class Scale:
         self.status = ''
         self.pulse = pulse
         if self.pulse >= self.changeTime:
-            n = str(self.linker.next())
-            self.player.change_scale(n)
+            n = str(self.moveLinker.next())
+            return n
+        return self.id
 
     def get_pitch(self, i):
         return self.pitches[i]

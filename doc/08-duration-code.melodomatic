@@ -64,16 +64,16 @@
 :scale C
 .root 60
 .intervals 0 2 4 5 7 9 11
-.links D
-# The .duration parameter on :scale is indeed a duration
+.move_link D
+# The .move_time parameter on :scale is indeed a duration
 # code. Hold time has no meaning here, natch.
-.duration 24b,1
+.move_time 24b,1
 
 :scale D
 .root 62
 .intervals 0 2 3 5 7 9 10
-.links C
-.duration 288p
+.ml C
+.mt 288p
 
 
 

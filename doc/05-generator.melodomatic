@@ -130,21 +130,21 @@
 
 # ##########################################################
 
-# For scales, only the .duration and .links parameters are
+# For scales, only the .move_time and .move_link parameters are
 # generators.
 # .intervals and .pitches are NOT generator functions,
 # despite being lists.
 :scale C
 .root 60
 .intervals 0 2 4 5 7 9 11
-.duration $loop 16 16 32
-.links $shuffle F F G
+.move_time $loop 16 16 32
+.move_link $shuffle F F G
 
 :scale F
 .pitches 65 67 69 70 72 74 76
-.links C G
+.move_link C G
 
 :scale G
 .pitches 67 69 71 72 74 76 77
-.links $scalar C
+.move_link $scalar C
 

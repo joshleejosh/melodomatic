@@ -126,7 +126,9 @@ class Player:
 
     def update(self):
         if self.curScale:
-            self.curScale.update(self.pulse)
+            nextid = self.curScale.update(self.pulse)
+            if nextid != self.curScale.id:
+                self.change_scale(nextid)
 
         # generate some notes and play them
         for vid in self.voiceOrder:

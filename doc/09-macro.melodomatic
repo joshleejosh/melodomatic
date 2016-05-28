@@ -17,12 +17,12 @@
 :scale CMaj
 .root 60
 .intervals @major_intervals
-.links CMaj FMaj
+.move_link CMaj FMaj
 
 :scale FMaj
 .root 65
 .intervals @major_intervals
-.links CMaj
+.move_link CMaj
 
 
 !define pitchy .pitch 1 2 3 4 5

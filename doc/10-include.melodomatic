@@ -14,12 +14,12 @@
 :scale G7
 .root 67
 .intervals @seventh
-.links CMaj FMaj
+.move_link CMaj FMaj
 
 # CMaj and FMaj are defined in this file. Because it's
 # inserted after the above scale definition, the program
 # will start on the G7 scale.
-!include doc/8-macro.melodomatic
+!include doc/09-macro.melodomatic
 
 # Here we define a voice to play in unison with the voice
 # from the included script.
