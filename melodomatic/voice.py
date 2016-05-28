@@ -249,15 +249,16 @@ def g_unison(vo):
         vf = vo.player.voices[vn]
         notef = vf.curNote
         if not notef:
-            yield Note(vo.pulse, 1, 1, 0)
+            yield Note(vo.pulse, 1, 1, 0, 1)
             continue
         d = notef.duration
+        h = notef.hold
         p = notef.pitch + int(transposer.next())
         p = clamp(p, 0, 127)
         v = notef.velocity + int(velocitier.next())
         v = clamp(v, 0, 127)
         if p >= 0 and p <= 127:
-            yield Note(vo.pulse, d, p, v)
+            yield Note(vo.pulse, d, p, v, h)
 
 register_voice_generator('UNISON', g_unison,
         {

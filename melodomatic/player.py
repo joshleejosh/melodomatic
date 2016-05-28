@@ -127,7 +127,7 @@ class Player:
     def update(self):
         if self.curScale:
             nextid = self.curScale.update(self.pulse)
-            if nextid != self.curScale.id:
+            if nextid:
                 self.change_scale(nextid)
 
         # generate some notes and play them

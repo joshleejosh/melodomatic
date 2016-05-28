@@ -89,7 +89,7 @@ class Scale:
         if self.pulse >= self.changeTime:
             n = str(self.moveLinker.next())
             return n
-        return self.id
+        return ''
 
     def get_pitch(self, i):
         return self.pitches[i]
