@@ -25,10 +25,10 @@
 .velocity 64
 .duration $loop
      2             # 2 beats
-    -1            # Rest for 1 beat
+    -1             # Rest for 1 beat
 
      2b            # 2 beats
-    -12p          # Rest for 12 pulses = 1 beat
+    -12p           # Rest for 12 pulses = 1 beat
 
      36p           # 36 pulses = 3 beats
 
@@ -72,8 +72,8 @@
 :scale D
 .root 62
 .intervals 0 2 3 5 7 9 10
-.ml C
-.mt 288p
+.move_link C
+.move_time 288p
 
 
 

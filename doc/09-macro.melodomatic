@@ -11,9 +11,9 @@
 
 # Insert the macro anywhere in your script by referencing
 # its name with the '@' sign.
-# (NOTE: This script errors on the line above because it
-# sees the 'at' sign in the comment and tries to do a macro
-# replacement on it!)
+# (NOTE: This script will warn with an error on the line
+# above because it sees the 'at' sign in the comment and
+# tries to do a macro replacement on it!)
 :scale CMaj
 .root 60
 .intervals @major_intervals
