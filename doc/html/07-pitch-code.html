@@ -1,0 +1,193 @@
+<html>
+<head>
+    <title>PITCH CODE </title>
+    <style>
+        body {
+            clear: both;
+            text-align: center;
+        }
+        table#doc {
+            width: 48em;
+            margin: 0 auto;
+        }
+        .block { }
+        .comment {
+            padding: 0 1em;
+            width: 50%;
+            vertical-align: top;
+            font-family: serif;
+        }
+        .code {
+            padding: 0 1em;
+            width: 50%;
+            font-family: monospace;
+            vertical-align: top;
+            background-color: #eee;
+        }
+        p, h1, h2, h3, h4, h5, h6 {
+            margin: 0 0 1em 0;
+        }
+        pre {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <table id="doc" border="0" cellpadding="0" cellspacing="0">
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><h2>PITCH CODE</h2>
+<p>Pitch values can be encoded with octave and accidental
+info to step outside their prescribed scale pitches.</p>
+<p>A <code>-</code> or <code>+</code> before the pitch value raises or lowers the octave.</p>
+<p>A <code>-</code> or <code>+</code> after the pitch value flats or sharps the note.</p>
+<p>Don't leave any spaces between the modifiers and the
+value, or they'll be read as separate notes!</p></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>:voice PITCHY</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.duration 1</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.velocity 64</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.pitch $loop</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p><code>--5</code> is the dominant tone, lowered two octaves.</p></td>
+            <td class="code"><pre>  --5</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p><code>-1</code> is the tonic, lowered one octave.</p></td>
+            <td class="code"><pre>   -1</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p><code>-5</code> is the dominant, lowered one octave.</p></td>
+            <td class="code"><pre>   -5</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p><code>-6+</code> is a sharped submediant, one octave down.</p></td>
+            <td class="code"><pre>   -6+</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The tonic of the current scale.</p></td>
+            <td class="code"><pre>    1</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p><code>3+--+</code> gets sharped twice and flatted twice, so it ends
+up being a natural.</p></td>
+            <td class="code"><pre>    3+--+</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The dominant of the current scale.</p></td>
+            <td class="code"><pre>    5</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p><code>7-</code> is a flatted subtonic.</p></td>
+            <td class="code"><pre>    7-</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p><code>9</code> could (should?) also be written as <code>+2</code>, but it works
+because the scale in this script has seven notes (see
+below), and the value is moduloed and raised. If the scale
+was, say, a whole-tone scale with six notes, this would
+translate to a <code>+3</code> instead.</p></td>
+            <td class="code"><pre>    9</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The dominant, raised one octave.</p></td>
+            <td class="code"><pre>   +7</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The tonic, raised two octaves (one for the '+', and one
+for the moduloed value).</p></td>
+            <td class="code"><pre>   +8</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>:scale S</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.root 60</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.intervals 1 2 4 5 7 9 11</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+
+    </table>
+
+    <hr/>
+    <p>Generated from <cite>07-pitch-code.melodomatic</cite></p>
+</body>
+</html>

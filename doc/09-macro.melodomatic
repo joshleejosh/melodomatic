@@ -1,21 +1,23 @@
 ### MACRO ##################################################
-# You can define MACROS to make typing go faster.
+# You can define **macros** to save yourself some typing.
 #
 # Macro replacement happens before script parsing.
+#
 # You cannot nest a macro reference in another macro.
+#
 
-# Define a macro on a line that begins with !define and the
-# name of the macro.  Everything after the name will be
+# Define a macro on a line that begins with `!define` and
+# the name of the macro. Everything after the name will be
 # pasted into the script verbatim.
 !define major_intervals 0 2 4 5 7 9 11
 
-# Insert the macro anywhere in your script by referencing
-# its name with the '@' sign.
-# (NOTE: This script will warn with an error on the line
-# above because it sees the 'at' sign in the comment and
-# tries to do a macro replacement on it!)
 :scale CMaj
 .root 60
+# Insert the macro anywhere in your script by referencing
+# its name with the `@` sign.
+# (NOTE: This script will warn with an error on this comment
+# because it sees the "at" sign in the comment and tries to
+# do a macro replacement on it!)
 .intervals @major_intervals
 .move_link CMaj FMaj
 

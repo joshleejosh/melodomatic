@@ -1,0 +1,178 @@
+<html>
+<head>
+    <title>MACRO </title>
+    <style>
+        body {
+            clear: both;
+            text-align: center;
+        }
+        table#doc {
+            width: 48em;
+            margin: 0 auto;
+        }
+        .block { }
+        .comment {
+            padding: 0 1em;
+            width: 50%;
+            vertical-align: top;
+            font-family: serif;
+        }
+        .code {
+            padding: 0 1em;
+            width: 50%;
+            font-family: monospace;
+            vertical-align: top;
+            background-color: #eee;
+        }
+        p, h1, h2, h3, h4, h5, h6 {
+            margin: 0 0 1em 0;
+        }
+        pre {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <table id="doc" border="0" cellpadding="0" cellspacing="0">
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><h2>MACRO</h2>
+<p>You can define <strong>macros</strong> to save yourself some typing.</p>
+<p>Macro replacement happens before script parsing.</p>
+<p>You cannot nest a macro reference in another macro.</p></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>Define a macro on a line that begins with <code>!define</code> and
+the name of the macro. Everything after the name will be
+pasted into the script verbatim.</p></td>
+            <td class="code"><pre>!define major_intervals 0 2 4 5 7 9 11</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>:scale CMaj</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.root 60</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>Insert the macro anywhere in your script by referencing
+its name with the <code>@</code> sign.
+(NOTE: This script will warn with an error on this comment
+because it sees the "at" sign in the comment and tries to
+do a macro replacement on it!)</p></td>
+            <td class="code"><pre>.intervals @major_intervals</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.move_link CMaj FMaj</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>:scale FMaj</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.root 65</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.intervals @major_intervals</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.move_link CMaj</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>!define pitchy .pitch 1 2 3 4 5</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>!define 112 1 1 2</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>:voice LEAD</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>@pitchy</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.duration @112 @112 -1</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+
+    </table>
+
+    <hr/>
+    <p>Generated from <cite>09-macro.melodomatic</cite></p>
+</body>
+</html>

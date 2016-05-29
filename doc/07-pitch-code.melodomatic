@@ -2,9 +2,9 @@
 # Pitch values can be encoded with octave and accidental
 # info to step outside their prescribed scale pitches.
 #
-# A '-' or '+' before the pitch value raises or lowers the octave.
+# A `-` or `+` before the pitch value raises or lowers the octave.
 #
-# A '-' or '+' after the pitch value flats or sharps the note.
+# A `-` or `+` after the pitch value flats or sharps the note.
 #
 # Don't leave any spaces between the modifiers and the
 # value, or they'll be read as separate notes!
@@ -14,25 +14,38 @@
 .duration 1
 .velocity 64
 .pitch $loop
-  --5       # --5 is the dominant tone, lowered two octaves.
-   -1       # -1 is the tonic, lowered one octave.
-   -5       # -5 is the dominant, lowered one octave.
-   -6+      # -6+ is a sharped submediant, one octave down.
-    1       # The tonic of the current scale.
-    3+--+   # 3+--+ gets sharped twice and flatted twice, so
-            # ends up being a natural.
-    5       # The dominant of the current scale.
-    7-      # 7- is a flatted subtonic.
-    9       # 9 could (should?) also be written as +2, but
-            # it works because the scale in this script has
-            # seven notes (see below), and the value is
-            # moduloed and raised. If the scale was, say, a
-            # whole-tone scale with six notes, this would
-            # translate to a +3 instead.
-   +7       # The dominant, raised one octave.
-   +8       # The tonic, raised two octaves (one for the
-            # '+', and one for the moduloed value).
+# `--5` is the dominant tone, lowered two octaves.
+  --5
+# `-1` is the tonic, lowered one octave.
+   -1
+# `-5` is the dominant, lowered one octave.
+   -5
+# `-6+` is a sharped submediant, one octave down.
+   -6+
+# The tonic of the current scale.
+    1
+# `3+--+` gets sharped twice and flatted twice, so it ends
+# up being a natural.
+    3+--+
+# The dominant of the current scale.
+    5
+# `7-` is a flatted subtonic.
+    7-
+# `9` could (should?) also be written as `+2`, but it works
+# because the scale in this script has seven notes (see
+# below), and the value is moduloed and raised. If the scale
+# was, say, a whole-tone scale with six notes, this would
+# translate to a `+3` instead.
+    9
+# The dominant, raised one octave.
+   +7
+# The tonic, raised two octaves (one for the '+', and one
+# for the moduloed value).
+   +8
 
 
-:scale S .root 60 .intervals 1 2 4 5 7 9 11
+
+:scale S
+.root 60
+.intervals 1 2 4 5 7 9 11
 

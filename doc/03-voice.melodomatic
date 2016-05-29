@@ -1,25 +1,25 @@
 ### VOICE ##################################################
-# A voice generates a randomized sequence of notes to play.
-# All voices are all played simultaneously.
-
+# A **voice** generates a randomized sequence of notes to
+# play. All voices are all played simultaneously.
+#
 # The pitch, duration, and velocity are all picked randomly
 # from their sets for each note. You can get a value to be
 # picked more often by listing it multiple times in its set.
 
-# Voice ID is a string.
+# Voice **ID** is a string.
 :voice Lead
 
-# PITCH is the set of notes this voice will play in whatever
-# the current scale is.  Values are scale degrees (not MIDI
-# note offsets like in the scale defs above). So 1 is the
-# Tonic, 5 is the Dominant, etc.
+# **Pitch** is the set of notes this voice will play in
+# whatever the current scale is.  Values are scale degrees
+# (not MIDI note offsets like in the scale defs above). So
+# `1` is the Tonic, `5` is the Dominant, etc.
 .pitch 1 2 3 5 6
 
-# DURATION is the set of lengths that notes will play for.
-# Values are measured in beats.
+# **Duration** is the set of lengths that notes will play
+# for. Values are measured in beats.
 .duration 1 1 1 2 2 4
 
-# VELOCITY is the set of possible velocities for notes,
+# **Velocity** is the set of possible velocities for notes,
 # determining dynamics/volume.  Values are integer MIDI
 # values (0-127).
 .velocity 64 72 80
@@ -37,8 +37,8 @@
 # A negative duration represents a rest.
 .duration 2 2 -2
 
-# CHANNEL is an optional parameter that declares the MIDI
-# channel that this voice will output on. Values are
+# **Channel** is an optional parameter that declares the
+# MIDI channel that this voice will output on. Values are
 # [1-16], default is 1.
 .channel 2
 
@@ -48,8 +48,8 @@
 
 # When the pitch degree is higher than the number of notes
 # in the scale, it should go up in register in a sensible
-# way. '8' is the tonic an octave up, '9' is the supertonic,
-# '16' is the supertonic two octaves up, etc.
+# way. `8` is the tonic an octave up, `9` is the supertonic,
+# `16` is the supertonic two octaves up, etc.
 .pitch 1 5 9 7 12 16
 
 # Durations can be fractions of a beat.
@@ -63,8 +63,8 @@
 .pitch 1 2 3
 .velocity 40 48
 
-# A duration ending in 'p' is measured in PULSES instead of
-# beats. There are 12 pulses in each beat, so the '4p'
+# A duration ending in `p` is measured in *pulses* instead
+# of beats. There are 12 pulses in each beat, so the `4p`
 # durations here are one third of a beat.
 .duration 4p 4p 12p -4p -12p
 
@@ -75,7 +75,7 @@
 # ---------------------------
 
 # You can mute a voice by commenting out the whole block, or
-# by changing the ':VOICE' label to something invalid.
+# by changing the `:VOICE` label to something invalid.
 :XXXvoice Mute
 .transpose -5
 .pitch 1 3 5

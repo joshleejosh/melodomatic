@@ -1,29 +1,35 @@
-### MELODOMATIC ############################################
+## MELODOMATIC #############################################
 #
-# MELODOMATIC is controlled by a script file that contains
-# definitions of SCALES to be played and VOICES that play
-# notes in those scales. When Melodomatic runs, the voices
-# and scales work together to produce random but pleasing
-# melodies.
+# **MELODOMATIC** is controlled by a script file that
+# contains definitions of **scales** to be played and
+# **voices** that play notes in those scales. When
+# Melodomatic runs, the voices and scales work together to
+# produce random but pleasing melodies.
 #
-# Melodomatic does NOT produce audio. The notes it generates
-# are output as MIDI events, so you need an instrument at
-# the other end of the line to actually make noise.
+# Melodomatic does *not* produce audio. The notes it
+# generates are output as MIDI events, so you need an
+# instrument at the other end of the line to actually make
+# noise.
 #
 
 ### FORMATTING
 # A script consists a series of definition blocks.
-# A word starting with ':' is the head of a definition block.
-# A word starting with '.' is a parameter in a definition block.
-# A '#' denotes a comment.
+#
+# A word starting with `:` is the head of a definition block.
+#
+# A word starting with `.` is a parameter in a definition block.
+#
+# A `#` denotes a comment.
+#
 # Blank lines are ignored.
 
 
 ### SCALES
 # A scale defines the pitches that can be played by a voice.
-#
-# Each scale has an ID, a ROOT note, and a set of INTERVALS
-# that are added to the root to build the scale.
+# Each scale has an **ID**, a **root** note, and a set of
+# **intervals** that are added to the root to build the
+# scale.
+
 :scale FMaj
 .root 65
 .intervals 0 2 4 5 7 9 11
@@ -32,10 +38,12 @@
 ### VOICES
 # A voice generates a randomized sequence of notes to play.
 #
-# Each voice has an ID, a set of PITCHES, a set of
-# DURATIONS, and a set of VELOCITIES. It builds each note by
-# by picking a pitch in the current scale, a duration to
-# play that pitch for, and a velocity to play it at.
+# Each voice has an **ID**, a set of **pitches**, a set of
+# **durations**, and a set of **velocities**. It builds each
+# note by by picking a pitch in the current scale, a
+# duration to play that pitch for, and a velocity to play it
+# at.
+
 :voice Lead
 .pitch 1 3 5 8
 .duration 1 1 2
@@ -44,14 +52,16 @@
 
 ### RUNNING
 # To run Melodomatic, execute it as a python module:
-# python melodomatic <filename>
 #
-# The script must contain at least one :SCALE block and one
-# :VOICE block. If this is not the case, the program will
-# exit.
+# `python melodomatic <filename>`
 #
-# Running with the -v flag will print out verbose info for debugging.
-# Running with the -h flag will print help.
+# The script must contain at least one `:SCALE` block and
+# one `:VOICE` block. If this is not the case, the program
+# will exit.
+#
+# Running with the `-v` flag will print out verbose info for debugging.
+#
+# Running with the `-h` flag will print help.
 # 
 
 

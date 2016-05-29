@@ -1,64 +1,81 @@
 ### VOICE GENERATOR ########################################
-# Voices are also controlled by GENERATOR functions. Voice
-# generators produce an endless series of notes.
+# Voices are also controlled by **generator** functions.
+# Voice generators produce an endless series of notes.
 #
 # Like with value generators, voice generators are
-# identified by the '$' sign.  You can specify which voice
+# identified by the `$` sign.  You can specify which voice
 # generator you want to use by including it right after the
 # voice's ID.
 #
 # The voice generator defines which parameters a voice
-# takes. The only exceptions are .CHANNEL and .SEED, which
-# are reserved and universal to all voices.
+# takes. The only exceptions are `.CHANNEL` and `.SEED`,
+# which are reserved and universal to all voices.
 
+# ---------------------------
 
-# The $MELODOMATIC voice generator defines the default
+# The `$MELODOMATIC` voice generator defines the default
 # behavior: builds randomized notes from pitches, durations,
 # and velocities.
-#
-# Parameters:
-# .PITCH
-# .DURATION
-# .VELOCITY
-# .TRANSPOSE
 :voice M $melodomatic
+
+# `.PITCH` – The set of notes this voice will play in
+# whatever the current scale is.  Values are scale degrees
+# (not MIDI note offsets like in the scale defs above). So
+# `1` is the Tonic, `5` is the Dominant, etc.
+#
 .pitch 1 3 5 8
+
+# `.DURATION` – The set of lengths that notes will play for.
+# Values are measured in beats.
 .duration 1 1 2
+
+# `.VELOCITY` – The set of possible velocities for notes,
+# determining dynamics/volume.  Values are integer MIDI
+# values (0-127).
 .velocity 64 72
+
+# `.TRANSPOSE` – This voice will take the note it gets from
+# the current scale and transpose it by this amount.
+# Measured in half steps.
 .transpose +12
 
+# ---------------------------
 
-# $MELODOMATIC is the default behavior, so the tag itself is
-# optional.
+# `$MELODOMATIC` is the default behavior, so the tag itself
+# is optional.
 :voice N
 .p 1 3 5 8
 .d 2 2 4
 .v 48 56
 .t 0
 
+# ---------------------------
 
-# The $UNISON voice generator plays notes in unison with
+# The `$UNISON` voice generator plays notes in unison with
 # another voice. It can be used to set up choruses or
 # harmonies.
 #
-# Paramaters:
-# .VOICE      The name of the voice that this voice will
-#             play along with.
-# .TRANSPOSE  This voice will take the note it gets and
-#             transpose it by this amount. Measured in half
-#             steps.
-# .VELOCITY   This voice will take the note it gets and
-#             adjust the velocity by this amount.
-#
-# NOTE: The voice that we're following MUST be defined
+# NOTE: The voice that we're following *must* be defined
 # before this one in the script, so that it can generate its
 # note before this voice tries to follow along! Otherwise,
 # we'll always be one pulse off.
 :voice U $unison
+
+# `.VOICE` – The ID of the voice that this voice will
+# play along with. (Don't confuse `.voice` with `:voice`!)
 .voice M
+
+# `.TRANSPOSE` – This voice will take the note it gets and
+# transpose it by this amount. Measured in half steps.
 .transpose 7
+
+# `.VELOCITY` – This voice will take the note it gets and
+# adjust the velocity by this amount.
 .velocity -8
 
+# ---------------------------
 
-:scale S .root 60 .intervals 0 2 4 5 7 9 11
+:scale S
+.root 60
+.intervals 0 2 4 5 7 9 11
 

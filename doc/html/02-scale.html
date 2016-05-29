@@ -1,0 +1,305 @@
+<html>
+<head>
+    <title>SCALE </title>
+    <style>
+        body {
+            clear: both;
+            text-align: center;
+        }
+        table#doc {
+            width: 48em;
+            margin: 0 auto;
+        }
+        .block { }
+        .comment {
+            padding: 0 1em;
+            width: 50%;
+            vertical-align: top;
+            font-family: serif;
+        }
+        .code {
+            padding: 0 1em;
+            width: 50%;
+            font-family: monospace;
+            vertical-align: top;
+            background-color: #eee;
+        }
+        p, h1, h2, h3, h4, h5, h6 {
+            margin: 0 0 1em 0;
+        }
+        pre {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <table id="doc" border="0" cellpadding="0" cellspacing="0">
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><h1>SCALE</h1>
+<p>A <strong>scale</strong> defines the pitches that can be played by a
+voice.  A set of <strong>linked</strong> scales forms a directed graph
+of harmonic changes.</p></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>Scale <strong>ID</strong> is a string.</p></td>
+            <td class="code"><pre>:scale FMaj</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The <strong>root</strong> pitch is an integer midi note value (0-129)</p></td>
+            <td class="code"><pre>.root 65</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>Scale <strong>intervals</strong> are a list of values to be added to
+the root to generate the full set of pitches that can be
+played.</p></td>
+            <td class="code"><pre>.intervals 0 2 4 5 7 9 11</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p><strong>move_time</strong> is the amount of time we will spend in this
+scale before moving onto another one. Time is measured in
+beats.  If multiple values are listed, the player will
+pick one of them randomly when this scale starts.</p></td>
+            <td class="code"><pre>.move_time 8 16</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p><strong>move_link</strong> is a list of ids of other scales that the
+player can transition to. After playing in this scale for
+a while, the player will move to whatever scale is listed
+here.</p>
+<p>If you link to multiple scales, the player chooses
+randomly between them.  If there are no links, the player
+will just stay in this scale forever.  Self-transitions in
+links are okay.</p></td>
+            <td class="code"><pre>.move_link FMaj BbMaj</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>:scale BbMaj</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.root 70</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.intervals 0 2 4 5 7 9 11</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.move_time 4 8</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>If you want to tilt the odds in favor of a particular
+scale, you can add more entries to give it more of a
+chance of being picked.  Invalid links are ignored.</p></td>
+            <td class="code"><pre>.move_link C7 C7 C7 FMaj FMaj BADSCALE Dmin</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>You can specify a seed for any random values the scale has
+to generate.</p></td>
+            <td class="code"><pre>.seed RANDOMSEED</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>Header and parameter labels can be abbreviated.
+Multiple commands can go on a single line...</p></td>
+            <td class="code"><pre>:sc C7 .r 72</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>...or they can be spread out across multiple lines.</p></td>
+            <td class="code"><pre>.i</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>   0 2 4      # Comments are stripped out before parsing</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>   5 7 9 10   # and won't interrupt the command.</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>Labels are case-insensitive.</p></td>
+            <td class="code"><pre>.MoVe_TiMe 4 8</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.mOvE_lInK FMaj BbMaj</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>You can specify the pitches in a scale directly if that
+seems easier than listing the root and intervals.</p></td>
+            <td class="code"><pre>:sc Dmin</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.pitches 62 64 65 67 69 70 72</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p><code>.move_time</code> and <code>.move_link</code> can be abbreviated <code>.mt</code> and <code>.ml</code>.</p></td>
+            <td class="code"><pre>.mt 8</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.ml C7 BbMaj</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><hr /></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>This is the same voice spec as in the last file. Play this
+script out for a while and hear how the sound changes as
+it moves through scales.</p></td>
+            <td class="code"><pre>:voice Lead</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.pitch 1 3 5 8</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.duration 1 1 2</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.velocity 64 72 80</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+
+    </table>
+
+    <hr/>
+    <p>Generated from <cite>02-scale.melodomatic</cite></p>
+</body>
+</html>
