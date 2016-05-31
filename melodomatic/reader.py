@@ -23,6 +23,7 @@ BLOCK_LABELS = {
         'VOICE': [
             'CHANNEL',
             'SEED',
+            'MUTE',
             # All other parameters are driven by the voice generator.
             ],
         'CONTROL': [
@@ -253,7 +254,7 @@ class Parser:
         id = block[0][1].strip()
         vo = voice.Voice(id, self.player)
 
-        # set special parameters before custom ones
+        # set special parameters before generator-specific ones
         skipit = []
         for ca in (expanders.expand_list(b) for b in block[1:]):
             cmd = self.autocomplete_label(ca[0], ':VOICE')
@@ -266,6 +267,9 @@ class Parser:
             elif cmd == 'SEED':
                 if len(ca) > 1:
                     vo.set_seed(ca[1])
+                skipit.append(ca[0])
+            elif cmd == 'MUTE':
+                vo.set_mute(True)
                 skipit.append(ca[0])
 
         gn = ''

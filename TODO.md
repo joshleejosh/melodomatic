@@ -9,5 +9,4 @@
   * Sysex?
 * Ability to build standalone compositions w/o livecoding
   * Link and shift voices like scales
-* .mute parameter on voices instead of hacky forced errors
 

@@ -30,6 +30,7 @@ class Voice:
         self.rng = random.Random()
         self.set_seed(self.player.rng.random())
         self.channel = 0
+        self.mute = False
         self.status = ''
         self.curNote = None
         self.pulse = 0
@@ -43,10 +44,11 @@ class Voice:
         if self.id != o.id: return False
         if self.channel != o.channel: return False
         #if self.rngSeed != o.rngSeed: return False
+        if self.mute != o.mute: return False
         if self.generator != o.generator: return False
         a, r, m, s = dict_compare(self.parameters, o.parameters)
         if a or r or m: return False
-        # don't check player or time, we expect that to be different.
+        # don't check player or time, we expect them to be different.
         return True
 
     def __ne__(self, o):
@@ -56,12 +58,17 @@ class Voice:
         print 'VOICE "%s" : generator %s '%(self.id, self.generator.name)
         print '    channel %d'%self.channel
         print '    seed %s'%self.rngSeed
+        if self.mute:
+            print '    muted!'
         for n,i in self.parameters.iteritems():
             print '    %s: %s'%(n, i)
 
     def set_seed(self, sv):
         self.rngSeed = sv
         self.rng.seed(self.rngSeed)
+
+    def set_mute(self, m):
+        self.mute = m
 
     def set_generator(self, gname):
         bind_voice_generator(self, gname)
@@ -99,6 +106,8 @@ class Voice:
                 self.end_cur_note()
             if self.curNote and self.curNote.playing:
                 self.status = '|' # holding a note
+        if self.mute:
+            return
         if pulse >= self.nextPulse:
             note = self.generator.next()
             if note:
