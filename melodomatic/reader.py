@@ -29,13 +29,13 @@ BLOCK_LABELS = {
             'CHANNEL',
             'SEED',
             'RATE',
-            'VOICE'
-            'CONTROL_ID'
-            'CID'
-            'CONTROL_VALUE'
-            'CVAL'
-            'PITCHBEND'
-            'AFTERTOUCH'
+            'VOICE',
+            'CONTROL_ID',
+            'CID',
+            'CONTROL_VALUE',
+            'CVAL',
+            'PITCHBEND',
+            'AFTERTOUCH',
             ],
         }
 

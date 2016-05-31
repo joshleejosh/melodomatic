@@ -9,5 +9,5 @@
   * Sysex?
 * Ability to build standalone compositions w/o livecoding
   * Link and shift voices like scales
-* Overload .cid and .cval to handle multiple controls in a single block
+* .mute parameter on voices instead of hacky forced errors
 

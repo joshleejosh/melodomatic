@@ -13,6 +13,8 @@ class Control:
         self.nextPulse = 0
         self.status = ''
         self.parameters = {}
+        self.parameters['CONTROL_ID'] = []
+        self.parameters['CONTROL_VALUE'] = []
         self.set_parameter('RATE', ('1',))
 
     def __eq__(self, o):
@@ -22,7 +24,7 @@ class Control:
         if self.channel != o.channel: return False
         a, r, m, s = dict_compare(self.parameters, o.parameters)
         if a or r or m: return False
-        # Don't check player or current time; we expect those
+        # Don't check player or current time; we expect those to be different.
         return True
 
     def __ne__(self, o):
@@ -33,7 +35,10 @@ class Control:
         print '    channel %d'%self.channel
         print '    seed %s'%self.rngSeed
         for n,i in self.parameters.iteritems():
-            print '    %s: %s'%(n, i)
+            if n in ('CONTROL_ID','CONTROL_VALUE'):
+                print '    %s: %s'%(n, list(str(j) for j in i))
+            else:
+                print '    %s: %s'%(n, i)
 
     def set_seed(self, sv):
         self.rngSeed = sv
@@ -46,21 +51,29 @@ class Control:
             pname = 'CONTROL_VALUE'
         g = generators.bind_generator(data, self.player)
         if g:
-            self.parameters[pname] = g
+            if pname in ('CONTROL_ID','CONTROL_VALUE'):
+                self.parameters[pname].append(g)
+            else:
+                self.parameters[pname] = g
             return g.name
 
     def update(self, pulse):
         self.pulse = pulse
         self.status = ''
         if pulse >= self.nextPulse:
-            self.nextPulse = self.pulse + self.player.parse_duration(self.parameters['RATE'].next())[0]
+            rate = self.parameters['RATE'].next()
+            self.nextPulse = self.pulse + self.player.parse_duration(rate)[0]
             self.set_control()
 
     def set_control(self):
-        if 'CONTROL_ID' in self.parameters and 'CONTROL_VALUE' in self.parameters:
-            cid = int(self.parameters['CONTROL_ID'].next())
-            cval = int(self.parameters['CONTROL_VALUE'].next())
-            self.player.midi.control(self.channel, cid, cval)
+        if ('CONTROL_ID' in self.parameters 
+                and 'CONTROL_VALUE' in self.parameters):
+            n = min(len(self.parameters['CONTROL_ID']),
+                    len(self.parameters['CONTROL_VALUE']))
+            for i in range(n):
+                cid = int(self.parameters['CONTROL_ID'][i].next())
+                cval = int(self.parameters['CONTROL_VALUE'][i].next())
+                self.player.midi.control(self.channel, cid, cval)
 
         if 'PITCHBEND' in self.parameters:
             p = self.parameters['PITCHBEND']
@@ -75,7 +88,8 @@ class Control:
                 voice = self.player.voices[self.parameters['VOICE'].next()]
                 note = voice.curNote
                 if note and note.velocity > 0:
-                    self.player.midi.aftertouch_note(self.channel, note.pitch, touch)
+                    self.player.midi.aftertouch_note(self.channel,
+                            note.pitch, touch)
             else:
                 self.player.midi.aftertouch_channel(self.channel, touch)
 
