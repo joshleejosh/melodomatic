@@ -9,4 +9,5 @@
   * Sysex?
 * Ability to build standalone compositions w/o livecoding
   * Link and shift voices like scales
+* !import paths should be relative to the script, not working dir (?)
 
