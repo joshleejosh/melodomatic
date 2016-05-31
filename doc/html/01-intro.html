@@ -1,0 +1,197 @@
+<html>
+<head>
+    <title>MELODOMATIC </title>
+    <style>
+        body {
+            clear: both;
+            text-align: center;
+        }
+        table#doc {
+            width: 48em;
+            margin: 0 auto;
+        }
+        .block { }
+        .comment {
+            padding: 0 1em;
+            width: 50%;
+            vertical-align: top;
+            font-family: serif;
+        }
+        .code {
+            padding: 0 1em;
+            width: 50%;
+            font-family: monospace;
+            vertical-align: top;
+            background-color: #eee;
+        }
+        p, h1, h2, h3, h4, h5, h6 {
+            margin: 0 0 1em 0;
+        }
+        pre {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <table id="doc" border="0" cellpadding="0" cellspacing="0">
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><h1>MELODOMATIC</h1>
+<p><strong>MELODOMATIC</strong> is controlled by a script file that
+contains definitions of <strong>scales</strong> to be played and
+<strong>voices</strong> that play notes in those scales. When
+Melodomatic runs, the voices and scales work together to
+produce random but pleasing melodies.</p>
+<p>Melodomatic does <em>not</em> produce audio. The notes it
+generates are output as MIDI events, so you need an
+instrument at the other end of the line to actually make
+noise.</p></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><h2>FORMATTING</h2>
+<p>A script consists a series of definition blocks.</p>
+<p>A word starting with <code>:</code> is the head of a definition block.</p>
+<p>A word starting with <code>.</code> is a parameter in a definition block.</p>
+<p>A <code>#</code> denotes a comment.</p>
+<p>Blank lines are ignored.</p></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><h2>SCALES</h2>
+<p>A scale defines the pitches that can be played by a voice.
+Each scale has an <strong>ID</strong>, a <strong>root</strong> note, and a set of
+<strong>intervals</strong> that are added to the root to build the
+scale.</p></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>:scale FMaj</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.root 65</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.intervals 0 2 4 5 7 9 11</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><h2>VOICES</h2>
+<p>A voice generates a randomized sequence of notes to play.</p>
+<p>Each voice has an <strong>ID</strong>, a set of <strong>pitches</strong>, a set of
+<strong>durations</strong>, and a set of <strong>velocities</strong>. It builds each
+note by by picking a pitch in the current scale, a
+duration to play that pitch for, and a velocity to play it
+at.</p></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>:voice Lead</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.pitch 1 3 5 8</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.duration 1 1 2</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.velocity 64 72 80</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><h2>RUNNING</h2>
+<p>To run Melodomatic, execute it as a python module:</p>
+<p><code>python melodomatic &lt;filename&gt;</code></p>
+<p>The script must contain at least one <code>:SCALE</code> block and
+one <code>:VOICE</code> block. If this is not the case, the program
+will exit.</p>
+<p>Running with the <code>-v</code> flag will print out verbose info for debugging.</p>
+<p>Running with the <code>-h</code> flag will print help.</p></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><h2>HOTLOADING</h2>
+<p>If you change and save the script file while the program
+is running, Melodomatic will detect the change and reload
+the script! It's very exciting.</p></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+
+    </table>
+
+    <hr/>
+    <p>Generated from <cite>01-intro.melodomatic</cite></p>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<html>
+<head>
+    <title>PLAYER </title>
+    <style>
+        body {
+            clear: both;
+            text-align: center;
+        }
+        table#doc {
+            width: 48em;
+            margin: 0 auto;
+        }
+        .block { }
+        .comment {
+            padding: 0 1em;
+            width: 50%;
+            vertical-align: top;
+            font-family: serif;
+        }
+        .code {
+            padding: 0 1em;
+            width: 50%;
+            font-family: monospace;
+            vertical-align: top;
+            background-color: #eee;
+        }
+        p, h1, h2, h3, h4, h5, h6 {
+            margin: 0 0 1em 0;
+        }
+        pre {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <table id="doc" border="0" cellpadding="0" cellspacing="0">
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><h2>PLAYER</h2>
+<p>The player is the conductor of the piece, handling timing
+and control.
+Everything here is optional, if you're okay with the
+defaults values.</p></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>:player</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The overall tempo of the piece.
+(Default is 120)</p></td>
+            <td class="code"><pre>.beats_per_minute 108</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>Define the smallest fraction of a beat that we can play.
+This is used to derive the rate of processing, so very
+large numbers lead to very small time slices, which could
+lead to choppy performance. On the other hand, too few
+pulses risks dropping/overlapping short notes. So you
+should probably just not play with this unless you have
+really specific meter needs.
+(Default is 12)</p></td>
+            <td class="code"><pre>.pulses_per_beat 12</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>Define how often the reader should check for changes in
+this script file. This is a duration, so it can be in
+beats or pulses.
+(Default is 8 beats)</p></td>
+            <td class="code"><pre>.reload_interval 4</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>How often the program spits out status lines to the
+console. This should be set to align with the smallest
+duration slice you expect your voices to generate.
+(Default is .5 beats)</p></td>
+            <td class="code"><pre>.visualization_window 4p</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>Which scale the player should start on when the file is
+first loaded.
+(Default is the first scale in the script)</p></td>
+            <td class="code"><pre>.start_scale FMaj</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>Seed for any random numbers the player needs to generate.
+Scales and voices do all the random number generating, but
+if you don't specify seeds on them, they get their default
+seeds from the player, so this isn't completely
+irrelevant.
+(Default is time)</p></td>
+            <td class="code"><pre>.seed WHATEVER</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+
+    </table>
+
+    <hr/>
+    <p>Generated from <cite>04-player.melodomatic</cite></p>
+</body>
+</html>

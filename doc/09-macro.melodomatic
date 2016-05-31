@@ -1,0 +1,36 @@
+### MACRO ##################################################
+# You can define **macros** to save yourself some typing.
+#
+# Macro replacement happens before script parsing.
+#
+# You cannot nest a macro reference in another macro.
+#
+
+# Define a macro on a line that begins with `!define` and
+# the name of the macro. Everything after the name will be
+# pasted into the script verbatim.
+!define major_intervals 0 2 4 5 7 9 11
+
+:scale CMaj
+.root 60
+# Insert the macro anywhere in your script by referencing
+# its name with the `@` sign.
+# (NOTE: This script will warn with an error on this comment
+# because it sees the "at" sign in the comment and tries to
+# do a macro replacement on it!)
+.intervals @major_intervals
+.move_link CMaj FMaj
+
+:scale FMaj
+.root 65
+.intervals @major_intervals
+.move_link CMaj
+
+
+!define pitchy .pitch 1 2 3 4 5
+!define 112 1 1 2
+
+:voice LEAD
+@pitchy
+.duration @112 @112 -1
+

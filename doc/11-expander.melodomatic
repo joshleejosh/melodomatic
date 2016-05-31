@@ -1,0 +1,93 @@
+### LIST EXPANDER ##########################################
+# Most values (pitches, durations, etc.) come from lists.
+# Most of the time, you write out lists manually. But you
+# can also use **list expander** functions to generate lists
+# more quickly (maybe). 
+#
+# There are a number of expander functions you can use:
+#
+# - `%LIST`      – Just returns the input list of values.
+# - `%XEROX`     – Duplicates a single value multiple times.
+# - `%RANGE`     – Creates a linear series of values.
+# - `%PINGPONG`  – Works like `%RANGE`, but adds on a back
+#                  half that walks back down the range.
+# - `%CURVE`     – Redistributes the values in a list on a
+#                  curve.
+#
+
+:voice A
+
+# `%LIST` is a no-op, and just returns the values verbatim.
+#
+# Usage: `(%list <values...>)`
+#
+# You can put parentheses around any values without an
+# exapander function, and it will do nothing (but sometimes
+# it's useful for readability).
+#
+# This example expands to `(1 2 3 4 5 6 7 8)`
+.pitch (1 2 3 4) (%list 5 6 7 8)
+
+# `%XEROX` duplicates a value a number of times.
+#
+# Usage: `(%xerox <number of repeats> <value to repeat>)`
+#
+# This example expands to `(.5 .5 .5 .5 1 1 2 -2)`
+.duration $loop (%xerox 4 .5) (%xerox 2 1) 2 -2
+
+# `%RANGE` produces a linear series of values.
+#
+# Usage: `(%range <min value> <max value> <step>)`
+#
+# The series includes the min and max values. Step is
+# optional.
+#
+# This example expands to `(48 56 64 72 80 88 96)`
+.velocity $loop (%range 48 96 8)
+
+
+:voice B
+
+# `%PINGPONG` produces a linear range that goes from min to
+# max and back down to min. 
+#
+# Usage: `(%pingpong <min value> <max value> <step>)`
+#
+# If you `$loop` over a `%pingpong`, it works just like
+# `$pingpong` over the equivalent `%range` (no repeats at
+# the ends of the series).
+#
+# This example expands to `(1 3 5 7 9 11 13 15 13 11 9 7 5 3)`
+.pitch $loop (%pingpong 1 15 2)
+
+# `%CURVE` redistributes a set of values on a curve.
+#
+# Usage: `(%curve <function> <direction> <length> <values...>)`
+# 
+# Function is the name of a common easing function (see
+# <http://easings.net/> for examples):
+#     `LINEAR`, `SINE`, `QUADRATIC`, `CUBIC`, `QUARTIC`,
+#     `QUINTIC`, `EXPONENTIAL`, `CIRCULAR`, `BOUNCE`
+#
+# Direction is `IN`, `OUT`, or `INOUT`. `IN` and `OUT` can
+# be abbreviated as `I` and `O`, `INOUT` as `IO`
+#
+# Length is the number of values that will be in the
+# resulting list.
+#
+# Values is a list of values to be distributed.
+#
+# This example expands to `(.5 .5 .5 .5 1 1 1 2)`
+.duration $loop (%curve quadratic in 8 (.5 1 2))
+
+# The list of values for `%curve` can itself be an expander.
+#
+# This example expands to
+#     `(48 48 48 56 56 56 64 72 72 80 80 88 88 96 96 96)`
+.velocity $pingpong (%curve sine io 16 (%range 48 96 8))
+
+
+:scale S
+.root 60
+.intervals 0 2 4 5 7 9 11
+

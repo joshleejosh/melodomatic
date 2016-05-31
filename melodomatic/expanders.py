@@ -15,6 +15,8 @@ def autocomplete_expander_name(n):
     for name in EXPANDERS_ORDERED:
         if name.startswith(n):
             return name
+    if consts.VERBOSE:
+        print 'ERROR: Bad expander name %s'%n
     return 'LIST'
 
 def expand_list(a):

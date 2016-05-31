@@ -1,82 +1,78 @@
-### SCALE ##################################################
-# A SCALE defines the pitches that can be played by a voice.
-# A set of LINKED scales forms a directed graph of harmonic
-# changes.
+## SCALE ###################################################
+# A **scale** defines the pitches that can be played by a
+# voice.  A set of **linked** scales forms a directed graph
+# of harmonic changes.
 
-# Scale ID is a string.
+# Scale **ID** is a string.
 :scale FMaj
 
-# ROOT pitch is an integer midi note value (0-129)
+# The **root** pitch is an integer midi note value (0-129)
 .root 65
 
-# Scale INTERVALS are a list of values to be added to the
-# root to generate the full set of pitches that can be
+# Scale **intervals** are a list of values to be added to
+# the root to generate the full set of pitches that can be
 # played.
 .intervals 0 2 4 5 7 9 11
 
-# DURATION is the amount of time we will spend in this scale
-# before moving onto another one. Time is measured in beats.
-# If multiple values are listed, the player will pick one of
-# them randomly when this scale starts.
-.duration 8 16
+# **move_time** is the amount of time we will spend in this
+# scale before moving onto another one. Time is measured in
+# beats.  If multiple values are listed, the player will
+# pick one of them randomly when this scale starts.
+.move_time 8 16
 
-# LINKS are ids of other scales that the player can
-# transition to. After playing in this scale for a while,
-# the player will change to whatever scale is listed here.
+# **move_link** is a list of ids of other scales that the
+# player can transition to. After playing in this scale for
+# a while, the player will move to whatever scale is listed
+# here.
 #
 # If you link to multiple scales, the player chooses
 # randomly between them.  If there are no links, the player
 # will just stay in this scale forever.  Self-transitions in
 # links are okay.
-.links FMaj BbMaj
+.move_link FMaj BbMaj
 
-# ---------------------------
 
 :scale BbMaj
 .root 70
 .intervals 0 2 4 5 7 9 11
-.duration 4 8
-
+.move_time 4 8
 # If you want to tilt the odds in favor of a particular
 # scale, you can add more entries to give it more of a
 # chance of being picked.  Invalid links are ignored.
-.links C7 C7 C7 FMaj FMaj BADSCALE Dmin
-
+.move_link C7 C7 C7 FMaj FMaj BADSCALE Dmin
 # You can specify a seed for any random values the scale has
 # to generate.
 .seed RANDOMSEED
 
 
-# ---------------------------
-
-# Header and parameter labels can be abbreviated.
-# Multiple commands can go on a single line...
+#Header and parameter labels can be abbreviated.
+#Multiple commands can go on a single line...
 :sc C7 .r 72
-#...or they can be spread out across multiple lines.
+# ...or they can be spread out across multiple lines.
 .i
    0 2 4      # Comments are stripped out before parsing
    5 7 9 10   # and won't interrupt the command.
 # Labels are case-insensitive.
-.DuR 4 8
-.LiNkS FMaj BbMaj
+.MoVe_TiMe 4 8
+.mOvE_lInK FMaj BbMaj
 
-# ---------------------------
 
 # You can specify the pitches in a scale directly if that
 # seems easier than listing the root and intervals.
 :sc Dmin
 .pitches 62 64 65 67 69 70 72
-.duration 8
-.links C7 BbMaj
+# `.move_time` and `.move_link` can be abbreviated `.mt` and `.ml`.
+.mt 8
+.ml C7 BbMaj
 
 
-# ##########################################################
+# ---------------------------
 
 # This is the same voice spec as in the last file. Play this
 # script out for a while and hear how the sound changes as
 # it moves through scales.
 :voice Lead
-.pitch 1 2 3 5 6 8
+.pitch 1 3 5 8
 .duration 1 1 2
 .velocity 64 72 80
 

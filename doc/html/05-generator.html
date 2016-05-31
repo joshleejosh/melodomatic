@@ -1,0 +1,465 @@
+<html>
+<head>
+    <title>GENERATOR </title>
+    <style>
+        body {
+            clear: both;
+            text-align: center;
+        }
+        table#doc {
+            width: 48em;
+            margin: 0 auto;
+        }
+        .block { }
+        .comment {
+            padding: 0 1em;
+            width: 50%;
+            vertical-align: top;
+            font-family: serif;
+        }
+        .code {
+            padding: 0 1em;
+            width: 50%;
+            font-family: monospace;
+            vertical-align: top;
+            background-color: #eee;
+        }
+        p, h1, h2, h3, h4, h5, h6 {
+            margin: 0 0 1em 0;
+        }
+        pre {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <table id="doc" border="0" cellpadding="0" cellspacing="0">
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><h2>GENERATOR</h2>
+<p>Most parameter values are produced by <strong>generator</strong>
+functions that perform some logic to pick a value out of a
+list. The default generator picks randomly from the set,
+but you can override this behavior by specifying a
+different generator function with a <code>$</code> before the list of
+values.</p>
+<p>There are a number of generator functions to choose from:</p>
+<ul>
+<li><code>$SCALAR</code>      &#8211; Returns a single value every time.</li>
+<li><code>$LOOP</code>        &#8211; Iterates over its list in order.</li>
+<li><code>$PINGPONG</code>    &#8211; Goes back and forth through its list.</li>
+<li><code>$RANDOM</code>      &#8211; Picks a random value out of the list.</li>
+<li><code>$SHUFFLE</code>     &#8211; Shuffles the list, goes through it,
+then reshuffles and goes through again.</li>
+<li><code>$RANDOM-WALK</code> &#8211; Walks up and down its list randomly
+based on a probability.</li>
+<li><code>$WAVE</code>        &#8211; Generates a cycle of values on a curve,
+rather than picking from a list.</li>
+</ul>
+<p>A bare single number is wrapped in a <code>$SCALAR</code> generator.</p>
+<p>A bare list is wrapped in a <code>$RANDOM</code> generator.</p></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><hr /></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>For voices, all parameters (except for <code>.channel</code> and
+<code>.seed</code>) are generators.</p></td>
+            <td class="code"><pre>:voice A</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The <code>$LOOP</code> function just goes through its values in
+order, then repeats.</p></td>
+            <td class="code"><pre>.pitch $loop 1 2 3 4</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The <code>$SCALAR</code> function just returns a single value over
+and over again. In this example, the second value will be
+ignored.</p></td>
+            <td class="code"><pre>.duration $scalar 2 1</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>When a parameter only has a single value, the generator
+defaults to <code>$SCALAR</code>.</p></td>
+            <td class="code"><pre>.velocity 64</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><hr /></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>:voice B</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The <code>$RANDOM</code> function picks randomly from the list every
+time it's called, as if you were rolling a dice to choose.
+This can result in long runs of repeated values.</p></td>
+            <td class="code"><pre>.pitch $random 5 6 7 8</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The <code>$SHUFFLE</code> function works more like a deck of cards:
+the list is randomized, then gone through in order, and
+reshuffled when it's done to go through again. This will
+prevent long runs of repeated values.</p></td>
+            <td class="code"><pre>.duration $shuffle 1 1 2 4 -1</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The <code>$PINGONG</code> function walks back and forth through the
+list. In this case, the voice will crescendo up the list,
+then decrescendo back down it.</p></td>
+            <td class="code"><pre>.velocity $pingpong 48 56 64 72 80 88 96</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><hr /></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>:voice C</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.pitch 1 2 3 4</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.duration 1</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>Even <code>.transpose</code> is a generator! You can use a function
+to transpose by different amounts each time. Weird, but
+you never know?</p></td>
+            <td class="code"><pre>.transpose $random -12 -8 -5</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The <code>$RANDOM-WALK</code> function returns one of the values from
+the list repeatedly, until it randomly decides to shift
+one step up or down the list.</p>
+<p>When the generator changes values, it always does a coin
+flip to decide whether to go up or down the list, unless
+it's at the beginning or end, in which case it always
+moves inward.</p></td>
+            <td class="code"><pre>.velocity $random-walk</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The first argument to <code>$RANDOM-WALK</code> is <em>not</em> a velocity
+value &#8211; it's the probability that the function will change
+values on each call.  Valid values are in the [0.0-1.0]
+range.  In this example, we have a 33.3% chance to change
+velocities after each note.</p></td>
+            <td class="code"><pre> 0.333</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The rest of the arguments are the list of values to be
+evaluated.</p></td>
+            <td class="code"><pre> 32 40 48 56 64</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><hr /></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>:voice D</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.transpose -12</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.pitch 5 6 7 8</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.duration 1</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The <code>$WAVE</code> function generates a cyclical distribution of
+values on a curve. Unlike the other functions, this is a
+wholly generative function -- there is no list of values
+to pick from.</p></td>
+            <td class="code"><pre>.velocity $wave</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The <strong>function</strong> to use to generate the curve. This can be
+any of the common easing functions (see
+<a href="http://easings.net/">http://easings.net/</a> for examples):
+<code>LINEAR</code>, <code>SINE</code>, <code>QUADRATIC</code>, <code>CUBIC</code>, <code>QUARTIC</code>,
+<code>QUINTIC</code>, <code>EXPONENTIAL</code>, <code>CIRCULAR</code>, <code>BOUNCE</code></p></td>
+            <td class="code"><pre>       sine</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The <strong>easing direction</strong> of the curve. This can be 'IN',
+'OUT', or 'INOUT' (which can be abbreviated to 'I', 'O',
+or 'IO').</p></td>
+            <td class="code"><pre>       inout</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The <strong>period</strong> of the wave, or the number of values it
+will output before starting over. This is the total
+period, so half of it will be spent rising, and half
+falling.</p></td>
+            <td class="code"><pre>       32</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The <strong>minimum value</strong> returned. This is the value that
+will be returned at the beginning and end of the cycle.</p></td>
+            <td class="code"><pre>       48</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>The <strong>peak value</strong> returned. This is the value that will
+be returned at the halfway point of the cycle.</p></td>
+            <td class="code"><pre>       96</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><hr /></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"><p>For scales, only the <code>.move_time</code> and <code>.move_link</code>
+parameters are generators.  <code>.intervals</code> and <code>.pitches</code> are
+<em>not</em> generator functions, despite being lists.</p></td>
+            <td class="code"><pre>:scale C</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.root 60</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.intervals 0 2 4 5 7 9 11</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.move_time $loop 16 16 32</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.move_link $shuffle F F G</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>:scale F</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.pitches 65 67 69 70 72 74 76</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.move_link C G</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>:scale G</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.pitches 67 69 71 72 74 76 77</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre>.move_link $scalar C</pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+        <!--$BLOCKSTART-->
+        <tr class="block">
+            <td class="comment"></td>
+            <td class="code"><pre> </pre></td>
+        </tr>
+        <!--$BLOCKEND-->
+
+    </table>
+
+    <hr/>
+    <p>Generated from <cite>05-generator.melodomatic</cite></p>
+</body>
+</html>

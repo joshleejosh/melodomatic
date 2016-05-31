@@ -4,12 +4,15 @@ from util import *
 
 # I represent a playable midi note.
 class Note:
-    def __init__(self, a, d, p, v):
+    def __init__(self, a, d, p, v, h):
+        self.at = a
         self.pitch = p
         self.velocity = v
+        self.hold = h
+        self.release = self.at + self.hold
         self.duration = d # This is always in pulses, NOT beats
-        self.at = a
         self.until = self.at + self.duration
+        self.playing = False
     def __str__(self):
         #return '%s.%d'%(note_name(self.pitch), self.velocity)
         return '%d_%d'%(self.pitch, self.velocity)
@@ -27,6 +30,7 @@ class Voice:
         self.rng = random.Random()
         self.set_seed(self.player.rng.random())
         self.channel = 0
+        self.mute = False
         self.status = ''
         self.curNote = None
         self.pulse = 0
@@ -40,10 +44,11 @@ class Voice:
         if self.id != o.id: return False
         if self.channel != o.channel: return False
         #if self.rngSeed != o.rngSeed: return False
+        if self.mute != o.mute: return False
         if self.generator != o.generator: return False
         a, r, m, s = dict_compare(self.parameters, o.parameters)
         if a or r or m: return False
-        # don't check player or time, we expect that to be different.
+        # don't check player or time, we expect them to be different.
         return True
 
     def __ne__(self, o):
@@ -53,12 +58,17 @@ class Voice:
         print 'VOICE "%s" : generator %s '%(self.id, self.generator.name)
         print '    channel %d'%self.channel
         print '    seed %s'%self.rngSeed
+        if self.mute:
+            print '    muted!'
         for n,i in self.parameters.iteritems():
             print '    %s: %s'%(n, i)
 
     def set_seed(self, sv):
         self.rngSeed = sv
         self.rng.seed(self.rngSeed)
+
+    def set_mute(self, m):
+        self.mute = m
 
     def set_generator(self, gname):
         bind_voice_generator(self, gname)
@@ -90,10 +100,14 @@ class Voice:
         self.pulse = pulse
         self.status = ''
         if self.curNote and not self.curNote.is_rest():
+            if pulse >= self.curNote.release:
+                self.release_cur_note()
             if pulse >= self.curNote.until:
                 self.end_cur_note()
-            else:
+            if self.curNote and self.curNote.playing:
                 self.status = '|' # holding a note
+        if self.mute:
+            return
         if pulse >= self.nextPulse:
             note = self.generator.next()
             if note:
@@ -107,12 +121,18 @@ class Voice:
         self.nextPulse = note.until
         if not note.is_rest():
             self.player.play(self.channel, note.pitch, note.velocity)
+            note.playing = True
             self.status = str(self.curNote)
         else:
             self.status = ''
 
-    def end_cur_note(self):
+    def release_cur_note(self):
         self.player.play(self.channel, self.curNote.pitch, 0)
+        self.curNote.playing = False
+
+    def end_cur_note(self):
+        if self.curNote.playing:
+            self.release_cur_note()
         self.curNote = None
 
 
@@ -200,10 +220,10 @@ def g_melodomatic(vo):
     velocitier = vo.parameters['VELOCITY']
     transposer = vo.parameters['TRANSPOSE']
     while True:
-        d = vo.player.parse_duration(durationer.next())
+        d,h = vo.player.parse_duration(durationer.next())
         p = 1
         v = 0
-        if d < 0:
+        if d < 0 or h == 0:
             d = abs(d)
         else:
             t = int(transposer.next())
@@ -211,7 +231,7 @@ def g_melodomatic(vo):
             p = clamp(p+t, 0, 127)
             v = int(velocitier.next())
             v = clamp(v, 0, 127)
-        yield Note(vo.pulse, d, p, v)
+        yield Note(vo.pulse, d, p, v, h)
 
 register_voice_generator('MELODOMATIC', g_melodomatic,
         {
@@ -238,15 +258,16 @@ def g_unison(vo):
         vf = vo.player.voices[vn]
         notef = vf.curNote
         if not notef:
-            yield Note(vo.pulse, 1, 1, 0)
+            yield Note(vo.pulse, 1, 1, 0, 1)
             continue
         d = notef.duration
+        h = notef.hold
         p = notef.pitch + int(transposer.next())
         p = clamp(p, 0, 127)
         v = notef.velocity + int(velocitier.next())
         v = clamp(v, 0, 127)
         if p >= 0 and p <= 127:
-            yield Note(vo.pulse, d, p, v)
+            yield Note(vo.pulse, d, p, v, h)
 
 register_voice_generator('UNISON', g_unison,
         {

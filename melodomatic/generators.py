@@ -130,22 +130,24 @@ def shuffle(data, ctx):
         for i in ia:
             yield data[i]
 
+def _safearg(data, i, castf, default):
+    rv = default
+    try:
+        rv = castf(data[i])
+    except:
+        if consts.VERBOSE:
+            print 'ERROR: Can\'t get %s(%s[%d])'%(castf, data, i)
+        pass
+    return rv
+
 # Randomly walks up and down the given array forever.
 # Only steps on random occasion, based on the given chance.
 # When not at the edges of the array, step direction is an even coin flip.
 def random_walk(data, ctx):
-    chance = 1
+    chance = _safearg(data, 0, float, 1)
     a = ['1',]
-    try:
-        if data:
-            try:
-                chance = float(data[0])
-            except Exception:
-                pass
-        if len(data) > 1:
-            a = data[1:]
-    except Exception:
-        pass
+    if len(data) > 1:
+        a = data[1:]
     i = ctx.rng.randint(0, len(a)-1)
     while True:
         yield a[i]
@@ -164,24 +166,9 @@ def wave(data, ctx):
     curf = expanders.autocomplete_curve_function(data[0]) if len(data) > 0 else 'LINEAR'
     curd = expanders.autocomplete_curve_direction(data[1]) if len(data) > 1 else 2 # inout
     fcurve = expanders.CURVE_FUNCTIONS[curf][curd]
-    period = 16
-    try:
-        if len(data) > 2:
-            period = int(data[2])
-    except Exception:
-        pass
-    vmin = 0
-    try:
-        if len(data) > 3:
-            vmin = int(data[3])
-    except Exception:
-        pass
-    vmax = 127
-    try:
-        if len(data) > 4:
-            vmax = int(data[4])
-    except Exception:
-        pass
+    period = _safearg(data, 2, int, 16)
+    vmin = _safearg(data, 3, int, 0)
+    vmax = _safearg(data, 4, int, 127)
 
     while True:
         for i in xrange(period):

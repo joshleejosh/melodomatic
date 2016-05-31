@@ -1,25 +1,25 @@
 ### INCLUDE ################################################
-# You can INCLUDE other script files, which allows you to
-# split up large scripts or avoid cutting and pasting
+# You can **include** other script files, which allows you
+# to split up large scripts or avoid cutting and pasting
 # frequently-used data.
 #
 # An included file is inserted into the current script
 # verbatim, at the point of the call. This happens before
 # macro replacement and before script parsing.
 
-# common.melodomatic contains a bunch of macros for common
+# `common.melodomatic` contains a bunch of macros for common
 # scales.
 !include common.melodomatic
 
 :scale G7
 .root 67
 .intervals @seventh
-.links CMaj FMaj
+.move_link CMaj FMaj
 
-# CMaj and FMaj are defined in this file. Because it's
-# inserted after the above scale definition, the program
-# will start on the G7 scale.
-!include doc/8-macro.melodomatic
+# `CMaj` and `FMaj` are defined in `09-macro.melodomatic`.
+# Because it's inserted after the above scale definition,
+# the program will start on the `G7` scale.
+!include doc/09-macro.melodomatic
 
 # Here we define a voice to play in unison with the voice
 # from the included script.

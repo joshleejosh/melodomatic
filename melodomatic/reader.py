@@ -4,7 +4,7 @@ from util import *
 import generators, expanders, player, voice, scale, control
 
 BLOCK_LABELS = {
-        ':PLAYER': [
+        'PLAYER': [
             'BEATS_PER_MINUTE', 'BPM',
             'PULSES_PER_BEAT', 'PPB',
             'RELOAD_INTERVAL',
@@ -12,9 +12,32 @@ BLOCK_LABELS = {
             'VISUALIZATION_WINDOW',
             'SEED',
             ],
-        ':SCALE': [ 'ROOT', 'INTERVALS', 'PITCHES', 'DURATION', 'LINKS', 'SEED', ],
-        ':VOICE': [ 'CHANNEL', 'SEED', ],
-        ':CONTROL': [ 'CHANNEL', 'SEED', 'RATE', 'VOICE', 'CONTROL_ID', 'CID', 'CONTROL_VALUE', 'CVAL', 'PITCHBEND', 'AFTERTOUCH' ],
+        'SCALE': [
+            'SEED',
+            'MOVE_TIME', 'MT',
+            'MOVE_LINK', 'ML',
+            'ROOT',
+            'INTERVALS',
+            'PITCHES',
+            ],
+        'VOICE': [
+            'CHANNEL',
+            'SEED',
+            'MUTE',
+            # All other parameters are driven by the voice generator.
+            ],
+        'CONTROL': [
+            'CHANNEL',
+            'SEED',
+            'RATE',
+            'VOICE',
+            'CONTROL_ID',
+            'CID',
+            'CONTROL_VALUE',
+            'CVAL',
+            'PITCHBEND',
+            'AFTERTOUCH',
+            ],
         }
 
 # I am responsible for parsing script data and configuring a Player instance
@@ -143,7 +166,7 @@ class Parser:
         # Process player info first, no mattter where it was in the file (because so many things depend on ppb being set)...
         for block in self.data:
             btype = self.autocomplete_type(block[0][0])
-            if btype == ':PLAYER':
+            if btype == 'PLAYER':
                 # Do one pass just to look for ppb and bpm, since so many other things depend on them being set.
                 for ca in block[1:]:
                     cmd = self.autocomplete_label(ca[0], btype)
@@ -161,36 +184,36 @@ class Parser:
                     elif cmd == 'RELOAD_INTERVAL':
                         # This isn't a player property at all! It's on the reader.
                         if self.reader:
-                            self.reader.reloadInterval = self.player.parse_duration(ca[1])
+                            self.reader.reloadInterval = self.player.parse_duration(ca[1])[0]
                     elif cmd == 'START_SCALE':
                         self.player.startScale = ca[1]
                     elif cmd == 'VISUALIZATION_WINDOW':
-                        self.player.visualizationWindow = self.player.parse_duration(ca[1])
+                        self.player.visualizationWindow = self.player.parse_duration(ca[1])[0]
                     elif cmd == 'SEED':
                         self.player.set_seed(ca[1])
                     elif consts.VERBOSE:
                         print 'ERROR: Bad player command .%s'%cmd
             # while we're here, build a list of valid scale IDs.
-            elif btype == ':SCALE':
+            elif btype == 'SCALE':
                 scid = block[0][1].strip()
                 scaleIDs.add(scid)
 
         # ...Then build scales...
         for block in self.data:
             btype = self.autocomplete_type(block[0][0])
-            if btype == ':SCALE':
+            if btype == 'SCALE':
                 self.build_scale(block, scaleIDs)
 
         # ...Then build voices...
         for block in self.data:
             btype = self.autocomplete_type(block[0][0])
-            if btype == ':VOICE':
+            if btype == 'VOICE':
                 self.build_voice(block)
 
         # ...Then build controls.
         for block in self.data:
             btype = self.autocomplete_type(block[0][0])
-            if btype == ':CONTROL':
+            if btype == 'CONTROL':
                 self.build_control(block)
 
     def build_scale(self, block, scaleIDs):
@@ -212,11 +235,11 @@ class Parser:
                     a = split_ints(ca[1:])
                     if len(a) > 0:
                         sc.set_pitches(a)
-            elif cmd == 'DURATION':
-                sc.set_durationer(ca[1:])
-            elif cmd == 'LINKS':
+            elif cmd in ('MOVE_TIME', 'MT'):
+                sc.set_move_timer(ca[1:])
+            elif cmd in ('MOVE_LINK', 'ML'):
                 # try to strip out invalid links before setting
-                sc.set_linker(tuple((id for id in ca[1:] if id in scaleIDs or id[0] == '$')))
+                sc.set_move_linker(tuple((id for id in ca[1:] if id in scaleIDs or id[0] == '$')))
             elif cmd == 'SEED':
                 sc.set_seed(ca[1])
             elif consts.VERBOSE:
@@ -231,7 +254,7 @@ class Parser:
         id = block[0][1].strip()
         vo = voice.Voice(id, self.player)
 
-        # set special parameters before custom ones
+        # set special parameters before generator-specific ones
         skipit = []
         for ca in (expanders.expand_list(b) for b in block[1:]):
             cmd = self.autocomplete_label(ca[0], ':VOICE')
@@ -244,6 +267,9 @@ class Parser:
             elif cmd == 'SEED':
                 if len(ca) > 1:
                     vo.set_seed(ca[1])
+                skipit.append(ca[0])
+            elif cmd == 'MUTE':
+                vo.set_mute(True)
                 skipit.append(ca[0])
 
         gn = ''
@@ -286,8 +312,8 @@ class Parser:
         self.player.add_control(co)
 
     def autocomplete_type(self, d):
-        if not d.startswith(':'):
-            d = ':' + d
+        if d.startswith(':'):
+            d = d[1:]
         d = d.upper()
         for directive in BLOCK_LABELS.iterkeys():
             if directive.startswith(d):
@@ -298,6 +324,8 @@ class Parser:
         if c.startswith('.'):
             c = c[1:]
         c = c.upper()
+        if ctx.startswith(':'):
+            ctx = ctx[1:]
         if ctx not in BLOCK_LABELS:
             return c
         for command in BLOCK_LABELS[ctx]:
@@ -313,7 +341,7 @@ class Reader:
     def __init__(self, fn):
         self.filename = fn
         self.filetime = time.time()
-        self.reloadInterval = consts.DEFAULT_RELOAD_INTERVAL * consts.DEFAULT_PULSES_PER_BEAT
+        self.reloadInterval = consts.DEFAULT_RELOAD_INTERVAL
         self.status = ''
 
     def load_script(self, ts, oldPlayer=None):
