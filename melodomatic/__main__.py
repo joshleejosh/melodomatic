@@ -65,6 +65,7 @@ class MelodomaticMain:
         else:
             statuses.append('')
         statuses.extend((self.player.voices[v].status for v in self.player.voiceOrder))
+        statuses.extend((self.player.controls[v].status for v in self.player.controlOrder))
 
         doit = False
         s = '%06d'%self.player.pulse

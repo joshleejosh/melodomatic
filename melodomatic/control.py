@@ -66,6 +66,7 @@ class Control:
             self.set_control()
 
     def set_control(self):
+        statii = []
         if ('CONTROL_ID' in self.parameters 
                 and 'CONTROL_VALUE' in self.parameters):
             n = min(len(self.parameters['CONTROL_ID']),
@@ -74,11 +75,13 @@ class Control:
                 cid = int(self.parameters['CONTROL_ID'][i].next())
                 cval = int(self.parameters['CONTROL_VALUE'][i].next())
                 self.player.midi.control(self.channel, cid, cval)
+                statii.append('c%d=%d'%(cid, cval))
 
         if 'PITCHBEND' in self.parameters:
             p = self.parameters['PITCHBEND']
             bend = int(p.next())
             self.player.midi.pitchbend(self.channel, bend)
+            statii.append('pb=%d'%bend)
 
         if 'AFTERTOUCH' in self.parameters:
             p = self.parameters['AFTERTOUCH']
@@ -90,6 +93,9 @@ class Control:
                 if note and note.velocity > 0:
                     self.player.midi.aftertouch_note(self.channel,
                             note.pitch, touch)
+                    statii.append('a=%d'%touch)
             else:
                 self.player.midi.aftertouch_channel(self.channel, touch)
+                statii.append('a=%d'%touch)
+        self.status = ','.join(statii)
 
