@@ -15,6 +15,7 @@
 !define chromatic  0 1 2 3 4 5 6 7 8 9 10 11
 !define wholetone  0 2 4 6 8 10
 
+# ----------------------------
 
 # Common pitch sets.
 !define scale      1 2 3 4 5 6 7 8
@@ -38,4 +39,15 @@
 #!define ii  2
 #!define I   1
 #!define V   5
+
+# ----------------------------
+
+# General MIDI controller IDs for :control.cid
+!define cModulation       1
+!define cVolume           7
+!define cPan             10
+!define cExpression      11
+!define cSustain         64
+!define cAllControlsOff 121
+!define cAllNotesOff    123
 
