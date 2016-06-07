@@ -31,10 +31,13 @@ class Voice:
         self.set_seed(self.player.rng.random())
         self.channel = 0
         self.mute = False
+        self.set_move_timer([])
+        self.set_move_linker([])
         self.status = ''
         self.curNote = None
         self.pulse = 0
         self.nextPulse = 0
+        self.changeTime = 0
         self.generator = None
         self.parameters = {}
         bind_voice_generator(self, 'MELODOMATIC')
@@ -45,6 +48,8 @@ class Voice:
         if self.channel != o.channel: return False
         #if self.rngSeed != o.rngSeed: return False
         if self.mute != o.mute: return False
+        if self.moveTimer != o.moveTimer: return False
+        if self.moveLinker != o.moveLinker: return False
         if self.generator != o.generator: return False
         a, r, m, s = dict_compare(self.parameters, o.parameters)
         if a or r or m: return False
@@ -62,6 +67,10 @@ class Voice:
             print '    muted!'
         for n,i in self.parameters.iteritems():
             print '    %s: %s'%(n, i)
+        if self.moveTimer:
+            print '    move time = %s'%self.moveTimer
+        if self.moveLinker:
+            print '    move link = %s'%self.moveLinker
 
     def set_seed(self, sv):
         self.rngSeed = sv
@@ -69,6 +78,20 @@ class Voice:
 
     def set_mute(self, m):
         self.mute = m
+
+    def set_move_timer(self, data):
+        if not data:
+            data = (consts.DEFAULT_MOVE_TIME,)
+        g = generators.bind_generator(data, self)
+        if g:
+            self.moveTimer = g
+
+    def set_move_linker(self, data):
+        if not data:
+            data = (self.id,)
+        g = generators.bind_generator(data, self)
+        if g:
+            self.moveLinker = g
 
     def set_generator(self, gname):
         bind_voice_generator(self, gname)
@@ -96,6 +119,14 @@ class Voice:
                 return False
         return True
 
+    def begin(self, pulse):
+        self.mute = False
+        self.pulse = pulse
+        self.changeTime = self.pulse + self.player.parse_duration(self.moveTimer.next())[0]
+        self.status = self.id
+        #if consts.VERBOSE:
+        #    print 'Begin voice %s at %d, change at %d'%(self.id, self.pulse, self.changeTime)
+
     def update(self, pulse):
         self.pulse = pulse
         self.status = ''
@@ -107,11 +138,16 @@ class Voice:
             if self.curNote and self.curNote.playing:
                 self.status = '|' # holding a note
         if self.mute:
-            return
+            return ''
+        if self.pulse >= self.changeTime:
+            nid = self.moveLinker.next()
+            if nid != self.id:
+                return nid
         if pulse >= self.nextPulse:
             note = self.generator.next()
             if note:
                 self.play(note)
+        return ''
 
     def play(self, note):
         self.curNote = note
@@ -253,11 +289,11 @@ def g_unison(vo):
         vn = voicer.next()
         if vn not in vo.player.voices:
             # don't know what to do, emit a rest
-            yield Note(vo.pulse, 1, 1, 0)
+            yield Note(vo.pulse, 1, 1, 0, 1)
             continue
         vf = vo.player.voices[vn]
         notef = vf.curNote
-        if not notef:
+        if not notef or vf.mute:
             yield Note(vo.pulse, 1, 1, 0, 1)
             continue
         d = notef.duration

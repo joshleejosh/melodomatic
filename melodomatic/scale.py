@@ -68,7 +68,7 @@ class Scale:
         g = generators.bind_generator(data, self)
         if g:
             self.moveTimer = g
-        
+
     def set_move_linker(self, data):
         if not data:
             data = (self.id,)
@@ -81,7 +81,7 @@ class Scale:
         self.changeTime = self.pulse + self.player.parse_duration(self.moveTimer.next())[0]
         self.status = self.id
         #if consts.VERBOSE:
-        #    print 'Begin scale %s at %d, next change at %d'%(self.id, self.pulse, self.changeTime)
+        #    print 'Begin scale %s at %d, change at %d'%(self.id, self.pulse, self.changeTime)
 
     def update(self, pulse):
         self.status = ''

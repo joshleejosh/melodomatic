@@ -113,6 +113,9 @@ class Player:
             self.change_scale(self.startScale)
         else:
             self.change_scale(self.scaleOrder[0])
+        for v in self.voices.itervalues():
+            if not v.mute:
+                v.begin(self.pulse)
         if consts.VERBOSE:
             print 'starting up'
 
@@ -132,7 +135,17 @@ class Player:
 
         # generate some notes and play them
         for vid in self.voiceOrder:
-            self.voices[vid].update(self.pulse)
+            nextid = self.voices[vid].update(self.pulse)
+            if nextid and nextid != vid:
+                # mute this voice and unmute the other.
+                wasMute = self.voices[nextid].mute
+                self.change_voice(vid, nextid)
+                # if the new voice was already checked (and skipped because it
+                # was muted), then we need to go back and update it asap.
+                oseq = self.voiceOrder.index(vid)
+                nseq = self.voiceOrder.index(nextid)
+                if nseq < oseq and wasMute:
+                    self.voices[nextid].update(self.pulse)
 
         for cid in self.controlOrder:
             self.controls[cid].update(self.pulse)
@@ -146,6 +159,14 @@ class Player:
         if newScale != self.curScale:
             self.curScale = newScale
         self.curScale.begin(self.pulse)
+
+    def change_voice(self, ovid, nvid):
+        if ovid == nvid:
+            return
+        self.voices[ovid].mute = True
+        if self.voices[nvid].mute:
+            self.voices[nvid].begin(self.pulse)
+
 
     # Assumes the code has been split and scrubbed.
     def _parse_duration_code(self, d):

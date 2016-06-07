@@ -24,6 +24,8 @@ BLOCK_LABELS = {
             'CHANNEL',
             'SEED',
             'MUTE',
+            'MOVE_TIME', 'MT',
+            'MOVE_LINK', 'ML',
             # All other parameters are driven by the voice generator.
             ],
         'CONTROL': [
@@ -162,6 +164,7 @@ class Parser:
 
     def build_player(self):
         scaleIDs = set()
+        voiceIDs = set()
 
         # Process player info first, no mattter where it was in the file (because so many things depend on ppb being set)...
         for block in self.data:
@@ -193,10 +196,13 @@ class Parser:
                         self.player.set_seed(ca[1])
                     elif consts.VERBOSE:
                         print 'ERROR: Bad player command .%s'%cmd
-            # while we're here, build a list of valid scale IDs.
+            # while we're here, build lists of valid scale and voice IDs.
             elif btype == 'SCALE':
                 scid = block[0][1].strip()
                 scaleIDs.add(scid)
+            elif btype == 'VOICE':
+                vid = block[0][1].strip()
+                voiceIDs.add(vid)
 
         # ...Then build scales...
         for block in self.data:
@@ -208,7 +214,7 @@ class Parser:
         for block in self.data:
             btype = self.autocomplete_type(block[0][0])
             if btype == 'VOICE':
-                self.build_voice(block)
+                self.build_voice(block, voiceIDs)
 
         # ...Then build controls.
         for block in self.data:
@@ -246,7 +252,7 @@ class Parser:
                 print 'ERROR: Bad scale command .%s'%cmd
         self.player.add_scale(sc)
 
-    def build_voice(self, block):
+    def build_voice(self, block, voiceIDs):
         if len(block) == 0:
             if consts.VERBOSE:
                 print 'ERROR: Voice block has no ID'
@@ -270,6 +276,13 @@ class Parser:
                 skipit.append(ca[0])
             elif cmd == 'MUTE':
                 vo.set_mute(True)
+                skipit.append(ca[0])
+            elif cmd in ('MOVE_TIME', 'MT'):
+                vo.set_move_timer(ca[1:])
+                skipit.append(ca[0])
+            elif cmd in ('MOVE_LINK', 'ML'):
+                # try to strip out invalid links before setting
+                vo.set_move_linker(tuple((id for id in ca[1:] if id in voiceIDs or id[0] == '$')))
                 skipit.append(ca[0])
 
         gn = ''
