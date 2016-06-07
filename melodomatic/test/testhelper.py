@@ -3,7 +3,7 @@ mydir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if mydir not in sys.path:
     sys.path.append(mydir)
 
-import reader
+import reader, midi
 
 def tokenize(s):
     s = s.replace('(',' ( ').replace(')', ' ) ')
@@ -13,6 +13,7 @@ def mkplayer(script):
     parser = reader.Parser()
     lines = script.split('\n')
     pl = parser.make_player(lines, None, None)
+    pl.midi = midi.TestMidi()
     return pl
 
 def setUp():

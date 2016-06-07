@@ -137,12 +137,16 @@ class Voice:
                 self.end_cur_note()
             if self.curNote and self.curNote.playing:
                 self.status = '|' # holding a note
+
         if self.mute:
             return ''
+
         if self.pulse >= self.changeTime:
+            self.changeTime = self.pulse + self.player.parse_duration(self.moveTimer.next())[0]
             nid = self.moveLinker.next()
             if nid != self.id:
                 return nid
+
         if pulse >= self.nextPulse:
             note = self.generator.next()
             if note:
@@ -298,10 +302,9 @@ def g_unison(vo):
             continue
         d = notef.duration
         h = notef.hold
-        p = notef.pitch + int(transposer.next())
-        p = clamp(p, 0, 127)
         v = notef.velocity + int(velocitier.next())
         v = clamp(v, 0, 127)
+        p = notef.pitch + int(transposer.next())
         if p >= 0 and p <= 127:
             yield Note(vo.pulse, d, p, v, h)
 
