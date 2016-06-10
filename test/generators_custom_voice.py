@@ -1,6 +1,5 @@
 import voice, math, util
 
-
 # Play whatever note I see the other voice playing, but stretch it out twice as long.
 def vstretch(vo):
     voicer = vo.parameters['VOICE']
@@ -11,14 +10,15 @@ def vstretch(vo):
         vn = voicer.next()
         if vn not in vo.player.voices:
             # don't know what to do, emit a rest
-            yield voice.Note(vo.pulse, vo.player.parse_duration('1'), 1, 0)
+            d = vo.player.parse_duration('1')
+            yield voice.Note(vo.pulse, d, 1, 0, d)
         vf = vo.player.voices[vn]
         notef = vf.curNote
         d = notef.duration * float(multiplier.next())
         p = notef.pitch + int(transposer.next())
         v = notef.velocity + int(velocitier.next())
         v = util.clamp(v, 0, 127)
-        yield voice.Note(vo.pulse, d, p, v)
+        yield voice.Note(vo.pulse, d, p, v, d)
 
 voice.register_voice_generator('VSTRETCHER', vstretch, {
     'VOICE': ('X',),
@@ -26,5 +26,4 @@ voice.register_voice_generator('VSTRETCHER', vstretch, {
     'TRANSPOSE': ('0',),
     'VELOCITY': ('0',),
     })
-
 

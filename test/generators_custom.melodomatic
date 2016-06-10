@@ -10,11 +10,14 @@
 .p $glo 5 6 7 8 9 10 11
 .d 20p
 
-!import test/generators_custom_sine.py
+!import test/generators_custom_voice.py
+:voice Stretchy $vstretcher
+.ch 4
+.vo Glorbnotz
+.multiplier 2.0
+.t -12
+.vel -8
 
-:v Sine
-.p $sine 16 1 24
-.d 4p
 
 :p
 .bpm 108

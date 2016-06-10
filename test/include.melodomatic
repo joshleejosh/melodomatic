@@ -1,9 +1,0 @@
-
-!define LATEMACRO 49
-!include common.melodomatic
-!include test/macro.melodomatic # strip comments before processing includes (or anything else, really)
-:v X
-.p @triad
-.t -12
-.v 48
-

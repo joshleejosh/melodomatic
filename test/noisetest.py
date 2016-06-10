@@ -6,7 +6,7 @@ Visualizes various samples, and compares with a packaged noise function.
 """
 import sys, os.path, math, time
 
-# https://github.com/caseman/noise
+# https://github.com/caseman/noise (or just `pip install noise`)
 import noise
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'melodomatic'))
