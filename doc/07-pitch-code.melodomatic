@@ -47,5 +47,5 @@
 
 :scale S
 .root 60
-.intervals 1 2 4 5 7 9 11
+.intervals 0 2 4 5 7 9 11
 

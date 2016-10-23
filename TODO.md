@@ -7,4 +7,7 @@
 * Better MIDI
   * Program change?
   * Sysex?
+* More docs
+  * :control
+  * custom generators
 
