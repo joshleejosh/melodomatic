@@ -20,6 +20,9 @@ class Note:
     def is_rest(self):
         return (self.velocity == 0)
 
+class Rest(Note):
+    def __init__(self, a, d):
+        Note.__init__(self, a, d, 1, 0, d)
 
 
 # I am responsible for generating actual notes to play.
@@ -264,14 +267,14 @@ def g_melodomatic(vo):
         p = 1
         v = 0
         if d < 0 or h == 0:
-            d = abs(d)
+            yield Rest(vo.pulse, abs(d))
         else:
             t = int(transposer.next())
             p = vo.player.curScale.degree_to_pitch(pitcher.next())
             p = clamp(p+t, 0, 127)
             v = int(velocitier.next())
             v = clamp(v, 0, 127)
-        yield Note(vo.pulse, d, p, v, h)
+            yield Note(vo.pulse, d, p, v, h)
 
 register_voice_generator('MELODOMATIC', g_melodomatic,
         {
@@ -292,13 +295,14 @@ def g_unison(vo):
     while True:
         vn = voicer.next()
         if vn not in vo.player.voices:
-            # don't know what to do, emit a rest
-            yield Note(vo.pulse, 1, 1, 0, 1)
+            # invalid voice, emit a rest
+            yield Rest(vo.pulse, 1)
             continue
         vf = vo.player.voices[vn]
         notef = vf.curNote
         if not notef or vf.mute:
-            yield Note(vo.pulse, 1, 1, 0, 1)
+            # no note to mirror, emit a rest
+            yield Rest(vo.pulse, 1)
             continue
         d = notef.duration
         h = notef.hold
