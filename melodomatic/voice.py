@@ -310,7 +310,9 @@ def g_unison(vo):
         v = clamp(v, 0, 127)
         p = notef.pitch + int(transposer.next())
         if p >= 0 and p <= 127:
-            yield Note(vo.pulse, d, p, v, h)
+            yield Note(notef.at, d, p, v, h)
+        else:
+            yield Rest(notef.at, h)
 
 register_voice_generator('UNISON', g_unison,
         {
