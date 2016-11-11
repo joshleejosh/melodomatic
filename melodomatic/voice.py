@@ -285,6 +285,34 @@ register_voice_generator('MELODOMATIC', g_melodomatic,
         })
 
 
+# Works like Melodomatic, but instead of picking notes out of a scale, it works
+# off a direct list of MIDI note values, ignoring all scale logic and changes.
+# Useful for drum patches or drones.
+def g_unscaled(vo):
+    noter = vo.parameters['NOTE']
+    durationer = vo.parameters['DURATION']
+    velocitier = vo.parameters['VELOCITY']
+    while True:
+        d,h = vo.player.parse_duration(durationer.next())
+        n = consts.DEFAULT_SCALE_ROOT
+        v = 0
+        if d < 0 or h == 0:
+            yield Rest(vo.pulse, abs(d))
+        else:
+            n = int(noter.next())
+            n = clamp(n, 0, 127)
+            v = int(velocitier.next())
+            v = clamp(v, 0, 127)
+            yield Note(vo.pulse, d, n, v, h)
+
+register_voice_generator('UNSCALED', g_unscaled,
+        {
+            'NOTE': (str(consts.DEFAULT_SCALE_ROOT),),
+            'DURATION': ('1',),
+            'VELOCITY': (str(consts.DEFAULT_VELOCITY),),
+        })
+
+
 # Play whatever the voice I'm following is currently playing.
 # The following voice must come *after* the voice it wants to follow in script.
 # As long as nothing throws off their timing, this should stay in unison with the other voice.
