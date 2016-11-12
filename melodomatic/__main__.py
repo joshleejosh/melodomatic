@@ -64,12 +64,28 @@ class MelodomaticMain:
             statuses.append(self.player.curScale.status)
         else:
             statuses.append('')
-        statuses.extend((self.player.voices[v].status for v in self.player.voiceOrder))
-        statuses.extend((self.player.controls[v].status for v in self.player.controlOrder))
+
+        #statuses.extend((self.player.voices[v].status for v in self.player.voiceOrder))
+        # Unison voices don't get their own status, they just decorate their parent voice's.
+        vstatus = {}
+        for vk in self.player.voiceOrder:
+            v = self.player.voices[vk]
+            if v.generator.name == 'UNISON':
+                uv = self.player.voices[v.parameters['VOICE'].next()]
+                vstatus[uv.id] += ('\'' if uv.status not in ('', '|') else '')
+            else:
+                vstatus[v.id] = v.status
+        statuses.extend((vstatus[v] for v in self.player.voiceOrder if vstatus.has_key(v)))
+
+        #statuses.extend((self.player.controls[v].status for v in self.player.controlOrder))
+        controlStatus = ''
+        if any(((self.player.controls[c].status != '') for c in self.player.controlOrder)):
+            controlStatus = '+'
 
         doit = False
         s = '%06d'%self.player.pulse
         s += '%2s'%self.reader.status
+        s += '%2s'%controlStatus
         for i in xrange(len(statuses)):
             if statuses[i].strip() not in ('', '|'):
                 doit = True
