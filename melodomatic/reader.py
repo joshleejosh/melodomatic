@@ -24,6 +24,7 @@ BLOCK_LABELS = {
             'CHANNEL',
             'SEED',
             'MUTE',
+            'SOLO',
             'MOVE_TIME', 'MT',
             'MOVE_LINK', 'ML',
             # All other parameters are driven by the voice generator.
@@ -276,6 +277,9 @@ class Parser:
                 skipit.append(ca[0])
             elif cmd == 'MUTE':
                 vo.set_mute(True)
+                skipit.append(ca[0])
+            elif cmd == 'SOLO':
+                vo.set_solo(True)
                 skipit.append(ca[0])
             elif cmd in ('MOVE_TIME', 'MT'):
                 vo.set_move_timer(ca[1:])

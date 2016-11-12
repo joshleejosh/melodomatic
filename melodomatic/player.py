@@ -107,6 +107,7 @@ class Player:
     def startup(self):
         if not self.is_valid():
             return
+        self.resolve_solos()
         self.midi.open()
         self.pulse = 0
         if self.startScale and self.startScale in self.scaleOrder:
@@ -167,6 +168,16 @@ class Player:
         if self.voices[nvid].mute:
             self.voices[nvid].begin(self.pulse)
 
+    # If one voice is flagged with .solo, mute all other voices.
+    def resolve_solos(self):
+        dosolo = False
+        for voice in self.voices.itervalues():
+            if voice.solo:
+                dosolo = True
+        if dosolo:
+            for voice in self.voices.itervalues():
+                if not voice.solo:
+                    voice.set_mute(True)
 
     # Assumes the code has been split and scrubbed.
     def _parse_duration_code(self, d):

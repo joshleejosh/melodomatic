@@ -34,6 +34,7 @@ class Voice:
         self.set_seed(self.player.rng.random())
         self.channel = 0
         self.mute = False
+        self.solo = False
         self.set_move_timer([])
         self.set_move_linker([])
         self.status = ''
@@ -81,6 +82,9 @@ class Voice:
 
     def set_mute(self, m):
         self.mute = m
+
+    def set_solo(self, s):
+        self.solo = s
 
     def set_move_timer(self, data):
         if not data:

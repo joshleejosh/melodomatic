@@ -156,3 +156,19 @@ class VoiceGeneratorTest(unittest.TestCase):
         self.assertEqual(w.changeTime, 144)
         self.assertEqual(w.curNote, cn)
 
+    def test_solo(self):
+        p,v = self.bindit("""
+                :v V .seed SEEDS .p 1 .d 1 .v 96
+                :v W .seed SEEDS .p 3 .d 1 .v 96 .solo
+                :v X .seed SEEDS .p 5 .d 1 .v 96
+                :s S .r 48 .i 0 2 4 5 7 9 11
+                """)
+        v = p.voices['V']
+        w = p.voices['W']
+        x = p.voices['X']
+        p.startup()
+        p.update()
+        self.assertTrue(v.mute)
+        self.assertFalse(w.mute)
+        self.assertTrue(x.mute)
+
