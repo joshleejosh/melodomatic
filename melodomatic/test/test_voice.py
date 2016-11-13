@@ -7,11 +7,9 @@ class VoiceGeneratorTest(unittest.TestCase):
         testhelper.setUp()
     def tearDown(self):
         testhelper.tearDown()
-    def bindit(self, scr, vid=''):
+    def bindit(self, scr):
         player = testhelper.mkplayer(scr)
         voice = player.voices[player.voiceOrder[0]]
-        if vid:
-            voice = player.voices[vid]
         return player, voice
     def checkit(self, note, p, d, v):
         self.assertEqual(note.pitch, p)
@@ -64,6 +62,29 @@ class VoiceGeneratorTest(unittest.TestCase):
         self.checkit(v.generator.next(), 1, 12, 0)
         self.checkit(v.generator.next(), 1, 12, 0)
 
+    def test_unscaled(self):
+        # should be the same as in test_melodomatic, despite the different scale.
+        p,v = self.bindit("""
+                :v V $UNSCALED
+                .seed SEEDS
+                .n 48 50 52 53
+                .d 1 2 -1
+                .v 48 56 64
+                :s S .r 62 .i 0 2 3 5 7 8 10 # D Minor
+                :p .bpm 120 .ppb 12
+                """)
+        self.checkit(v.generator.next(), 48, 24, 64)
+        self.checkit(v.generator.next(), 50, 24, 64)
+        self.checkit(v.generator.next(), 52, 24, 56)
+        self.checkit(v.generator.next(), 1, 12, 0)
+        self.checkit(v.generator.next(), 53, 24, 64)
+        self.checkit(v.generator.next(), 1, 12, 0)
+        self.checkit(v.generator.next(), 1, 12, 0)
+        self.checkit(v.generator.next(), 1, 12, 0)
+        self.checkit(v.generator.next(), 50, 12, 64)
+        self.checkit(v.generator.next(), 1, 12, 0)
+        self.checkit(v.generator.next(), 1, 12, 0)
+
     def test_unison(self):
         p,v = self.bindit("""
                 :v V .seed SEEDS .p 1 2 3 4 .d 1 2 -1 .v 48 56 64
@@ -86,6 +107,11 @@ class VoiceGeneratorTest(unittest.TestCase):
         p.update()
         self.checkit(v.curNote, 52, 24, 56)
         self.checkit(u.curNote, 64, 24, 48)
+
+        p.pulse = 72
+        p.update()
+        self.checkit(v.curNote, 1, 12, 0)
+        self.checkit(u.curNote, 13, 12, 0)
 
     def test_unison_bad_voice(self):
         # U is trying to follow a nonexistent voice
@@ -114,6 +140,21 @@ class VoiceGeneratorTest(unittest.TestCase):
         p.update()
         self.assertEqual(v.curNote, None)
         self.checkit(u.curNote,  1,  1,  0)
+
+    def test_unison_pitch_range(self):
+        # U is trying to follow a voice with an extreme pitch.
+        # U's note will be out of range, so it will emit a rest instead.
+        p,v = self.bindit("""
+                :v V $UNSCALED .seed SEEDS .n 120 .d 2 .v 57
+                :v U $unison .vo V .tr +12 .ve +4
+                :s S .r 48 .i 0 2 4 5 7 9 11
+                :p .bpm 120 .ppb 12
+                """)
+        u = p.voices['U']
+        p.startup()
+        p.update()
+        self.checkit(v.curNote, 120, 24, 57)
+        self.checkit(u.curNote,   1, 24,  0)
 
     def test_link(self):
         p,v = self.bindit("""

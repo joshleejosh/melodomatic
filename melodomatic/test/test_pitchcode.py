@@ -87,6 +87,20 @@ class PitchCodeTest(unittest.TestCase):
         self.assertEqual(sc.join_degree(3, -1), -5)
         self.assertEqual(sc.join_degree(4, -1), -4)
         self.assertEqual(sc.join_degree(5, -2), -10)
+        self.assertEqual(sc.join_degree(7, -3), -15)
+
+    def test_split_degree(self):
+        pl = testhelper.mkplayer(":scale S .r 60 .i 0 2 4 5 7 9 11")
+        sc = pl.scales['S']
+        self.assertEqual(sc.split_degree(0), (1, 0))
+        self.assertEqual(sc.split_degree(7), (1, 1))
+        self.assertEqual(sc.split_degree(11), (5, 1))
+        self.assertEqual(sc.split_degree(12), (6, 1))
+        self.assertEqual(sc.split_degree(22), (2, 3))
+        self.assertEqual(sc.split_degree(-5), (3, -1))
+        self.assertEqual(sc.split_degree(-4), (4, -1))
+        self.assertEqual(sc.split_degree(-10), (5, -2))
+        self.assertEqual(sc.split_degree(-15), (7, -3))
 
     def test_join_degree_chromatic(self):
         pl = testhelper.mkplayer(":scale S .r 60 .i 0 1 2 3 4 5 6 7 8 9 10 11")

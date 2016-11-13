@@ -1,12 +1,34 @@
 import unittest, random
 import testhelper
-import util
+import consts, util
 
 class UtilTest(unittest.TestCase):
     def setUp(self):
-        pass
+        self.quiet = consts.QUIET
+        self.verbose = consts.VERBOSE
     def tearDown(self):
-        pass
+        consts.set_quiet(self.quiet)
+        consts.set_verbose(self.verbose)
+
+    def test_consts(self):
+        consts.set_quiet(True)
+        self.assertTrue(consts.QUIET)
+        consts.set_quiet(False)
+        self.assertFalse(consts.QUIET)
+        consts.set_verbose(2)
+        self.assertEqual(consts.VERBOSE, 2)
+        consts.set_verbose(0)
+        self.assertFalse(consts.VERBOSE, 0)
+
+    def test_sign(self):
+        self.assertEqual(util.sign(-3.14), -1)
+        self.assertEqual(util.sign(-1), -1)
+        self.assertEqual(util.sign(-0.001), -1)
+        self.assertEqual(util.sign(0.0), 0)
+        self.assertEqual(util.sign(0), 0)
+        self.assertEqual(util.sign(3.14), 1)
+        self.assertEqual(util.sign(1), 1)
+        self.assertEqual(util.sign(0.001), 1)
 
     def test_is_int(self):
         self.assertTrue(util.is_int(0))

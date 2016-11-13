@@ -39,10 +39,13 @@ class TestMidi(MelodomaticMidi):
     def __init__(self):
         MelodomaticMidi.__init__(self)
         self.buffer = []
+        self.opened = False
     def open(self):
         del self.buffer[:]
+        self.opened = True
     def close(self):
         del self.buffer[:]
+        self.opened = False
     def send(self, m):
         self.buffer.append(m)
 

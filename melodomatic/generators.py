@@ -137,7 +137,7 @@ def _safearg(data, i, castf, default):
     except:
         if consts.VERBOSE:
             print 'ERROR: Can\'t get %s(%s[%d])'%(castf, data, i)
-        pass
+        return default
     return rv
 
 # Randomly walks up and down the given array forever.

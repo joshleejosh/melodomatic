@@ -192,7 +192,7 @@ class Player:
             return int(d) if is_int(d) else 0
         if is_float(d):
             return int(float(d) * self.ppb)
-        return int(d)
+        return 0
 
     # returns a 2-tuple containing a duration and an optional hold time.
     # if hold is not specified, it will match duration.

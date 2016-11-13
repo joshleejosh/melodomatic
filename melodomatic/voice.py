@@ -107,8 +107,6 @@ class Voice:
         pname = data[0].strip().upper()
         if self.generator:
             pname = autocomplete_voice_parameter(pname, self)
-            if not pname:
-                return ''
         data = data[1:]
         g = generators.bind_generator(data, self)
         if g:
@@ -236,7 +234,7 @@ def autocomplete_voice_parameter(n, v):
             return parm
     if consts.VERBOSE:
         #print 'ERROR: Bad generator parameter [%s] for [%s]?'%(n, gtype)
-        return ''
+        return n
     return n
 
 def bind_voice_generator(voice, gtype):

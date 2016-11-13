@@ -7,11 +7,9 @@ class ScaleTest(unittest.TestCase):
         testhelper.setUp()
     def tearDown(self):
         testhelper.tearDown()
-    def bindit(self, scr, sid=''):
+    def bindit(self, scr):
         player = testhelper.mkplayer(scr)
         sc = player.scales[player.scaleOrder[0]]
-        if sid:
-            sc = player.scales[sid]
         return player, sc
  
     def test_eq(self):
