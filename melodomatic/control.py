@@ -74,6 +74,7 @@ class Control:
             for i in range(n):
                 cid = int(self.parameters['CONTROL_ID'][i].next())
                 cval = int(self.parameters['CONTROL_VALUE'][i].next())
+                cval = clamp(cval, 0, 127)
                 self.player.midi.control(self.channel, cid, cval)
                 statii.append('c%d=%d'%(cid, cval))
 
