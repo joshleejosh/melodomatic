@@ -74,6 +74,36 @@ def ex_range(data):
     return range(a, b+sign(step), step)
 register_expander('RANGE', ex_range)
 
+def ex_crange(data):
+    center = min = max = spread = 0
+    step = 1
+    try:
+        center = int(data[0])
+        spread = int(data[1])
+        if len(data) > 2:
+            step = int(data[2])
+        min = center - spread/2
+        max = center + spread/2
+    except ValueError:
+        pass
+    if step == 0:
+        step = 1
+    if min > max:
+        t = max
+        max = min
+        min = t
+    rv = [center]
+    v = center - step
+    while v >= min and v <= max:
+        rv.insert(0, v)
+        v -= step
+    v = center + step
+    while v >= min and v <= max:
+        rv.append(v)
+        v += step
+    return rv
+register_expander('CRANGE', ex_crange)
+
 def ex_pingpong(data):
     a, b, step = _cleanse_range_args(data)
     rv = range(a, b+sign(step), step)

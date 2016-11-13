@@ -106,6 +106,41 @@ class ExpanderTest(unittest.TestCase):
         list = self.doit('%r 3 5 0')
         self.assertEqual(list, ('3','4','5'))
 
+    def test_crange(self):
+        list = self.doit('%crange 2 4 1')
+        self.assertEqual(list, ('0', '1', '2', '3', '4'))
+
+        # step, odd range
+        list = self.doit('%crange 12 9 3')
+        self.assertEqual(list, ('9', '12', '15',))
+
+        # negative step
+        list = self.doit('%crange 2 4 -1')
+        self.assertEqual(list, ('4', '3', '2', '1', '0'))
+
+        # negative spread
+        list = self.doit('%crange 23 -8 2')
+        self.assertEqual(list, ('19', '21', '23', '25', '27'))
+        list = self.doit('%crange 23 -8 -2')
+        self.assertEqual(list, ('27', '25', '23', '21', '19'))
+
+        # 0 range
+        list = self.doit('%cr 12 0 3')
+        self.assertEqual(list, ('12',))
+
+        # 0 step
+        list = self.doit('%cr 12 4 0')
+        self.assertEqual(list, ('10', '11', '12', '13', '14'))
+
+        # bad values
+        list = self.doit('%cr Funky Cold Medina')
+        self.assertEqual(list, ('0',))
+
+        # Fails immediately on the first bad value.
+        list = self.doit('%cr Funky 3 Medina')
+        self.assertEqual(list, ('0',))
+
+
     def test_pingpong(self):
         # cycle stops before repeating min
         list = self.doit('%pingpong 0 4')
@@ -164,84 +199,84 @@ class ExpanderTest(unittest.TestCase):
         self.assertEqual(''.join(list), '01234')
         list = self.doit('%curv lin OUT 6 A B C')
         self.assertEqual(''.join(list), 'AABBCC')
-        list = self.doit('%c lin INOUT 7 A B C D')
+        list = self.doit('%cu lin INOUT 7 A B C D')
         self.assertEqual(''.join(list), 'ABBCCDD')
-        list = self.doit('%c lin INOUT 7 A')
+        list = self.doit('%cu lin INOUT 7 A')
         self.assertEqual(''.join(list), 'AAAAAAA')
 
-        list = self.doit('%c sine I 11 A B C D')
+        list = self.doit('%cu sine I 11 A B C D')
         self.assertEqual(''.join(list), 'AAAABBBCCDD')
-        list = self.doit('%c sine O 11 A B C D')
+        list = self.doit('%cu sine O 11 A B C D')
         self.assertEqual(''.join(list), 'AABBCCCDDDD')
-        list = self.doit('%c sin IO 19 A B C D')
+        list = self.doit('%cu sin IO 19 A B C D')
         self.assertEqual(''.join(list), 'AAAAABBBBBCCCCDDDDD')
 
-        list = self.doit('%c quadratic i 19 A B C D E')
+        list = self.doit('%cu quadratic i 19 A B C D E')
         self.assertEqual(''.join(list), 'AAAAAAABBBBBCCCDDEE')
-        list = self.doit('%c quad o 19 A B C D E')
+        list = self.doit('%cu quad o 19 A B C D E')
         self.assertEqual(''.join(list), 'AABBCCCDDDDDEEEEEEE')
-        list = self.doit('%c quad io 19 A B C D E')
+        list = self.doit('%cu quad io 19 A B C D E')
         self.assertEqual(''.join(list), 'AAAAABBBCCCDDDEEEEE')
 
-        list = self.doit('%c cubic i 19 A B C D E')
+        list = self.doit('%cu cubic i 19 A B C D E')
         self.assertEqual(''.join(list), 'AAAAAAAAABBBBCCCDDE')
-        list = self.doit('%c cub o 19 A B C D E')
+        list = self.doit('%cu cub o 19 A B C D E')
         self.assertEqual(''.join(list), 'ABBCCCDDDEEEEEEEEEE')
-        list = self.doit('%c cub io 19 A B C D E')
+        list = self.doit('%cu cub io 19 A B C D E')
         self.assertEqual(''.join(list), 'AAAAAABBBCDDDEEEEEE')
 
-        list = self.doit('%c quartic i 19 A B C D E')
+        list = self.doit('%cu quartic i 19 A B C D E')
         self.assertEqual(''.join(list), 'AAAAAAAAAAABBBBCCDE')
-        list = self.doit('%c quart o 19 A B C D E')
+        list = self.doit('%cu quart o 19 A B C D E')
         self.assertEqual(''.join(list), 'ABCCDDDDEEEEEEEEEEE')
-        list = self.doit('%c quar io 19 A B C D E')
+        list = self.doit('%cu quar io 19 A B C D E')
         self.assertEqual(''.join(list), 'AAAAAAABBCDDEEEEEEE')
 
-        list = self.doit('%c quintic i 19 A B C D E')
+        list = self.doit('%cu quintic i 19 A B C D E')
         self.assertEqual(''.join(list), 'AAAAAAAAAAAABBBCCDE')
-        list = self.doit('%c quint o 19 A B C D E')
+        list = self.doit('%cu quint o 19 A B C D E')
         self.assertEqual(''.join(list), 'ABCCDDDEEEEEEEEEEEE')
-        list = self.doit('%c qui io 19 A B C D E')
+        list = self.doit('%cu qui io 19 A B C D E')
         self.assertEqual(''.join(list), 'AAAAAAABBCDDEEEEEEE')
 
-        list = self.doit('%c exponential i 19 A B C D E')
+        list = self.doit('%cu exponential i 19 A B C D E')
         self.assertEqual(''.join(list), 'AAAAAAAAAAAAABBBCDE')
-        list = self.doit('%c expon o 19 A B C D E')
+        list = self.doit('%cu expon o 19 A B C D E')
         self.assertEqual(''.join(list), 'ABCDDDEEEEEEEEEEEEE')
-        list = self.doit('%c exp io 19 A B C D E')
+        list = self.doit('%cu exp io 19 A B C D E')
         self.assertEqual(''.join(list), 'AAAAAAAABCDEEEEEEEE')
 
-        list = self.doit('%c circular i 19 A B C D E')
+        list = self.doit('%cu circular i 19 A B C D E')
         self.assertEqual(''.join(list), 'AAAAAAAAABBBBBBCCDE')
-        list = self.doit('%c circ o 19 A B C D E')
+        list = self.doit('%cu circ o 19 A B C D E')
         self.assertEqual(''.join(list), 'ABCCDDDDDDEEEEEEEEE')
-        list = self.doit('%c ci io 19 A B C D E')
+        list = self.doit('%cu ci io 19 A B C D E')
         self.assertEqual(''.join(list), 'AAAAAABBBCDDDEEEEEE')
 
-        list = self.doit('%c bounce i 19 A B C D E')
+        list = self.doit('%cu bounce i 19 A B C D E')
         self.assertEqual(''.join(list), 'AAAAAABBBBBABCDDEEE')
-        list = self.doit('%c bou o 19 A B C D E')
+        list = self.doit('%cu bou o 19 A B C D E')
         self.assertEqual(''.join(list), 'AAABBCDEDDDDDEEEEEE')
-        list = self.doit('%c bo io 19 A B C D E')
+        list = self.doit('%cu bo io 19 A B C D E')
         self.assertEqual(''.join(list), 'AAAAAAABCCCDEEEEEEE')
 
         # bad function falls back to LINEAR
-        list = self.doit('%c afafawef io 19 A B C D E')
+        list = self.doit('%cu afafawef io 19 A B C D E')
         self.assertEqual(''.join(list), 'AAABBBBCCCCCDDDDEEE')
         # bad direction falls back to IN
-        list = self.doit('%c expo adfae 19 A B C D E')
+        list = self.doit('%cu expo adfae 19 A B C D E')
         self.assertEqual(''.join(list), 'AAAAAAAAAAAAABBBCDE')
         # bad period falls back to 2
-        list = self.doit('%c expo in adffae A B C D E')
+        list = self.doit('%cu expo in adffae A B C D E')
         self.assertEqual(''.join(list), 'AE')
         # period less than 2 gets set to 2 (to avoid negative periods or divide by zero funk)
-        list = self.doit('%c expo in -19 A B C D E')
+        list = self.doit('%cu expo in -19 A B C D E')
         self.assertEqual(''.join(list), 'AE')
-        list = self.doit('%c expo in 0 A B C D E')
+        list = self.doit('%cu expo in 0 A B C D E')
         self.assertEqual(''.join(list), 'AE')
-        list = self.doit('%c expo in 1 A B C D E')
+        list = self.doit('%cu expo in 1 A B C D E')
         self.assertEqual(''.join(list), 'AE')
         # no values, no love
-        list = self.doit('%c expo in 19')
+        list = self.doit('%cu expo in 19')
         self.assertEqual(''.join(list), '')
 
