@@ -45,7 +45,8 @@ class MelodomaticMain:
                 # wait for next pulse
                 nextt = t + self.player.pulseTime
                 waitt = nextt - time.time()
-                time.sleep(waitt)
+                if waitt > 0:
+                    time.sleep(waitt)
                 self.player.tick()
 
         except KeyboardInterrupt:
