@@ -199,10 +199,14 @@ class Parser:
                         print 'ERROR: Bad player command .%s'%cmd
             # while we're here, build lists of valid scale and voice IDs.
             elif btype == 'SCALE':
-                scid = block[0][1].strip()
+                scid = 'DUMMY'
+                if len(block[0]) > 1:
+                    scid = block[0][1].strip()
                 scaleIDs.add(scid)
             elif btype == 'VOICE':
-                vid = block[0][1].strip()
+                vid = 'DUMMY'
+                if len(block[0]) > 1:
+                    vid = block[0][1].strip()
                 voiceIDs.add(vid)
 
         # ...Then build scales...
@@ -224,6 +228,10 @@ class Parser:
                 self.build_control(block)
 
     def build_scale(self, block, scaleIDs):
+        if len(block[0]) < 2:
+            if consts.VERBOSE:
+                print 'ERROR: Scale block has no ID'
+            block[0].append('DUMMY')
         sc = scale.Scale(block[0][1].strip(), self.player)
         for ca in (expanders.expand_list(b) for b in block[1:]):
             cmd = self.autocomplete_label(ca[0], ':SCALE')
@@ -254,10 +262,10 @@ class Parser:
         self.player.add_scale(sc)
 
     def build_voice(self, block, voiceIDs):
-        if len(block) == 0:
+        if len(block[0]) < 2:
             if consts.VERBOSE:
                 print 'ERROR: Voice block has no ID'
-                return
+            block[0].append('DUMMY')
         id = block[0][1].strip()
         vo = voice.Voice(id, self.player)
 
@@ -300,15 +308,14 @@ class Parser:
             if not vo.set_parameter(ca) and consts.VERBOSE:
                 print 'ERROR: Bad voice command .%s'%cmd
 
-
         vo.validate_generator()
         self.player.add_voice(vo)
 
     def build_control(self, block):
-        if len(block) == 0:
+        if len(block[0]) < 2:
             if consts.VERBOSE:
                 print 'ERROR: Control block has no ID'
-                return
+                block[0].append('DUMMY')
         id = block[0][1].strip()
         co = control.Control(id, self.player)
 

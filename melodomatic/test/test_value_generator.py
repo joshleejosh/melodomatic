@@ -26,11 +26,26 @@ class ValueGeneratorTest(unittest.TestCase):
         f = self.bindit('BLEH')
         g = self.bindit('$SCALAR BLEH')
         self.assertEqual(f, g)
+        self.assertNotEqual(f, None)
+        h = self.bindit('$RANDOM BLEH')
+        self.assertNotEqual(f, h)
         f = self.bindit('$wave SINE INOUT 13 0 30')
         g = self.bindit('$wave sin io 13 0 30')
         self.assertNotEqual(f, g)
         g = self.bindit('$wave SINE INOUT 13 0 30')
         self.assertEqual(f, g)
+
+    def test_iter(self):
+        g = self.bindit('$SCALAR BLEH')
+        for i,v in enumerate(g):
+            self.assertEqual(v, 'BLEH')
+            if i > 2:
+                break
+
+    def test_bad_generator(self):
+        gen, lab = generators.bind_generator(['$QWIJYBO', '1', '2', '3'], None)
+        self.assertEqual(gen, None)
+        self.assertEqual(lab, '')
 
     def test_scalar(self):
         fg = self.bindit('BLEH')
@@ -207,4 +222,9 @@ class ValueGeneratorTest(unittest.TestCase):
         fg = self.bindit('$noise -43 19 .99')
         self.assertEqual(str(fg), "$NOISE ['-43', '19', '.99']")
         self.checkit(fg, '9 -13 -13 -27 14 -13 -13 -23 0 11 -19 0 -10 -13 0 -18 2 3 -14 -9 -13 -13 -13 -10 -14 -2 -13 -13 -6 -10 -10 -9')
+
+    def test_noise_bad(self):
+        fg = self.bindit('$noise HOWDY DOODY TIME')
+        self.assertEqual(fg.next(), '0')
+
 

@@ -232,9 +232,8 @@ def autocomplete_voice_parameter(n, v):
     for parm in VOICE_GENERATORS[gtype][1].iterkeys():
         if parm.startswith(n):
             return parm
-    if consts.VERBOSE:
-        #print 'ERROR: Bad generator parameter [%s] for [%s]?'%(n, gtype)
-        return n
+    #if consts.VERBOSE:
+    #    print 'ERROR: Bad generator parameter [%s] for [%s]?'%(n, gtype)
     return n
 
 def bind_voice_generator(voice, gtype):

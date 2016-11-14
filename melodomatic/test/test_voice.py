@@ -20,6 +20,24 @@ class VoiceGeneratorTest(unittest.TestCase):
         p,v = self.bindit(':VOICE V .channel 2 .seed SEEDS .pitch 3 .duration 2 .velocity 57')
         q,w = self.bindit(':v V .ch 2 .seed SEEDS .p 3 .d 2 .v 57')
         self.assertEqual(v, w)
+        r,x = self.bindit(':VOICE V .channel 2 .seed SEEDS .pitch 4 .duration 2 .velocity 57')
+        self.assertNotEqual(v, x)
+
+    def test_bad_voice(self):
+        p,v = self.bindit(':v')
+        self.assertEqual(v.id, 'DUMMY')
+        p,v = self.bindit(':v V .')
+        p,v = self.bindit(':v V .qwijybo')
+
+        p,v = self.bindit(':v V')
+        self.assertTrue(v.validate_generator())
+        del v.parameters['PITCH']
+        self.assertFalse(v.validate_generator())
+
+        p,v = self.bindit(':v V')
+        self.assertTrue(v.validate_generator())
+        v.generator = None
+        self.assertFalse(v.validate_generator())
 
     def test_bare(self):
         p,v = self.bindit("""
@@ -38,8 +56,11 @@ class VoiceGeneratorTest(unittest.TestCase):
                 :s S .r 48 .i 0 2 4 5 7 9 11
                 :p .bpm 120 .ppb 12
                 """)
-        for i in xrange(11):
-            self.checkit(v.generator.next(), 52, 24, 57)
+        self.assertEqual(str(v.generator), '$MELODOMATIC')
+        for i,val in enumerate(v.generator):
+            self.checkit(val, 52, 24, 57)
+            if i > 11:
+                break
 
         p,v = self.bindit("""
                 :v V

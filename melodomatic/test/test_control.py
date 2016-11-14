@@ -28,6 +28,10 @@ class ControlTest(unittest.TestCase):
             """)
         self.assertNotEqual(c, e)
 
+    def test_bad(self):
+        p,c = self.bindit(':c')
+        self.assertEqual(c.id, 'DUMMY')
+
     # .cid/.cval are unique in that you can specify them multiple times in a
     # single :control block.
     def test_multiple_cval(self):

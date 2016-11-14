@@ -27,6 +27,10 @@ class ScaleTest(unittest.TestCase):
         self.assertEqual(s, u)
         self.assertEqual(t, u)
 
+    def test_bad(self):
+        p,s = self.bindit(':s')
+        self.assertEqual(s.id, 'DUMMY')
+
     def test_link(self):
         p,s = self.bindit("""
         :sc S .se seedx .root 59 .intervals 0 1 3 5 6 8 10 .move_time 4 .move_link T

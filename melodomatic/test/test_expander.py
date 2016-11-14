@@ -260,6 +260,9 @@ class ExpanderTest(unittest.TestCase):
         list = self.doit('%cu bo io 19 A B C D E')
         self.assertEqual(''.join(list), 'AAAAAAABCCCDEEEEEEE')
 
+        # no function doesn't crash
+        list = self.doit('%cu')
+        self.assertEqual(''.join(list), '')
         # bad function falls back to LINEAR
         list = self.doit('%cu afafawef io 19 A B C D E')
         self.assertEqual(''.join(list), 'AAABBBBCCCCCDDDDEEE')
@@ -279,4 +282,10 @@ class ExpanderTest(unittest.TestCase):
         # no values, no love
         list = self.doit('%cu expo in 19')
         self.assertEqual(''.join(list), '')
+
+    def test_autocomplete_curve(self):
+        self.assertEqual(expanders.autocomplete_curve_function('qu'), 'QUADRATIC')
+        self.assertEqual(expanders.autocomplete_curve_function('qua'), 'QUADRATIC')
+        self.assertEqual(expanders.autocomplete_curve_function('quar'), 'QUARTIC')
+        self.assertEqual(expanders.autocomplete_curve_function(''), 'LINEAR')
 

@@ -1,6 +1,6 @@
 import os, unittest, random, tempfile
 import testhelper
-import consts, generators, reader, midi
+import consts, generators
 
 class PlayerTest(unittest.TestCase):
     def setUp(self):
@@ -152,34 +152,4 @@ class PlayerTest(unittest.TestCase):
         self.assertEqual(len(p.voices), 1)
         self.assertEqual(len(p.scales), 1)
         self.assertEqual(p.scales['S'].intervals, (0, 2, 4, 5, 7, 9, 11))
-
-
-    def test_file_read(self):
-        fd, fn = tempfile.mkstemp()
-        fp = open(fn, 'w')
-        fp.write(':p .bpm 108 .ppb 12 .reload_interval 12\n')
-        fp.write(':s S .r 58 .i 0 2 3 5 7 8 10\n')
-        fp.write(':v V .p 1 3 5 .d 1 2 .v 72 84\n')
-        fp.close()
-        os.close(fd)
-
-        r = reader.Reader(fn)
-        p = r.load_script(0)
-        p.midi = midi.TestMidi()
-        self.assertEqual(r.reloadInterval, 144)
-        self.assertEqual(p.bpm, 108)
-        self.assertEqual(str(p.voices['V'].parameters['VELOCITY']), '$RANDOM (\'72\', \'84\')')
-
-        r.update(144)
-        self.assertEqual(r.status, '_')
-
-        # fake a file update
-        r.filetime -= 1
-        r.update(144)
-        self.assertEqual(r.status, '*')
-        self.assertEqual(r.reloadInterval, 144)
-        self.assertEqual(p.bpm, 108)
-        self.assertEqual(str(p.voices['V'].parameters['VELOCITY']), '$RANDOM (\'72\', \'84\')')
-
-        os.remove(fn)
 
