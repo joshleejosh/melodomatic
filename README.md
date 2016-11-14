@@ -8,7 +8,9 @@ A script-controlled procedural MIDI sequencer.
 * Control multiple voices
 * Change keys/chords as the program progresses
 * Cryptic scripting language to control sequences
-* Hotload scripts for livecoding fun (https://youtu.be/Mvmt8FRrqK8)
+* Hotload scripts for livecoding fun:
+  * https://youtu.be/lYkfFvX84JY
+  * https://youtu.be/J7lHnEcG9Dg
 
 
 ### REQUIREMENTS
@@ -16,7 +18,7 @@ A script-controlled procedural MIDI sequencer.
 * A MIDI device to receive data from this program
 * Mido (http://mido.readthedocs.org/)
   * Mido requires PortMIDI (http://portmedia.sourceforge.net/portmidi/)
-* Pytweening for easing functions (https://pypi.python.org/pypi/PyTweening/1.0.0 or https://github.com/asweigart/pytweening)
+* Pytweening for easing functions (https://github.com/asweigart/pytweening)
 
 
 ### SCRIPT FORMAT
@@ -43,14 +45,14 @@ See the example scripts in the `doc` directory for full explanations of script s
 Melodomatic is a python module, and can be run from the command line.
 
 ```
-usage: python melodomatic [-h] [-q] [-v] filename
+usage: melodomatic [-h] [-q] [-v] filename
 
 positional arguments:
-  filename              File containing player script.
+  filename       file containing player script
 
 optional arguments:
-  -h, --help            show this help message and exit
-  -q, --quiet           Don't print out visualization junk.
-  -v, --verbose         Print extra debug spam.
+  -h, --help     show this help message and exit
+  -q, --quiet    don't print out visualization junk
+  -v, --verbose  print extra debug spam
 ```
 

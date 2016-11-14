@@ -2,12 +2,12 @@
 
 * Build phrases instead of plucking random notes
   * Connectors between phrases: silence, leading notes, fills, gliss?
-  * Repetition?
-* !import paths should be relative to the script, not working dir (?)
-* Better MIDI
-  * Program change?
+* Import paths should be relative to the script, not working dir (?)
+* More MIDI messages:
+  * Program change
   * Sysex?
-* More docs
+* Documentation coverage
   * :control
-  * custom generators
+  * custom code
+* Better visualization??
 
