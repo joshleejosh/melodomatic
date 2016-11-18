@@ -41,8 +41,11 @@ class Player:
         self.rng.seed(self.rngSeed)
 
     def transfer_state(self, old):
-        old.shutdown()
-        self.startup()
+        if (old.midi.is_open()):
+            self.midi = old.midi
+        else:
+            old.shutdown()
+            self.startup()
         self.pulse = old.pulse
 
         # Look for unchanged scales, voices, and controls

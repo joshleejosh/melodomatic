@@ -80,7 +80,6 @@ class PlayerTest(unittest.TestCase):
         self.assertEqual(p.parse_duration('dfafdasd'), (0, 0))
 
     def test_transfer(self):
-        pass
         p = self.bindit(""":v V .p 1 3 5 .d 1 2 .v 64 72
                            :s S .r 60
                            :s T .r 62
@@ -103,10 +102,12 @@ class PlayerTest(unittest.TestCase):
         self.assertNotEqual(id(q.controls['C']), id(p.controls['C']))
         self.assertEqual(q.controls['C'], p.controls['C'])
 
+        p.startup()
         for i in xrange(4):
             p.update()
             p.pulse += 1
         q.transfer_state(p)
+        self.assertEqual(q.midi, p.midi)
         self.assertEqual(q.pulse, 4)
         self.assertEqual(id(q.voices['V']), id(p.voices['V']))
         self.assertEqual(id(q.scales['S']), id(p.scales['S']))
