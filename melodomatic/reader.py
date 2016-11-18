@@ -315,7 +315,7 @@ class Parser:
         if len(block[0]) < 2:
             if consts.VERBOSE:
                 print 'ERROR: Control block has no ID'
-                block[0].append('DUMMY')
+            block[0].append('DUMMY')
         id = block[0][1].strip()
         co = control.Control(id, self.player)
 

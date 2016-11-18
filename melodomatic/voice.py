@@ -117,7 +117,7 @@ class Voice:
         if not self.generator:
             if consts.VERBOSE:
                 print 'ERROR: Voice [%s] has no generator'%self.id
-                return False
+            return False
         for parm in VOICE_GENERATORS[self.generator.name][1].iterkeys():
             if parm not in self.parameters:
                 print 'ERROR: Voice [%s] is missing parameter [%s] for generator [%s]'%(self.id, parm, self.generator)
