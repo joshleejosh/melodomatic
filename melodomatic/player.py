@@ -18,6 +18,7 @@ class Player:
         self.controlOrder = []
         self.change_tempo(consts.DEFAULT_BEATS_PER_MINUTE, consts.DEFAULT_PULSES_PER_BEAT)
         self.midi = midi.MelodomaticMidi()
+        self.midiPortName = ''
         self.visualizationWindow = self.parse_duration(consts.DEFAULT_VISUALIZATION_WINDOW)[0]
         self.startScale = ''
         self.curScale = None
@@ -26,6 +27,7 @@ class Player:
 
     def dump(self):
         print 'Player: %d bpm, %d ppb, %f pulse time'%(self.bpm, self.ppb, self.pulseTime)
+        print '    port %s'%self.midiPortName
         print '    seed %s'%self.rngSeed
         for sc in self.scaleOrder:
             self.scales[sc].dump()
@@ -108,7 +110,7 @@ class Player:
         if not self.is_valid():
             return
         self.resolve_solos()
-        self.midi.open()
+        self.midi.open(self.midiPortName)
         self.pulse = 0
         if self.startScale and self.startScale in self.scaleOrder:
             self.change_scale(self.startScale)

@@ -10,6 +10,7 @@ BLOCK_LABELS = {
             'RELOAD_INTERVAL',
             'START_SCALE',
             'VISUALIZATION_WINDOW',
+            'MIDI_PORT',
             'SEED',
             ],
         'SCALE': [
@@ -193,6 +194,8 @@ class Parser:
                         self.player.startScale = ca[1]
                     elif cmd == 'VISUALIZATION_WINDOW':
                         self.player.visualizationWindow = self.player.parse_duration(ca[1])[0]
+                    elif cmd == 'MIDI_PORT':
+                        self.player.midiPortName = ' '.join(ca[1:])
                     elif cmd == 'SEED':
                         self.player.set_seed(ca[1])
                     elif consts.VERBOSE:

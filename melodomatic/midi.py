@@ -5,8 +5,11 @@ class MelodomaticMidi:
     def __init__(self):
         self.midiOut = None
 
-    def open(self):
-        self.midiOut = mido.open_output()
+    def open(self, port):
+        if (port):
+            self.midiOut = mido.open_output(port)
+        else:
+            self.midiOut = mido.open_output()
 
     def close(self):
         if self.midiOut:
@@ -40,7 +43,7 @@ class TestMidi(MelodomaticMidi):
         MelodomaticMidi.__init__(self)
         self.buffer = []
         self.opened = False
-    def open(self):
+    def open(self, port):
         del self.buffer[:]
         self.opened = True
     def close(self):

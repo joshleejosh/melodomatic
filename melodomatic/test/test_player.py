@@ -153,3 +153,13 @@ class PlayerTest(unittest.TestCase):
         self.assertEqual(len(p.scales), 1)
         self.assertEqual(p.scales['S'].intervals, (0, 2, 4, 5, 7, 9, 11))
 
+    def test_midi_port(self):
+        p = self.bindit("""
+            :p .midi_port   MIDI Port With  Internal and Trailing	Whitespace   .bpm 96
+            :v V
+            :s S
+        """)
+        p.startup()
+        self.assertEqual(p.midiPortName, 'MIDI Port With Internal and Trailing Whitespace')
+
+
