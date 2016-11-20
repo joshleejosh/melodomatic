@@ -41,8 +41,10 @@ class Player:
         self.rng.seed(self.rngSeed)
 
     def transfer_state(self, old):
+        copiedMidi = False
         if (old.midi.is_open()):
             self.midi = old.midi
+            copiedMidi = True
         else:
             old.shutdown()
             self.startup()
@@ -54,9 +56,13 @@ class Player:
                 self.scales[sid] = old.scales[sid]
                 self.scales[sid].player = self
         for vid in self.voiceOrder:
-            if vid in old.voices and self.voices[vid] == old.voices[vid]:
-                self.voices[vid] = old.voices[vid]
-                self.voices[vid].player = self
+            if vid in old.voices:
+                if self.voices[vid] == old.voices[vid]:
+                    self.voices[vid] = old.voices[vid]
+                    self.voices[vid].player = self
+                elif old.voices[vid].curNote:
+                    old.voices[vid].release_cur_note()
+
         for cid in self.controlOrder:
             if cid in old.controls and self.controls[cid] == old.controls[cid]:
                 self.controls[cid] = old.controls[cid]
@@ -128,6 +134,9 @@ class Player:
     def shutdown(self):
         if consts.VERBOSE:
             print 'shutting down'
+        for v in self.voices.itervalues():
+            if v.curNote:
+                v.release_cur_note();
         self.midi.close()
 
     def tick(self):
