@@ -1,15 +1,20 @@
-import argparse, time
+import argparse, time, curses
 import consts
 from util import *
-import reader
+import reader, viz
 
 class MelodomaticMain:
     def __init__(self, fn):
         self.filename = fn
         self.reader = reader.Reader(self.filename)
+        self.set_visualizer(viz.TTYVisualizer())
 
     def load(self):
         self.player = self.reader.load_script(0)
+
+    def set_visualizer(self, v):
+        self.visualizer = v
+        self.visualizer.startup()
 
     def run(self):
         if not self.player.is_valid():
@@ -39,8 +44,8 @@ class MelodomaticMain:
                 if not self.player.update():
                     break
 
-                if not consts.QUIET:
-                    self.update_status()
+                if not consts.QUIET and self.visualizer:
+                    self.visualizer.update(self.player, self.reader)
 
                 # wait for next pulse
                 nextt = t + self.player.pulseTime
@@ -58,56 +63,34 @@ class MelodomaticMain:
             raise
         self.player.shutdown()
 
-    # Update our half-baked visualization string and print it out.
-    def update_status(self):
-        statuses = [ ]
-        if self.player.curScale:
-            statuses.append(self.player.curScale.status)
-        else:
-            statuses.append('')
 
-        #statuses.extend((self.player.voices[v].status for v in self.player.voiceOrder))
-        # Unison voices don't get their own status, they just decorate their parent voice's.
-        vstatus = {}
-        for vk in self.player.voiceOrder:
-            v = self.player.voices[vk]
-            if v.generator.name == 'UNISON':
-                uv = self.player.voices[v.parameters['VOICE'].next()]
-                vstatus[uv.id] += ('\'' if uv.status not in ('', '|') else '')
-            else:
-                vstatus[v.id] = v.status
-        statuses.extend((vstatus[v] for v in self.player.voiceOrder if vstatus.has_key(v)))
-
-        #statuses.extend((self.player.controls[v].status for v in self.player.controlOrder))
-        controlStatus = ''
-        if any(((self.player.controls[c].status != '') for c in self.player.controlOrder)):
-            controlStatus = '+'
-
-        doit = False
-        s = '%06d'%self.player.pulse
-        s += '%2s'%self.reader.status
-        s += '%2s'%controlStatus
-        for i in xrange(len(statuses)):
-            if statuses[i].strip() not in ('', '|'):
-                doit = True
-            s += str.center(statuses[i], 9)
-
-        if doit or self.player.pulse%self.player.visualizationWindow == 0:
-            print s
-
+def bootstrap(args, scr):
+    if args.verbose:
+        consts.set_verbose(True)
+    if args.quiet:
+        consts.set_quiet(True)
+    main = MelodomaticMain(args.filename)
+    main.load()
+    if scr:
+        main.set_visualizer(viz.CursesVisualizer(scr))
+    main.run()
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('filename', help='file containing player script')
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help='don\'t print out visualization junk')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='print extra debug spam')
+    parser.add_argument('--viz', dest='viz', action='store_true', help='use fancy visualizer')
     args = parser.parse_args()
-    if args.verbose:
-        consts.set_verbose(True)
-    if args.quiet:
-        consts.set_quiet(True)
 
-    main = MelodomaticMain(args.filename)
-    main.load()
-    main.run()
+    try:
+        if args.viz:
+            curses.wrapper(lambda scr: bootstrap(args, scr))
+        else:
+            bootstrap(args, None)
+    except KeyboardInterrupt:
+        print 'Ending: hit ^C'
+        pass
+
+    print 'Goodbye.'
 
