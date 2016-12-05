@@ -45,7 +45,9 @@ class MelodomaticMain:
                     break
 
                 if not consts.QUIET and self.visualizer:
-                    self.visualizer.update(self.player, self.reader)
+                    rv = self.visualizer.update(self.player, self.reader)
+                    if rv != 0:
+                        break
 
                 # wait for next pulse
                 nextt = t + self.player.pulseTime
@@ -58,10 +60,8 @@ class MelodomaticMain:
             if consts.VERBOSE:
                 print 'Ending: hit ^C'
             pass
-        except:
+        finally:
             self.player.shutdown()
-            raise
-        self.player.shutdown()
 
 
 def bootstrap(args, scr):
