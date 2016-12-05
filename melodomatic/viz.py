@@ -9,6 +9,8 @@ locale.setlocale(locale.LC_ALL, '')
 STATUSBUFFERLEN = 1000
 PULSEWIDTH = 6
 VOICEWIDTH = 9
+TOOLBARHEIGHT = 2
+TOOLSEP = '   '
 
 # Are there any significant characters in this status that
 # should trigger output, even if we're off-meter?
@@ -110,45 +112,41 @@ class TTYVisualizer(Visualizer):
 
 class CursesVisualizer(Visualizer):
     class Mode:
-        ALL = 0
-        VOICE = 1
+        MAIN = ('M', 'Main')
+        VOICE = ('V', 'Voice')
+        SCALES = ('S', 'Scales')
+        CONTROLS = ('C', 'Controls')
+        order = ( MAIN, VOICE, SCALES, CONTROLS )
 
     class ModeScreen:
         def __init__(self, p):
             self.parent = p
         def startup(self):
-            pass
-        def hide(self):
-            pass
-        def update(self, player, reader):
-            pass
-        def check_key(self, key, player):
-            return 0
-        def get_toolbar_labels(self):
-            return []
-
-    class ModeAll(ModeScreen):
-        def __init__(self, p):
-            self.parent = p
-
-        def startup(self):
-            height = self.parent.screen.getmaxyx()[0]
-            width = self.parent.screen.getmaxyx()[1]
-            self.win = curses.newwin(height-2, width, 0, 0)
-
+            height = self.parent.screen.getmaxyx()[0] - 1
+            width = self.parent.screen.getmaxyx()[1] - 1
+            self.win = curses.newwin(height-TOOLBARHEIGHT, width, 0, 0)
         def hide(self):
             self.win.clear()
-
         def update(self, player, reader):
             self.win.clear()
             self.win.border()
-            height = self.win.getmaxyx()[0]-1
-            width = self.win.getmaxyx()[1]-1
-            columns = width - 2
+            self.win.noutrefresh()
+        def check_key(self, key, player):
+            return 0
+        def get_toolbar_labels(self):
+            return tuple()
 
-            y = height - 1
+    class ModeMain(ModeScreen):
+        def update(self, player, reader):
+            self.win.clear()
+            self.win.border()
+            rows = self.win.getmaxyx()[0] - 3
+            columns = self.win.getmaxyx()[1]-3
+            self.display_headers(player, reader, columns)
+
+            y = rows + 1
             for i in xrange(len(self.parent.statusBuffer)-1, -1, -1):
-                if y < 1:
+                if y < 2:
                     break
                 pulse = self.parent.statusBuffer[i]['pulse']
                 line = self.parent.status_line_all(self.parent.statusBuffer[i])
@@ -159,25 +157,20 @@ class CursesVisualizer(Visualizer):
 
             self.win.noutrefresh()
 
-        def check_key(self, key, player):
-            if key in ( ord(u'V'), ord(u'v') ):
-                self.parent.choose_mode(CursesVisualizer.Mode.VOICE)
-            return 0
-
-        def get_toolbar_labels(self):
-            return ( [ u'V', u'Single Voice' ], ) 
-
+        def display_headers(self, player, reader, columns):
+            s = str.ljust('', PULSEWIDTH+2+2+VOICEWIDTH)
+            for vk in player.voiceOrder:
+                s += str.center(player.voices[vk].id, VOICEWIDTH)
+            s = str.ljust(s[0:columns], columns)
+            self.win.addstr(1, 1, s, curses.A_UNDERLINE)
 
     class ModeVoice(ModeScreen):
-        def __init__(self, p):
-            self.parent = p
-
         def startup(self):
-            height = self.parent.screen.getmaxyx()[0]
-            width = self.parent.screen.getmaxyx()[1]
-            statwidth = max(int(width*.25), VOICEWIDTH+4)
-            self.winConf = curses.newwin(height-2, width-statwidth, 0, 0)
-            self.winStat = curses.newwin(height-2, statwidth, 0, width-statwidth)
+            height = self.parent.screen.getmaxyx()[0] - 1
+            width = self.parent.screen.getmaxyx()[1] - 1
+            statwidth = max(int(width*.25), VOICEWIDTH+PULSEWIDTH+4)
+            self.winConf = curses.newwin(height-TOOLBARHEIGHT, width-statwidth, 0, 0)
+            self.winStat = curses.newwin(height-TOOLBARHEIGHT, statwidth, 0, width-statwidth)
 
         def hide(self):
             self.winConf.clear()
@@ -191,8 +184,8 @@ class CursesVisualizer(Visualizer):
             self.voice = clamp(self.parent.voice, 0, len(player.voiceOrder)-1)
             self.winConf.clear()
             self.winConf.border()
-            height = self.winConf.getmaxyx()[0]-1
-            columns = self.winConf.getmaxyx()[1]-3
+            rows = self.winConf.getmaxyx()[0] - 3
+            columns = self.winConf.getmaxyx()[1] - 3
             voice = player.voices[player.voiceOrder[self.voice]]
             self.winConf.addstr(1, 1, 'VOICE ')
             self.winConf.addstr(voice.id, curses.A_REVERSE)
@@ -206,7 +199,7 @@ class CursesVisualizer(Visualizer):
             widthGName = max((len(g.name) for g in voice.parameters.values())) + 1
             y = 6
             for p,g in voice.parameters.iteritems():
-                if y > height - 2:
+                if y >= rows - 1:
                     break
                 self.winConf.addstr(y, 1, p)
                 self.winConf.addstr(y, widthPName+1, '$%s'%g.name)
@@ -244,24 +237,76 @@ class CursesVisualizer(Visualizer):
                 self.parent.change_voice(1, player)
             elif key in (ord(u'V'), curses.KEY_LEFT):
                 self.parent.change_voice(-1, player)
-            elif key == ord(u' '):
-                self.parent.choose_mode(CursesVisualizer.Mode.ALL)
             return 0
 
         def get_toolbar_labels(self):
-            return (
-                    [ u'←/→', u'Prev/Next Voice' ],
-                    [ u'A', u'All Voices' ],
-                    )
+            return ( [ u'←/→', u'Prev/Next Voice' ], )
+
+    class ModeControls(ModeScreen):
+        def update(self, player, reader):
+            self.win.clear()
+            self.win.border()
+            height = self.win.getmaxyx()[0]-1
+            width = self.win.getmaxyx()[1]-1
+            columns = width - 2
+            self.display_headers(player, reader, columns)
+
+            y = height - 1
+            for i in xrange(len(self.parent.statusBuffer)-1, -1, -1):
+                if y < 2:
+                    break
+                pulse = self.parent.statusBuffer[i]['pulse']
+                line = self.parent.status_line_controls(self.parent.statusBuffer[i])
+                if (pulse%player.visualizationWindow == 0) or should_force_print(line):
+                    s = str.ljust(line[0:columns], columns)
+                    self.win.addstr(y, 1, s)
+                    y -= 1
+
+            self.win.noutrefresh()
+
+        def display_headers(self, player, reader, columns):
+            s = str.ljust('', PULSEWIDTH+2)
+            for vk in player.controlOrder:
+                s += str.center(player.controls[vk].id, VOICEWIDTH)
+            s = str.ljust(s[0:columns], columns)
+            self.win.addstr(1, 1, s, curses.A_UNDERLINE)
+
+    class ModeScales(ModeScreen):
+        def update(self, player, reader):
+            self.win.clear()
+            self.win.border()
+            rows = self.win.getmaxyx()[0] - 3
+            cols = self.win.getmaxyx()[1] - 3
+
+            self.win.addstr(1, 1, 'CURRENT SCALE: ')
+            self.win.addstr(player.curScale.id, curses.A_BOLD)
+            eta = player.curScale.changeTime - player.pulse
+            self.win.addstr(2, 1, 'NEXT SCALE: %s'%player.curScale.moveLinker)
+            self.win.addstr(3, 1, '        IN: %d.%d'%(int(eta/player.ppb), eta%player.ppb))
+
+            y = 5
+            for sk in player.scaleOrder:
+                if y >= rows - 1:
+                    break
+                scale = player.scales[sk]
+                self.win.addstr(y, 2, scale.id, curses.A_BOLD)
+                self.win.addstr(', seed=%s'%scale.rngSeed)
+                self.win.addstr(y+1, 5, '%s [%d + %s]'%(scale.pitches, scale.root, scale.intervals))
+                self.win.addstr(y+2, 5, 'move: %s -> %s'%(scale.moveTimer, scale.moveLinker))
+                y += 3
+
+            self.win.noutrefresh()
 
     def __init__(self, scr):
         Visualizer.__init__(self)
         self.screen = scr
         self.modeScreens = {
-                CursesVisualizer.Mode.ALL: CursesVisualizer.ModeAll(self),
+                CursesVisualizer.Mode.MAIN: CursesVisualizer.ModeMain(self),
                 CursesVisualizer.Mode.VOICE: CursesVisualizer.ModeVoice(self),
+                CursesVisualizer.Mode.SCALES: CursesVisualizer.ModeScales(self),
+                CursesVisualizer.Mode.CONTROLS: CursesVisualizer.ModeControls(self),
                 }
-        self.mode = CursesVisualizer.Mode.ALL
+        self.mode = CursesVisualizer.Mode.MAIN
         self.voice = 0
         self.scale = 0
 
@@ -278,11 +323,11 @@ class CursesVisualizer(Visualizer):
 
         for m in self.modeScreens.values():
             m.startup()
-        height = self.screen.getmaxyx()[0]
-        width = self.screen.getmaxyx()[1]
+        height = self.screen.getmaxyx()[0] - 1
+        width = self.screen.getmaxyx()[1] - 1
         self.wToolbar = curses.newwin(2, width, height-2, 0)
 
-        self.mode = CursesVisualizer.Mode.ALL
+        self.mode = CursesVisualizer.Mode.MAIN
         self.voice = 0
         self.scale = 0
 
@@ -295,13 +340,19 @@ class CursesVisualizer(Visualizer):
 
     def check_key(self, player):
         c = self.screen.getch()
-        if c in (ord(u'Q'), ord(u'q')):
+        rv = self.modeScreens[self.mode].check_key(c, player)
+        if rv:
+            return rv
+        elif c in (ord('M'), ord('m')):
+            self.choose_mode(CursesVisualizer.Mode.MAIN)
+        elif c in (ord('V'), ord('v')):
+            self.choose_mode(CursesVisualizer.Mode.VOICE)
+        elif c in (ord('S'), ord('s')):
+            self.choose_mode(CursesVisualizer.Mode.SCALES)
+        elif c in (ord('C'), ord('c')):
+            self.choose_mode(CursesVisualizer.Mode.CONTROLS)
+        elif c in (ord(u'Q'), ord(u'q')):
             return 1
-        else:
-            return self.modeScreens[self.mode].check_key(c, player)
-        #else:
-        #    self.screen.move(1, self.screen.getmaxyx()[1]-5)
-        #    self.screen.addstr('%d'%c)
         return 0
 
     def choose_mode(self, newmode):
@@ -312,23 +363,35 @@ class CursesVisualizer(Visualizer):
     def change_voice(self, i, player):
         self.voice = (self.voice + i)%len(player.voices)
 
+    def addtool(self, label):
+        if isinstance(label, basestring):
+            self.wToolbar.addstr(label.encode('utf-8'))
+        elif hasattr(label, '__iter__'):
+            self.wToolbar.addstr(label[0].encode('utf-8'), curses.A_REVERSE)
+            self.wToolbar.addstr(':')
+            self.wToolbar.addstr(label[1].encode('utf-8'))
+        self.wToolbar.addstr(TOOLSEP)
+
     def display_toolbar(self):
         self.wToolbar.clear()
         self.wToolbar.move(0, 1)
+        for label in self.modeScreens[self.mode].get_toolbar_labels():
+            self.addtool(label)
+
+        self.wToolbar.move(1, 1)
         for label in self.get_toolbar_labels():
-            if isinstance(label, basestring):
-                self.wToolbar.addstr(label.encode('utf-8'))
-            elif hasattr(label, '__iter__'):
-                self.wToolbar.addstr(label[0].encode('utf-8'), curses.A_REVERSE)
-                self.wToolbar.addstr(':')
-                self.wToolbar.addstr(label[1].encode('utf-8'))
-            self.wToolbar.addstr('   ')
+            self.addtool(label)
+
+        title = 'MELODOMATIC'
+        self.wToolbar.addstr(1, self.wToolbar.getmaxyx()[1] - 1 - len(title), title, curses.A_BOLD)
         self.wToolbar.noutrefresh()
 
     def get_toolbar_labels(self):
         rv = []
-        rv.extend(self.modeScreens[self.mode].get_toolbar_labels())
-        rv.append(u'      ')
+        for m in CursesVisualizer.Mode.order:
+            if m != self.mode:
+                rv.append(m)
+        rv.append(TOOLSEP)
         rv.append([ u'Q', u'Quit' ])
         return rv
 
