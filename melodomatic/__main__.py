@@ -72,9 +72,9 @@ def bootstrap(args, scr):
     if args.quiet:
         consts.set_quiet(True)
     main = MelodomaticMain(args.filename)
-    main.load()
     if scr:
         main.set_visualizer(viz.CursesVisualizer(scr))
+    main.load()
     main.run()
 
 if __name__ == '__main__':

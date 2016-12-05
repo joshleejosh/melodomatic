@@ -1,12 +1,12 @@
 # encoding: utf-8
-import sys, curses, curses.panel, collections
+import sys, curses, curses.panel, collections, time
 import consts
 from util import *
 
 import locale
 locale.setlocale(locale.LC_ALL, '')
 
-STATUSBUFFERLEN = 1000
+STATUSBUFFERLEN = 200
 PULSEWIDTH = 6
 VOICEWIDTH = 9
 
@@ -14,6 +14,22 @@ VOICEWIDTH = 9
 # should trigger output, even if we're off-meter?
 def should_force_print(s):
     return s[PULSEWIDTH:].replace(' ', '').replace('|', '') != ''
+
+def navkey(keyname, buflen, pagelen):
+    rv = 0
+    if keyname in ('K', 'k', 'KEY_UP'):
+        rv = -1
+    elif keyname in ('J', 'j', 'KEY_DOWN'):
+        rv = +1
+    elif keyname in ('^B', 'KEY_PPAGE', ):
+        rv = -pagelen
+    elif keyname in ('^F', 'KEY_NPAGE', ):
+        rv = +pagelen
+    elif keyname in ('KEY_HOME', ):
+        rv = -buflen
+    elif keyname in ('KEY_END', ):
+        rv = +buflen
+    return rv
 
 class Visualizer:
     def __init__(self):
@@ -130,9 +146,9 @@ class CursesVisualizer(Visualizer):
             width = self.parent.screen.getmaxyx()[1] - 1
             self.win = curses.newwin(height-CursesVisualizer.TOOLBARHEIGHT, width, 0, 0)
         def hide(self):
-            self.win.clear()
+            self.win.erase()
         def update(self, player, reader):
-            self.win.clear()
+            self.win.erase()
             self.win.border()
             self.win.noutrefresh()
         def check_key(self, key, player):
@@ -142,22 +158,22 @@ class CursesVisualizer(Visualizer):
 
     class ModeMain(ModeScreen):
         def update(self, player, reader):
-            self.win.clear()
+            self.win.erase()
             self.win.border()
             rows = self.win.getmaxyx()[0] - 3
             columns = self.win.getmaxyx()[1]-3
             self.display_headers(player, reader, columns)
 
+            i = len(self.parent.statusBuffer) - 1
             y = rows + 1
-            for i in xrange(len(self.parent.statusBuffer)-1, -1, -1):
-                if y < 2:
-                    break
+            while y >= 2 and i >= 0:
                 pulse = self.parent.statusBuffer[i]['pulse']
                 line = self.parent.status_line_all(self.parent.statusBuffer[i])
                 if (pulse%player.visualizationWindow == 0) or should_force_print(line):
                     s = str.ljust(line[0:columns], columns)
                     self.win.addstr(y, 1, s)
                     y -= 1
+                i -= 1
 
             self.win.noutrefresh()
 
@@ -177,8 +193,8 @@ class CursesVisualizer(Visualizer):
             self.winStat = curses.newwin(height-CursesVisualizer.TOOLBARHEIGHT, statwidth, 0, width-statwidth)
 
         def hide(self):
-            self.winConf.clear()
-            self.winStat.clear()
+            self.winConf.erase()
+            self.winStat.erase()
 
         def update(self, player, reader):
             self.update_conf(player, reader)
@@ -186,7 +202,7 @@ class CursesVisualizer(Visualizer):
 
         def update_conf(self, player, reader):
             self.voice = clamp(self.parent.voice, 0, len(player.voiceOrder)-1)
-            self.winConf.clear()
+            self.winConf.erase()
             self.winConf.border()
             rows = self.winConf.getmaxyx()[0] - 3
             columns = self.winConf.getmaxyx()[1] - 3
@@ -218,7 +234,7 @@ class CursesVisualizer(Visualizer):
                 y += 1
 
         def update_stat(self, player, reader):
-            self.winStat.clear()
+            self.winStat.erase()
             self.winStat.border()
             height = self.winStat.getmaxyx()[0]-1
             columns = self.winStat.getmaxyx()[1]-3
@@ -250,7 +266,7 @@ class CursesVisualizer(Visualizer):
 
     class ModeControls(ModeScreen):
         def update(self, player, reader):
-            self.win.clear()
+            self.win.erase()
             self.win.border()
             height = self.win.getmaxyx()[0]-1
             width = self.win.getmaxyx()[1]-1
@@ -279,7 +295,7 @@ class CursesVisualizer(Visualizer):
 
     class ModeScales(ModeScreen):
         def update(self, player, reader):
-            self.win.clear()
+            self.win.erase()
             self.win.border()
             rows = self.win.getmaxyx()[0] - 3
             cols = self.win.getmaxyx()[1] - 3
@@ -304,35 +320,75 @@ class CursesVisualizer(Visualizer):
             self.win.noutrefresh()
 
     class ModeReader(ModeScreen):
-        def update(self, player, reader):
-            self.win.clear()
-            self.win.border()
-            rows = self.win.getmaxyx()[0] - 2
-            cols = self.win.getmaxyx()[1] - 2
+        def startup(self):
+            height = self.parent.screen.getmaxyx()[0] - 1
+            width = self.parent.screen.getmaxyx()[1] - 1
+            self.winRdr = curses.newwin(5, width, 0, 0)
+            self.winLog = curses.newwin(height-7, width, 5, 0)
+            self.logLine = -1
 
-            self.win.addstr(1, 1, 'FILE: ')
-            self.win.addstr(reader.filename, curses.A_REVERSE)
-            self.win.addstr(2, 1, 'LAST CHANGE AT: %s'%reader.filetime)
-            self.win.addstr(3, 1, 'NEXT CHECK IN: %d'%(reader.reloadInterval - player.pulse%reader.reloadInterval))
+        def hide(self):
+            self.winRdr.erase()
+            self.winLog.erase()
+
+        def update(self, player, reader):
+            self.updateRdr(player, reader)
+            self.updateLog(player, reader)
+
+        def updateRdr(self, player, reader):
+            self.winRdr.erase()
+            self.winRdr.border()
+            self.winRdr.addstr(1, 1, 'FILE: ')
+            self.winRdr.addstr(reader.filename, curses.A_REVERSE)
+            self.winRdr.addstr(2, 1, 'LAST MODIFIED AT: %s'%time.ctime(reader.filetime))
+            self.winRdr.addstr(3, 1, 'NEXT CHECK IN: %d'%(reader.reloadInterval - player.pulse%reader.reloadInterval))
+            self.winRdr.noutrefresh()
+
+        def updateLog(self, player, reader):
+            self.winLog.erase()
+            self.winLog.border()
+            rows = self.winLog.getmaxyx()[0] - 2
+            cols = self.winLog.getmaxyx()[1] - 2
 
             y = rows
             i = len(self.parent.fakeOut.buffer) - 1
-            while i>=0 and y>=5:
+            if self.logLine != -1:
+                i = self.logLine
+
+            while i>=0 and y>=1:
                 line = self.parent.fakeOut.buffer[i]
-                if line.strip():
-                    self.win.addstr(y, 1, line[0:cols])
-                    y -= 1
+                self.winLog.addstr(y, 1, line[0:cols]) # TODO: horizontal scroll
+                y -= 1
                 i -= 1
 
-            self.win.noutrefresh()
+            self.winLog.noutrefresh()
+
+        def scrollLog(self, n):
+            rows = self.winLog.getmaxyx()[0] - 2
+            buflen = len(self.parent.fakeOut.buffer)
+            if self.logLine == -1:
+                self.logLine = buflen - 1 + n
+            else:
+                self.logLine += n
+            self.logLine = clamp(self.logLine, rows-1, buflen-1)
+            if self.logLine == buflen - 1:
+                self.logLine = -1
 
         def check_key(self, key, player):
-            if key in (ord(u'F'), ord(u'f')):
+            kn = curses.keyname(key)
+            buflen = len(self.parent.fakeOut.buffer)
+            rows = self.winLog.getmaxyx()[0] - 2
+            if kn in ('F', 'f'):
                 self.parent.fakeOut.flush()
+            elif navkey(kn, buflen, rows):
+                self.scrollLog(navkey(kn, buflen, rows))
             return 0
 
         def get_toolbar_labels(self):
-            return ( [ u'F', u'Flush Messages' ], )
+            return (
+                    [ u'F', u'Flush Messages' ],
+                    [ u'↑ ↓ PGUP PGDN HOME END', u'Scroll Log' ],
+                    )
 
     def __init__(self, scr):
         Visualizer.__init__(self)
@@ -357,7 +413,7 @@ class CursesVisualizer(Visualizer):
         curses.use_default_colors()
         self.screen.nodelay(True)
         self.screen.keypad(True)
-        self.screen.clear()
+        self.screen.erase()
 
         for m in self.modeScreens.values():
             m.startup()
@@ -391,6 +447,8 @@ class CursesVisualizer(Visualizer):
 
     def check_key(self, player):
         c = self.screen.getch()
+        if c == -1:
+            return 0
         rv = self.modeScreens[self.mode].check_key(c, player)
         if rv:
             return rv
@@ -426,7 +484,7 @@ class CursesVisualizer(Visualizer):
         self.winToolbar.addstr(CursesVisualizer.TOOLSEP)
 
     def display_toolbar(self):
-        self.winToolbar.clear()
+        self.winToolbar.erase()
         self.winToolbar.move(0, 1)
         for label in self.modeScreens[self.mode].get_toolbar_labels():
             self.addtool(label)
@@ -455,5 +513,6 @@ class FakeSysOut:
     def flush(self):
         self.buffer.clear()
     def write(self, data):
-        self.buffer.append(data)
+        if data != '\n':
+            self.buffer.append(data)
 
