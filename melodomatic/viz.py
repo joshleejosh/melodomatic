@@ -393,6 +393,13 @@ class CursesVisualizer(Visualizer):
     def __init__(self, scr):
         Visualizer.__init__(self)
         self.screen = scr
+        self.modeOrder = [
+                CursesVisualizer.Mode.MAIN,
+                CursesVisualizer.Mode.VOICE,
+                CursesVisualizer.Mode.SCALES,
+                CursesVisualizer.Mode.CONTROLS,
+                CursesVisualizer.Mode.READER,
+                ]
         self.modeScreens = {
                 CursesVisualizer.Mode.MAIN: CursesVisualizer.ModeMain(self),
                 CursesVisualizer.Mode.VOICE: CursesVisualizer.ModeVoice(self),
@@ -405,6 +412,10 @@ class CursesVisualizer(Visualizer):
         self.scale = 0
 
     def startup(self):
+        self.mode = CursesVisualizer.Mode.MAIN
+        self.voice = 0
+        self.scale = 0
+
         Visualizer.startup(self)
         curses.curs_set(0)
         curses.noecho()
@@ -413,7 +424,8 @@ class CursesVisualizer(Visualizer):
         curses.use_default_colors()
         self.screen.nodelay(True)
         self.screen.keypad(True)
-        self.screen.erase()
+        self.screen.clear()
+        self.screen.refresh()
 
         for m in self.modeScreens.values():
             m.startup()
@@ -421,15 +433,14 @@ class CursesVisualizer(Visualizer):
         width = self.screen.getmaxyx()[1] - 1
         self.winToolbar = curses.newwin(2, width, height-2, 0)
 
-        self.mode = CursesVisualizer.Mode.MAIN
-        self.voice = 0
-        self.scale = 0
-
         self.old_stdout = sys.stdout
         self.old_stderr = sys.stderr
         self.fakeOut = FakeSysOut()
         sys.stdout = self.fakeOut
         sys.stderr = self.fakeOut
+
+        self.display_toolbar()
+        curses.doupdate()
 
     def shutdown(self):
         sys.stdout = self.old_stdout
@@ -441,35 +452,20 @@ class CursesVisualizer(Visualizer):
     def update(self, player, reader):
         Visualizer.update(self, player, reader)
         self.modeScreens[self.mode].update(player, reader)
-        self.display_toolbar()
+        #self.display_toolbar()
         curses.doupdate()
         return self.check_key(player)
-
-    def check_key(self, player):
-        c = self.screen.getch()
-        if c == -1:
-            return 0
-        rv = self.modeScreens[self.mode].check_key(c, player)
-        if rv:
-            return rv
-        elif c in (ord('M'), ord('m')):
-            self.choose_mode(CursesVisualizer.Mode.MAIN)
-        elif c in (ord('V'), ord('v')):
-            self.choose_mode(CursesVisualizer.Mode.VOICE)
-        elif c in (ord('S'), ord('s')):
-            self.choose_mode(CursesVisualizer.Mode.SCALES)
-        elif c in (ord('C'), ord('c')):
-            self.choose_mode(CursesVisualizer.Mode.CONTROLS)
-        elif c in (ord('R'), ord('r')):
-            self.choose_mode(CursesVisualizer.Mode.READER)
-        elif c in (ord(u'Q'), ord(u'q')):
-            return 1
-        return 0
 
     def choose_mode(self, newmode):
         if self.mode != newmode:
             self.modeScreens[self.mode].hide()
             self.mode = newmode
+            self.display_toolbar()
+    def rotate_mode(self, n):
+        mi = self.modeOrder.index(self.mode)
+        if mi != -1:
+            mi = (mi+n)%len(self.modeOrder)
+            self.choose_mode(self.modeOrder[mi])
 
     def change_voice(self, i, player):
         self.voice = (self.voice + i)%len(player.voices)
@@ -486,6 +482,8 @@ class CursesVisualizer(Visualizer):
     def display_toolbar(self):
         self.winToolbar.erase()
         self.winToolbar.move(0, 1)
+        self.winToolbar.addstr(self.mode[1].upper(), curses.A_REVERSE)
+        self.winToolbar.addstr(CursesVisualizer.TOOLSEP)
         for label in self.modeScreens[self.mode].get_toolbar_labels():
             self.addtool(label)
 
@@ -497,6 +495,32 @@ class CursesVisualizer(Visualizer):
         c = self.winToolbar.getmaxyx()[1] - 1 - len(title)
         self.winToolbar.addstr(1, c, title, curses.A_BOLD)
         self.winToolbar.noutrefresh()
+
+    def check_key(self, player):
+        c = self.screen.getch()
+        if c == -1:
+            return 0
+        rv = self.modeScreens[self.mode].check_key(c, player)
+        if rv:
+            return rv
+        k = curses.keyname(c)
+        if k in ('^I', ):
+            self.rotate_mode(+1)
+        elif k in ('KEY_BTAB', ):
+            self.rotate_mode(-1)
+        elif k in ('M', 'm'):
+            self.choose_mode(CursesVisualizer.Mode.MAIN)
+        elif k in ('V', 'v'):
+            self.choose_mode(CursesVisualizer.Mode.VOICE)
+        elif k in ('S', 's'):
+            self.choose_mode(CursesVisualizer.Mode.SCALES)
+        elif k in ('C', 'c'):
+            self.choose_mode(CursesVisualizer.Mode.CONTROLS)
+        elif k in ('R', 'r'):
+            self.choose_mode(CursesVisualizer.Mode.READER)
+        elif k in ('Q', 'q'):
+            return 1
+        return 0
 
     def get_toolbar_labels(self):
         rv = []

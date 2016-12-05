@@ -14,7 +14,8 @@ class MelodomaticMain:
 
     def set_visualizer(self, v):
         self.visualizer = v
-        self.visualizer.startup()
+        if self.visualizer:
+            self.visualizer.startup()
 
     def run(self):
         if not self.player.is_valid():
@@ -72,7 +73,9 @@ def bootstrap(args, scr):
     if args.quiet:
         consts.set_quiet(True)
     main = MelodomaticMain(args.filename)
-    if scr:
+    if consts.QUIET:
+        main.set_visualizer(None)
+    elif scr:
         main.set_visualizer(viz.CursesVisualizer(scr))
     main.load()
     main.run()
