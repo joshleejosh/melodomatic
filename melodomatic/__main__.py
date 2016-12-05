@@ -62,6 +62,8 @@ class MelodomaticMain:
             pass
         finally:
             self.player.shutdown()
+            if self.visualizer:
+                self.visualizer.shutdown()
 
 
 def bootstrap(args, scr):
