@@ -131,11 +131,11 @@ class CursesVisualizer(Visualizer):
     TOOLBARHEIGHT = 2
     TOOLSEP = '   '
     class Mode:
-        MAIN = ('M', 'Main')
-        VOICE = ('V', 'Voice')
-        SCALES = ('S', 'Scales')
-        CONTROLS = ('C', 'Controls')
-        READER = ('R', 'Reader')
+        MAIN = ('1', 'Main')
+        VOICE = ('2', 'Voice')
+        SCALES = ('3', 'Scales')
+        CONTROLS = ('4', 'Controls')
+        READER = ('5', 'Reader')
         order = ( MAIN, VOICE, SCALES, CONTROLS, READER )
 
     class ModeScreen:
@@ -184,6 +184,13 @@ class CursesVisualizer(Visualizer):
             s = str.ljust(s[0:columns], columns)
             self.win.addstr(1, 1, s, curses.A_UNDERLINE)
 
+        def check_key(self, key, player):
+            if key in (ord('P'), ord('p')):
+                self.parent.panic(player)
+            return 0
+        def get_toolbar_labels(self):
+            return ( [ u'P', u'Panic' ], )
+
     class ModeVoice(ModeScreen):
         def startup(self):
             height = self.parent.screen.getmaxyx()[0] - 1
@@ -211,6 +218,8 @@ class CursesVisualizer(Visualizer):
             self.winConf.addstr(voice.id, curses.A_REVERSE)
             if voice.mute:
                 self.winConf.addstr(' [MUTE]')
+            if voice.solo:
+                self.winConf.addstr(' [SOLO]')
             self.winConf.addstr(2, 5, 'channel %d'%voice.channel)
             self.winConf.addstr(3, 5, 'seed %s'%voice.rngSeed)
             self.winConf.addstr(4, 5, 'generator %s'%voice.generator.name)
@@ -253,14 +262,23 @@ class CursesVisualizer(Visualizer):
             self.winStat.noutrefresh()
 
         def check_key(self, key, player):
-            if key in (ord(u'v'), curses.KEY_RIGHT):
+            if key in (ord('M'), ord('m')):
+                self.parent.mute_voice(player)
+            elif key in (ord('S'), ord('s')):
+                self.parent.solo_voice(player)
+            elif key in (ord('P'), ord('p')):
+                self.parent.panic(player)
+            elif key in (ord(u'v'), curses.KEY_RIGHT, ord('2')):
                 self.parent.change_voice(1, player)
-            elif key in (ord(u'V'), curses.KEY_LEFT):
+            elif key in (ord(u'V'), curses.KEY_LEFT, ord('@')):
                 self.parent.change_voice(-1, player)
             return 0
 
         def get_toolbar_labels(self):
             return (
+                    [ u'M', u'Mute' ],
+                    [ u'S', u'Solo' ],
+                    [ u'P', u'Panic' ],
                     [ u'←/→', u'Prev/Next Voice' ],
                     )
 
@@ -292,6 +310,13 @@ class CursesVisualizer(Visualizer):
                 s += str.center(player.controls[vk].id, VOICEWIDTH)
             s = str.ljust(s[0:columns], columns)
             self.win.addstr(1, 1, s, curses.A_UNDERLINE)
+
+        def check_key(self, key, player):
+            if key in (ord('P'), ord('p')):
+                self.parent.panic(player)
+            return 0
+        def get_toolbar_labels(self):
+            return ( [ u'P', u'Panic' ], )
 
     class ModeScales(ModeScreen):
         def update(self, player, reader):
@@ -427,7 +452,7 @@ class CursesVisualizer(Visualizer):
         self.screen.clear()
         self.screen.refresh()
 
-        for m in self.modeScreens.values():
+        for m in self.modeScreens.itervalues():
             m.startup()
         height = self.screen.getmaxyx()[0] - 1
         width = self.screen.getmaxyx()[1] - 1
@@ -470,6 +495,32 @@ class CursesVisualizer(Visualizer):
     def change_voice(self, i, player):
         self.voice = (self.voice + i)%len(player.voices)
 
+    def mute_voice(self, player):
+        vk = player.voiceOrder[self.voice]
+        voice = player.voices[vk]
+        voice.set_mute(not voice.mute)
+        player.resolve_solos()
+
+    def solo_voice(self, player):
+        vk = player.voiceOrder[self.voice]
+        voice = player.voices[vk]
+        osolo = voice.solo
+        voice.set_solo(not voice.solo)
+        if osolo and not voice.solo:
+            nosolos = True
+            for v in player.voices.itervalues():
+                if v.solo:
+                    nosolos = False
+                    break
+            if nosolos:
+                for v in player.voices.itervalues():
+                    if v.mute:
+                        v.set_mute(False)
+        player.resolve_solos()
+
+    def panic(self, player):
+        player.panic()
+
     def addtool(self, label):
         if isinstance(label, basestring):
             self.winToolbar.addstr(label.encode('utf-8'))
@@ -508,17 +559,17 @@ class CursesVisualizer(Visualizer):
             self.rotate_mode(+1)
         elif k in ('KEY_BTAB', ):
             self.rotate_mode(-1)
-        elif k in ('M', 'm'):
+        elif k in ('1', ):
             self.choose_mode(CursesVisualizer.Mode.MAIN)
-        elif k in ('V', 'v'):
+        elif k in ('2', ):
             self.choose_mode(CursesVisualizer.Mode.VOICE)
-        elif k in ('S', 's'):
+        elif k in ('3', ):
             self.choose_mode(CursesVisualizer.Mode.SCALES)
-        elif k in ('C', 'c'):
+        elif k in ('4', ):
             self.choose_mode(CursesVisualizer.Mode.CONTROLS)
-        elif k in ('R', 'r'):
+        elif k in ('5', ):
             self.choose_mode(CursesVisualizer.Mode.READER)
-        elif k in ('Q', 'q'):
+        elif k in ('^[', '^D', ):
             return 1
         return 0
 
@@ -528,7 +579,7 @@ class CursesVisualizer(Visualizer):
             if m != self.mode:
                 rv.append(m)
         rv.append(CursesVisualizer.TOOLSEP)
-        rv.append([ u'Q', u'Quit' ])
+        rv.append([ u'ESC', u'Quit' ])
         return rv
 
 class FakeSysOut:

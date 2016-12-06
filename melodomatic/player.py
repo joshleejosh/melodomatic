@@ -193,6 +193,12 @@ class Player:
                 if not voice.solo:
                     voice.set_mute(True)
 
+    def panic(self):
+        for voice in self.voices.itervalues():
+            voice.panic()
+        for control in self.controls.itervalues():
+            control.panic()
+
     # Assumes the code has been split and scrubbed.
     def _parse_duration_code(self, d):
         if not d:

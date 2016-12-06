@@ -81,9 +81,13 @@ class Voice:
         self.rng.seed(self.rngSeed)
 
     def set_mute(self, m):
+        if m and self.solo:
+            self.set_solo(False)
         self.mute = m
 
     def set_solo(self, s):
+        if s and self.mute:
+            self.set_mute(False)
         self.solo = s
 
     def set_move_timer(self, data):
@@ -176,9 +180,13 @@ class Voice:
         self.curNote.playing = False
 
     def end_cur_note(self):
-        if self.curNote.playing:
+        if self.curNote and self.curNote.playing:
             self.release_cur_note()
         self.curNote = None
+
+    def panic(self):
+        self.end_cur_note()
+        self.nextPulse = self.pulse
 
 
 # ############################################################################ #

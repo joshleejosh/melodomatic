@@ -100,3 +100,6 @@ class Control:
                 statii.append('a=%d'%touch)
         self.status = ','.join(statii)
 
+    def panic(self):
+        self.nextPulse = self.pulse
+

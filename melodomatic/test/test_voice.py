@@ -234,3 +234,31 @@ class VoiceGeneratorTest(unittest.TestCase):
         self.assertFalse(w.mute)
         self.assertTrue(x.mute)
 
+    # Solo and mute should cancel each other
+    def test_mute_solo(self):
+        p,v = self.bindit("""
+                :v V .seed SEEDS .p 1 .d 1 .v 96
+                :s S .r 48 .i 0 2 4 5 7 9 11
+                """)
+        v = p.voices['V']
+        p.startup()
+        p.update()
+        self.assertFalse(v.mute)
+        self.assertFalse(v.solo)
+        v.set_solo(True)
+        self.assertFalse(v.mute)
+        self.assertTrue(v.solo)
+        v.set_mute(False)
+        self.assertFalse(v.mute)
+        self.assertTrue(v.solo)
+        v.set_mute(True)
+        self.assertTrue(v.mute)
+        self.assertFalse(v.solo)
+        v.set_solo(False)
+        self.assertTrue(v.mute)
+        self.assertFalse(v.solo)
+        v.set_solo(True)
+        self.assertFalse(v.mute)
+        self.assertTrue(v.solo)
+        
+
