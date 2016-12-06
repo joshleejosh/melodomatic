@@ -75,7 +75,7 @@ class Visualizer:
         self.statusBuffer.append(status)
         return 0
 
-    def status_line_all(self, status):
+    def status_line_main(self, status):
         fmt = '%%%02dd'%PULSEWIDTH
         s = fmt%status['pulse']
         s += '%2s'%status['reader']
@@ -120,7 +120,7 @@ class TTYVisualizer(Visualizer):
     def update(self, player, reader):
         Visualizer.update(self, player, reader)
         status = self.statusBuffer[-1]
-        s = self.status_line_all(status)
+        s = self.status_line_main(status)
 
         if (player.pulse%player.visualizationWindow == 0) or should_force_print(s):
             print s
@@ -168,7 +168,7 @@ class CursesVisualizer(Visualizer):
             y = rows + 1
             while y >= 2 and i >= 0:
                 pulse = self.parent.statusBuffer[i]['pulse']
-                line = self.parent.status_line_all(self.parent.statusBuffer[i])
+                line = self.parent.status_line_main(self.parent.statusBuffer[i])
                 if (pulse%player.visualizationWindow == 0) or should_force_print(line):
                     s = str.ljust(line[0:columns], columns)
                     self.win.addstr(y, 1, s)
@@ -183,13 +183,14 @@ class CursesVisualizer(Visualizer):
                 s += str.center(player.voices[vk].id, VOICEWIDTH)
             s = str.ljust(s[0:columns], columns)
             self.win.addstr(1, 1, s, curses.A_UNDERLINE)
+            self.win.addstr(1, 1, '%d/%d'%(player.bpm, player.ppb), curses.A_UNDERLINE)
 
         def check_key(self, key, player):
             if key in (ord('P'), ord('p')):
                 self.parent.panic(player)
             return 0
         def get_toolbar_labels(self):
-            return ( [ u'P', u'Panic' ], )
+            return ( ( u'P', u'Panic' ), )
 
     class ModeVoice(ModeScreen):
         def startup(self):
@@ -214,15 +215,16 @@ class CursesVisualizer(Visualizer):
             rows = self.winConf.getmaxyx()[0] - 3
             columns = self.winConf.getmaxyx()[1] - 3
             voice = player.voices[player.voiceOrder[self.voice]]
-            self.winConf.addstr(1, 1, 'VOICE ')
-            self.winConf.addstr(voice.id, curses.A_REVERSE)
+            self.winConf.addstr(1, 1, 'VOICE %s'%voice.id, curses.A_UNDERLINE)
             if voice.mute:
                 self.winConf.addstr(' [MUTE]')
             if voice.solo:
                 self.winConf.addstr(' [SOLO]')
-            self.winConf.addstr(2, 5, 'channel %d'%voice.channel)
-            self.winConf.addstr(3, 5, 'seed %s'%voice.rngSeed)
-            self.winConf.addstr(4, 5, 'generator %s'%voice.generator.name)
+            self.winConf.addstr(2,  2, 'channel: ')
+            self.winConf.addstr(2, 11, str(voice.channel+1))
+            self.winConf.addstr(3,  2, 'seed: ')
+            self.winConf.addstr(3, 11, str(voice.rngSeed))
+            self.winConf.addstr(5, 1, 'Generator $%s'%voice.generator.name)
 
             widthPName = max((len(p) for p in voice.parameters.keys())) + 1
             widthGName = max((len(g.name) for g in voice.parameters.values())) + 1
@@ -230,17 +232,19 @@ class CursesVisualizer(Visualizer):
             for p,g in voice.parameters.iteritems():
                 if y >= rows - 1:
                     break
-                self.winConf.addstr(y, 1, p)
-                self.winConf.addstr(y, widthPName+1, '$%s'%g.name)
-                dwidth = columns - widthGName - widthPName - 2
+                self.winConf.addstr(y, 2, p)
+                self.winConf.addstr(y, widthPName+2, '$%s'%g.name)
+                dwidth = columns - widthGName - widthPName - 3
                 gds = ' '.join(g.data)
                 while len(gds) > dwidth:
                     gdt = gds[0:dwidth]
                     gds = gds[dwidth:]
-                    self.winConf.addstr(y, widthGName+widthPName+2, gdt)
+                    self.winConf.addstr(y, widthGName+widthPName+3, gdt)
                     y += 1
-                self.winConf.addstr(y, widthGName+widthPName+2, gds)
+                self.winConf.addstr(y, widthGName+widthPName+3, gds)
                 y += 1
+
+            self.winConf.noutrefresh()
 
         def update_stat(self, player, reader):
             self.winStat.erase()
@@ -257,8 +261,6 @@ class CursesVisualizer(Visualizer):
                     s = str.ljust(line[0:columns], columns)
                     self.winStat.addstr(y, 1, s)
                     y -= 1
-
-            self.winConf.noutrefresh()
             self.winStat.noutrefresh()
 
         def check_key(self, key, player):
@@ -276,10 +278,10 @@ class CursesVisualizer(Visualizer):
 
         def get_toolbar_labels(self):
             return (
-                    [ u'M', u'Mute' ],
-                    [ u'S', u'Solo' ],
-                    [ u'P', u'Panic' ],
-                    [ u'←/→', u'Prev/Next Voice' ],
+                    ( u'M', u'Mute' ),
+                    ( u'S', u'Solo' ),
+                    ( u'P', u'Panic' ),
+                    ( u'←/→', u'Prev/Next Voice' ),
                     )
 
     class ModeControls(ModeScreen):
@@ -307,7 +309,7 @@ class CursesVisualizer(Visualizer):
         def display_headers(self, player, reader, columns):
             s = str.ljust('', PULSEWIDTH+2)
             for vk in player.controlOrder:
-                s += str.center(player.controls[vk].id, VOICEWIDTH)
+                s += str.center('%s/%d'%(player.controls[vk].id, player.controls[vk].channel+1), VOICEWIDTH)
             s = str.ljust(s[0:columns], columns)
             self.win.addstr(1, 1, s, curses.A_UNDERLINE)
 
@@ -316,7 +318,7 @@ class CursesVisualizer(Visualizer):
                 self.parent.panic(player)
             return 0
         def get_toolbar_labels(self):
-            return ( [ u'P', u'Panic' ], )
+            return ( ( u'P', u'Panic' ), )
 
     class ModeScales(ModeScreen):
         def update(self, player, reader):
@@ -325,11 +327,10 @@ class CursesVisualizer(Visualizer):
             rows = self.win.getmaxyx()[0] - 3
             cols = self.win.getmaxyx()[1] - 3
 
-            self.win.addstr(1, 1, 'CURRENT SCALE: ')
-            self.win.addstr(player.curScale.id, curses.A_BOLD)
+            self.win.addstr(1, 1, 'CURRENT SCALE: %s'%player.curScale.id, curses.A_UNDERLINE)
             eta = player.curScale.changeTime - player.pulse
-            self.win.addstr(2, 1, 'NEXT SCALE: %s'%player.curScale.moveLinker)
-            self.win.addstr(3, 1, '        IN: %d.%d'%(int(eta/player.ppb), eta%player.ppb))
+            self.win.addstr(2, 1, 'next scale: $%s %s'%(player.curScale.moveLinker.name, ' '.join(player.curScale.moveLinker.data) ))
+            self.win.addstr(3, 1, '        in: %d.%d'%(int(eta/player.ppb), eta%player.ppb))
 
             y = 5
             for sk in player.scaleOrder:
@@ -339,7 +340,7 @@ class CursesVisualizer(Visualizer):
                 self.win.addstr(y, 2, scale.id, curses.A_BOLD)
                 self.win.addstr(', seed=%s'%scale.rngSeed)
                 self.win.addstr(y+1, 5, '%s [%d + %s]'%(scale.pitches, scale.root, scale.intervals))
-                self.win.addstr(y+2, 5, 'move: %s -> %s'%(scale.moveTimer, scale.moveLinker))
+                self.win.addstr(y+2, 5, 'move: $%s %s -> $%s %s'%(scale.moveTimer.name, ' '.join(scale.moveTimer.data), scale.moveLinker.name, ' '.join(scale.moveLinker.data)))
                 y += 3
 
             self.win.noutrefresh()
@@ -363,10 +364,9 @@ class CursesVisualizer(Visualizer):
         def updateRdr(self, player, reader):
             self.winRdr.erase()
             self.winRdr.border()
-            self.winRdr.addstr(1, 1, 'FILE: ')
-            self.winRdr.addstr(reader.filename, curses.A_REVERSE)
-            self.winRdr.addstr(2, 1, 'LAST MODIFIED AT: %s'%time.ctime(reader.filetime))
-            self.winRdr.addstr(3, 1, 'NEXT CHECK IN: %d'%(reader.reloadInterval - player.pulse%reader.reloadInterval))
+            self.winRdr.addstr(1, 1, 'FILE: %s'%reader.filename, curses.A_UNDERLINE)
+            self.winRdr.addstr(2, 1, 'last modified at: %s'%time.ctime(reader.filetime))
+            self.winRdr.addstr(3, 4, 'next check in: %d'%(reader.reloadInterval - player.pulse%reader.reloadInterval))
             self.winRdr.noutrefresh()
 
         def updateLog(self, player, reader):
@@ -411,20 +411,20 @@ class CursesVisualizer(Visualizer):
 
         def get_toolbar_labels(self):
             return (
-                    [ u'F', u'Flush Messages' ],
-                    [ u'↑ ↓ PGUP PGDN HOME END', u'Scroll Log' ],
+                    ( u'F', u'Flush Messages' ),
+                    ( u'↑ ↓ PGUP PGDN HOME END', u'Scroll Log' ),
                     )
 
     def __init__(self, scr):
         Visualizer.__init__(self)
         self.screen = scr
-        self.modeOrder = [
+        self.modeOrder = (
                 CursesVisualizer.Mode.MAIN,
                 CursesVisualizer.Mode.VOICE,
                 CursesVisualizer.Mode.SCALES,
                 CursesVisualizer.Mode.CONTROLS,
                 CursesVisualizer.Mode.READER,
-                ]
+                )
         self.modeScreens = {
                 CursesVisualizer.Mode.MAIN: CursesVisualizer.ModeMain(self),
                 CursesVisualizer.Mode.VOICE: CursesVisualizer.ModeVoice(self),
@@ -579,7 +579,7 @@ class CursesVisualizer(Visualizer):
             if m != self.mode:
                 rv.append(m)
         rv.append(CursesVisualizer.TOOLSEP)
-        rv.append([ u'ESC', u'Quit' ])
+        rv.append(( u'ESC', u'Quit' ))
         return rv
 
 class FakeSysOut:
