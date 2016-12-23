@@ -1,6 +1,5 @@
-import argparse, time, curses
+import argparse, time
 import consts
-from util import *
 import reader, viz
 
 class MelodomaticMain:
@@ -76,7 +75,8 @@ def bootstrap(args, scr):
     if consts.QUIET:
         main.set_visualizer(None)
     elif scr:
-        main.set_visualizer(viz.CursesVisualizer(scr))
+        import vizcurses
+        main.set_visualizer(vizcurses.CursesVisualizer(scr))
     main.load()
     main.run()
 
@@ -90,6 +90,7 @@ if __name__ == '__main__':
 
     try:
         if args.viz:
+            import curses
             curses.wrapper(lambda scr: bootstrap(args, scr))
         else:
             bootstrap(args, None)
