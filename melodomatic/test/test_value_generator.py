@@ -43,9 +43,10 @@ class ValueGeneratorTest(unittest.TestCase):
                 break
 
     def test_bad_generator(self):
-        gen, lab = generators.bind_generator(['$QWIJYBO', '1', '2', '3'], None)
-        self.assertEqual(gen, None)
-        self.assertEqual(lab, '')
+        gbind = generators.bind_generator(['$QWIJYBO', '1', '2', '3'], 'context')
+        self.assertEqual(gbind.name, 'SCALAR')
+        self.assertEqual(gbind.data, ['1','2','3',])
+        self.assertEqual(gbind.context, 'context')
 
     def test_scalar(self):
         fg = self.bindit('BLEH')

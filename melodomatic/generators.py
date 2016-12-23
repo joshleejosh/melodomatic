@@ -90,7 +90,7 @@ def bind_generator(data, ctx):
 
     if consts.VERBOSE:
         print 'ERROR: Bad generator funtion [%s]'%cmd
-    return (None, '')
+    return GeneratorBinding('SCALAR', data, ctx)
 
 
 # ######################################################## #
