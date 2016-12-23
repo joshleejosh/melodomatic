@@ -90,7 +90,8 @@ if __name__ == '__main__':
 
     try:
         if args.viz:
-            import curses
+            import curses, locale
+            locale.setlocale(locale.LC_ALL, '')
             curses.wrapper(lambda scr: bootstrap(args, scr))
         else:
             bootstrap(args, None)

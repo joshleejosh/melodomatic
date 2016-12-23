@@ -4,30 +4,20 @@ import melodomatic
 from melodomatic.viz import *
 from melodomatic.util import *
 
-import locale
-locale.setlocale(locale.LC_ALL, '')
-
 class CursesVisualizer(melodomatic.viz.Visualizer):
     TOOLBARHEIGHT = 2
     TOOLSEP = '   '
     class Mode:
-        MAIN = ('1', 'Main')
-        VOICE = ('2', 'Voice')
-        SCALES = ('3', 'Scales')
+        MAIN     = ('1', 'Main')
+        VOICE    = ('2', 'Voice')
+        SCALES   = ('3', 'Scales')
         CONTROLS = ('4', 'Controls')
-        READER = ('5', 'Reader')
-        order = ( MAIN, VOICE, SCALES, CONTROLS, READER )
+        READER   = ('5', 'Reader')
+        order    = ( MAIN, VOICE, SCALES, CONTROLS, READER )
 
     def __init__(self, scr):
         Visualizer.__init__(self)
         self.screen = scr
-        self.modeOrder = (
-                CursesVisualizer.Mode.MAIN,
-                CursesVisualizer.Mode.VOICE,
-                CursesVisualizer.Mode.SCALES,
-                CursesVisualizer.Mode.CONTROLS,
-                CursesVisualizer.Mode.READER,
-                )
         self.modeScreens = {
                 CursesVisualizer.Mode.MAIN: ModeMain(self),
                 CursesVisualizer.Mode.VOICE: ModeVoice(self),
@@ -91,10 +81,10 @@ class CursesVisualizer(melodomatic.viz.Visualizer):
             self.paint_toolbar()
 
     def rotate_mode(self, n):
-        mi = self.modeOrder.index(self.mode)
+        mi = CursesVisualizer.Mode.order.index(self.mode)
         if mi != -1:
-            mi = (mi+n)%len(self.modeOrder)
-            self.choose_mode(self.modeOrder[mi])
+            mi = (mi+n)%len(CursesVisualizer.Mode.order)
+            self.choose_mode(CursesVisualizer.Mode.order[mi])
 
     def change_voice(self, i, player):
         self.voice = (self.voice + i)%len(player.voices)
@@ -129,7 +119,6 @@ class CursesVisualizer(melodomatic.viz.Visualizer):
         if isinstance(label, basestring):
             self.winToolbar.addstr(label.encode('utf-8'))
         elif hasattr(label, '__iter__'):
-            print label[0]
             self.winToolbar.addstr(label[0].encode('utf-8'), curses.A_REVERSE)
             self.winToolbar.addstr(':')
             self.winToolbar.addstr(label[1].encode('utf-8'))
