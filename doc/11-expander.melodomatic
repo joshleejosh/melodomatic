@@ -33,7 +33,7 @@
 # Usage: `(%xerox <number of repeats> <value to repeat>)`
 #
 # This example expands to `(.5 .5 .5 .5 1 1 2 -2)`
-.duration $loop (%xerox 4 .5) (%xerox 2 1) 2 -2
+.duration $loop (%xerox 4 .5) (%x 2 1) 2 -2
 
 # `%RANGE` produces a linear series of values.
 #

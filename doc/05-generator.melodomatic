@@ -83,17 +83,15 @@
 # it's at the beginning or end, in which case it always
 # moves inward.
 .velocity $random-walk
-
 # The first argument to `$RANDOM-WALK` is *not* a velocity
 # value – it's the probability that the function will change
 # values on each call.  Valid values are in the [0.0-1.0]
 # range.  In this example, we have a 33.3% chance to change
 # velocities after each note.
- 0.333
-
+        0.333
 # The rest of the arguments are the list of values to be
 # evaluated.
- 32 40 48 56 64
+        32 40 48 56 64
 
 # ---------------------------
 
