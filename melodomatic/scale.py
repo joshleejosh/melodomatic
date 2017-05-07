@@ -128,6 +128,14 @@ class Scale:
         degree = d % len(self.intervals) + 1
         return (degree, octave)
 
+    # increment a degree by step, accounting for octaves and such.
+    def incr_degree(self, degree, step):
+        od, oo, oa = self.parse_code(degree)
+        degoff = self.join_degree(od, oo)
+        degoff += step
+        nd, no = self.split_degree(degoff)
+        return format_degree(nd, no, oa)
+
 
 def parse_degree(code):
     code = code.strip()
