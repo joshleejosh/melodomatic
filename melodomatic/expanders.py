@@ -31,12 +31,31 @@ def expand_sublist(a, i):
 
     buf = []
     while i < len(a):
+        # close an open (we hope!) sublist and pop up
         if a[i] == ')':
             i += 1
             break
+
+        # open a new sublist by recursing down
         elif a[i] == '(':
             b, i = expand_sublist(a, i+1)
             buf.extend(b)
+
+        # a token of form x*y gets expanded as if it was (%xerox x y)
+        elif '*' in a[i]:
+            sa = a[i].split('*')
+            if not sa[0]: # skip this if there's no left hand side
+                i += 1
+                continue
+            right = 1
+            try:
+                right = int(sa[1])
+            except ValueError:
+                pass
+            b = [sa[0],] * right
+            buf.extend(b)
+            i += 1
+
         else:
             buf.append(a[i])
             i += 1

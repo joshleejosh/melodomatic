@@ -289,3 +289,20 @@ class ExpanderTest(unittest.TestCase):
         self.assertEqual(expanders.autocomplete_curve_function('quar'), 'QUARTIC')
         self.assertEqual(expanders.autocomplete_curve_function(''), 'LINEAR')
 
+    def test_asterisk(self):
+        list = self.doit('A -B.B+*4 C')
+        self.assertEqual(''.join(list), 'A-B.B+-B.B+-B.B+-B.B+C')
+        # no left side -- should be excluded
+        list = self.doit('*4 C *')
+        self.assertEqual(''.join(list), 'C')
+        # no right side -- treat as 1
+        list = self.doit('A B -C+*')
+        self.assertEqual(''.join(list), 'AB-C+')
+        # invalid multiplier -- treat as 1
+        list = self.doit('A B C*q D*3.14')
+        self.assertEqual(''.join(list), 'ABCD')
+        # multiply by 0
+        list = self.doit('A B*0 C D')
+        self.assertEqual(''.join(list), 'ACD')
+
+
