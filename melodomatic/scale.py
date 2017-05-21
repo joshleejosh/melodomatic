@@ -136,6 +136,13 @@ class Scale:
         nd, no = self.split_degree(degoff)
         return format_degree(nd, no, oa)
 
+    def degree_distance(self, deg1, deg2):
+        d1, o1, a1 = self.parse_code(deg1)
+        d2, o2, a2 = self.parse_code(deg2)
+        off1 = self.join_degree(d1, o1)
+        off2 = self.join_degree(d2, o2)
+        return off2 - off1
+
 
 def parse_degree(code):
     code = code.strip()

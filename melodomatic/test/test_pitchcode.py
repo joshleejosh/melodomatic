@@ -112,6 +112,21 @@ class PitchCodeTest(unittest.TestCase):
         self.assertEqual(sc.incr_degree('5', -7), '-5')
         self.assertEqual(sc.incr_degree('+3', -16), '-1')
 
+    def test_degree_distance(self):
+        pl = testhelper.mkplayer(":scale S .r 60 .i 0 2 4 5 7 9 11")
+        sc = pl.scales['S']
+        self.assertEqual(sc.degree_distance('1', '5'), 4)
+        self.assertEqual(sc.degree_distance('3', '+3'), 7)
+        self.assertEqual(sc.degree_distance('+4', '+++6'), 16)
+        self.assertEqual(sc.degree_distance('1', '-7'), -1)
+        self.assertEqual(sc.degree_distance('5', '-5'), -7)
+        self.assertEqual(sc.degree_distance('+3', '-1'), -16)
+
+        # TODO: this doesn't know how to deal with fractions or accidentals
+        self.assertEqual(sc.degree_distance('1', '5-'), 4)
+        self.assertEqual(sc.degree_distance('1', '-7+'), -1)
+
+
     def test_join_degree_chromatic(self):
         pl = testhelper.mkplayer(":scale S .r 60 .i 0 1 2 3 4 5 6 7 8 9 10 11")
         self.assertTrue('S' in pl.scales)
