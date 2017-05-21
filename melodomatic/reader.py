@@ -372,23 +372,29 @@ class Reader:
         self.status = ''
 
     def load_script(self, ts, oldPlayer=None):
-        self.filetime = os.stat(self.filename).st_mtime
-        fp = open(self.filename)
-        lines = fp.readlines()
-        fp.close()
-        rv = Parser().make_player(lines, self, oldPlayer)
-        if consts.VERBOSE:
-            print '(Re)load at %d, hotload interval %d'%(ts, self.reloadInterval)
-        return rv
+        try:
+            self.filetime = os.stat(self.filename).st_mtime
+            fp = open(self.filename)
+            lines = fp.readlines()
+            fp.close()
+            rv = Parser().make_player(lines, self, oldPlayer)
+            if consts.VERBOSE:
+                print '(Re)load at %d, hotload interval %d'%(ts, self.reloadInterval)
+            return rv
+        except Exception as e:
+            print e
+            return oldPlayer
 
     def update(self, pulse):
         self.status = ''
         if pulse%self.reloadInterval == 0:
-            t = os.stat(self.filename).st_mtime
-            if t != self.filetime:
-                self.status = '*'
-                return True
-            else:
-                self.status = '_'
+            self.status = '_'
+            try:
+                t = os.stat(self.filename).st_mtime
+                if t != self.filetime:
+                    self.status = '*'
+                    return True
+            except Exception as e:
+                print e
         return False
 
