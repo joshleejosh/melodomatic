@@ -28,6 +28,7 @@ def do_tests():
 
     coverer.stop()
     coverer.save()
+    print '\n\n'
     coverer.report(show_missing=True)
 
 if __name__ == '__main__':

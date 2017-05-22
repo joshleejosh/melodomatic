@@ -9,7 +9,7 @@
 
 # `common.melodomatic` contains a bunch of macros for common
 # scales.
-!include common.melodomatic
+!include ../common.melodomatic
 
 :scale G7
 .root 67
@@ -19,12 +19,12 @@
 # `CMaj` and `FMaj` are defined in `09-macro.melodomatic`.
 # Because it's inserted after the above scale definition,
 # the program will start on the `G7` scale.
-!include doc/09-macro.melodomatic
+!include ./09-macro.melodomatic
 
 # Here we define a voice to play in unison with the voice
 # from the included script.
 :voice ACCOMPANY $uni
 .voice LEAD
-.transpose +12
+.transpose +7
 .velocity -8
 

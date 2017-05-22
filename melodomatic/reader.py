@@ -54,7 +54,8 @@ class Parser:
         self.reader = None
         self.player = None
 
-    def make_player(self, lines, reader, oldPlayer):
+    def make_player(self, lines, reader, oldPlayer, scriptdir=''):
+        self.scriptdir = scriptdir
         self.text = lines
         self.data = []
         self.reader = reader
@@ -109,14 +110,16 @@ class Parser:
         clear_buf()
 
     # Replace include calls with the lines of the included file.
+    # Relative paths are relative to the script.
     def prepreprocess(self):
         toInsert = []
         for linei,line in enumerate(self.text):
             if line.upper().startswith('!INCLUDE'):
                 fn = line[len('!INCLUDE'):].split('#')[0].strip()
-                fp = open(fn)
-                lines = fp.readlines()
-                fp.close()
+                if not os.path.isabs(fn):
+                    fn = os.path.join(self.scriptdir, fn)
+                with open(fn) as fp:
+                    lines = fp.readlines()
                 toInsert.append((linei, lines))
                 if consts.VERBOSE:
                     print '!include %s'%fn
@@ -136,6 +139,8 @@ class Parser:
         for linei,line in enumerate(self.text):
             if line.strip().upper().startswith('!IMPORT'):
                 fn = line.strip()[len('!IMPORT'):].split('#')[0].strip()
+                if not os.path.isabs(fn):
+                    fn = os.path.join(self.scriptdir, fn)
                 mname,ext = os.path.splitext(os.path.split(fn)[-1])
                 imp.load_source(mname, fn)
                 todel.append(linei)
@@ -372,17 +377,20 @@ class Reader:
         self.status = ''
 
     def load_script(self, ts, oldPlayer=None):
+        fp = None
         try:
             self.filetime = os.stat(self.filename).st_mtime
             fp = open(self.filename)
             lines = fp.readlines()
             fp.close()
-            rv = Parser().make_player(lines, self, oldPlayer)
+            rv = Parser().make_player(lines, self, oldPlayer, os.path.dirname(self.filename))
             if consts.VERBOSE:
                 print '(Re)load at %d, hotload interval %d'%(ts, self.reloadInterval)
             return rv
         except Exception as e:
             print e
+            if fp:
+                fp.close()
             return oldPlayer
 
     def update(self, pulse):

@@ -1,25 +1,38 @@
-import os, unittest, random, tempfile
+import os, unittest, random, tempfile, shutil
 import testhelper
 import consts, generators, reader, midi
 
-class PlayerTest(unittest.TestCase):
+class ReaderTest(unittest.TestCase):
     def setUp(self):
         testhelper.setUp()
+        self.tempfi = 12345
+        self.tempdirs = []
+
     def tearDown(self):
+        while len(self.tempdirs) > 0:
+            shutil.rmtree(self.tempdirs.pop())
         testhelper.tearDown()
 
-    # Returns the path to the temp file.
-    # Caller is responsible for deleting the file when done.
-    def mkfile(self, scr):
-        fd, fn = tempfile.mkstemp()
-        fp = open(fn, 'w')
-        fp.write(scr)
-        fp.close()
-        os.close(fd)
+    def nexttempfile(self):
+        self.tempfi += 1
+        return 't' + str(self.tempfi)
+
+    def mkdir(self):
+        dn = tempfile.mkdtemp()
+        self.tempdirs.append(dn)
+        return dn
+
+    def mkfile(self, dir, scr):
+        fn = os.path.join(dir, self.nexttempfile())
+        with open(fn, 'w') as fp:
+            fp.write(scr)
         return fn
 
+    # ---------------------------------
+
     def test_file_read(self):
-        fn = self.mkfile("""
+        tempdir = self.mkdir()
+        fn = self.mkfile(tempdir, """
                 :p .bpm 108 .ppb 12 .reload_interval 12
                 .badcmd
                 :s S .r 58 .i 0 2 3 5 7 8 10
@@ -43,13 +56,12 @@ class PlayerTest(unittest.TestCase):
         self.assertEqual(p.bpm, 108)
         self.assertEqual(str(p.voices['V'].parameters['VELOCITY']), '$RANDOM (\'72\', \'84\')')
 
-        os.remove(fn)
-
     def test_include(self):
-        incfn = self.mkfile("""
+        dir = self.mkdir()
+        incfn = self.mkfile(dir, """
 :scale S .r 62 .i 0 2 3 5 7 9 10
                 """)
-        scrfn = self.mkfile("""
+        scrfn = self.mkfile(dir, """
 !include """ + incfn + """
 :voice V .p 1 3 5 .d 1 2 .v 72 80
                 """)
@@ -58,11 +70,25 @@ class PlayerTest(unittest.TestCase):
         p = r.load_script(0)
         self.assertEqual(str(p.scales['S'].root), '62')
 
-        os.remove(incfn)
-        os.remove(scrfn)
+    def test_include_relative_path(self):
+        dir = self.mkdir()
+        incfn = self.mkfile(dir, """
+:scale S .r 62 .i 0 2 3 5 7 9 10
+                """)
+        incdir, incbn = os.path.split(incfn)
+        scrfn = self.mkfile(dir, """
+!include """ + incbn + """
+:voice V .p 1 3 5 .d 1 2 .v 72 80
+                """)
+
+        r = reader.Reader(scrfn)
+        p = r.load_script(0)
+        self.assertEqual(str(p.scales['S'].root), '62')
+
 
     def test_import(self):
-        impfn = self.mkfile("""
+        dir = self.mkdir()
+        impfn = self.mkfile(dir, """
 import generators
 # Return every other element in the data set.
 def alternate(data, ctx):
@@ -72,7 +98,7 @@ def alternate(data, ctx):
         i = (i+2)%len(data)
 generators.register_generator('alternate', alternate)
         """)
-        scrfn = self.mkfile("""
+        scrfn = self.mkfile(dir, """
 !import """ + impfn + """
 :scale S .r 62 .i 0 2 3 5 7 9 10
 :voice V .d 1 2 .v 72 80
@@ -83,8 +109,29 @@ generators.register_generator('alternate', alternate)
         self.assertEqual(str(p.voices['V'].parameters['PITCH']),
                 "$ALTERNATE ('1', '2', '3', '4', '5', '6', '7')")
 
-        os.remove(impfn)
-        os.remove(scrfn)
+    def test_import_relative_path(self):
+        dir = self.mkdir()
+        impfn = self.mkfile(dir, """
+import generators
+# Return every other element in the data set.
+def alternate(data, ctx):
+    i=0
+    while True:
+        yield data[i]
+        i = (i+2)%len(data)
+generators.register_generator('alternate', alternate)
+        """)
+        impbn = os.path.basename(impfn)
+        scrfn = self.mkfile(dir, """
+!import """ + impbn + """
+:scale S .r 62 .i 0 2 3 5 7 9 10
+:voice V .d 1 2 .v 72 80
+.p $alternate 1 2 3 4 5 6 7
+                """)
+        r = reader.Reader(scrfn)
+        p = r.load_script(0)
+        self.assertEqual(str(p.voices['V'].parameters['PITCH']),
+                "$ALTERNATE ('1', '2', '3', '4', '5', '6', '7')")
 
     def test_autocomplete_label(self):
         par = reader.Parser()
