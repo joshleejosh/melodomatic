@@ -136,6 +136,7 @@ class Parser:
     def preprocess(self):
         macros = []
         todel = []
+        defining = []
         for linei,line in enumerate(self.text):
             if line.strip().upper().startswith('!IMPORT'):
                 fn = line.strip()[len('!IMPORT'):].split('#')[0].strip()
@@ -148,13 +149,27 @@ class Parser:
                     print '!import %s'%fn
                 continue
 
-            if line.strip().upper().startswith('!DEFINE'):
+            if len(defining) == 2:
+                todel.append(linei)
+                a = line.split()
+                val = ' '.join(a)
+                if len(val) > 0 and val[-1] == '\\':
+                    defining[1] = '%s %s'%(defining[1], val[:-1])
+                else:
+                    defining[1] = '%s %s'%(defining[1], val)
+                    macros.append((defining[0], defining[1]))
+                    defining = []
+
+            elif line.strip().upper().startswith('!DEFINE'):
+                todel.append(linei)
                 line = line.strip()[len('!DEFINE'):].split('#')[0]
                 a = line.split()
                 id = a[0].strip()
                 val = ' '.join(a[1:])
-                macros.append((id, val))
-                todel.append(linei)
+                if len(val) > 0 and val[-1] == '\\':
+                    defining = [id, val[:-1]]
+                else:
+                    macros.append((id, val))
                 continue
 
             if '@' in line:

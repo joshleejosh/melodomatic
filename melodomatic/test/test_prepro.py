@@ -72,3 +72,30 @@ class PreprocessorTest(unittest.TestCase):
         v = p.voices['W']
         self.assertEqual(str(v.parameters['PITCH']), "$LOOP ('1', '4', '3', '2', '7', '6', '5')")
 
+    def test_multiline_macro(self):
+        p = testhelper.mkplayer("""
+            # Make a multi-line macro with backslashes
+            !define durations \\
+1 1 \\
+   \\
+2	\\
+4    
+            # whitespace after backslashes gets stripped
+            !define pitches 1\\		
+                3 \\   
+                5 	 
+            # A space will be inserted between each joined line
+            !define velocities \\
+48\\
+60 # the macro will be collapsed to a single line, so this comment will clobber the values below \\
+72 84
+            :voice V
+            .p @pitches
+            .d @durations
+            .v @velocities
+            """)
+        v = p.voices['V']
+        self.assertEqual(str(v.parameters['PITCH']), "$RANDOM ('1', '3', '5')")
+        self.assertEqual(str(v.parameters['DURATION']), "$RANDOM ('1', '1', '2', '4')")
+        self.assertEqual(str(v.parameters['VELOCITY']), "$RANDOM ('48', '60')")
+
