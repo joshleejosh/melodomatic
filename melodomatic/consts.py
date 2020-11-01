@@ -10,7 +10,7 @@ def set_verbose(v):
     global VERBOSE
     VERBOSE = v
     if VERBOSE > 0:
-        print 'Verbose level %d'%VERBOSE
+        print('Verbose level %d'%VERBOSE)
 
 DEFAULT_BEATS_PER_MINUTE = 120
 DEFAULT_PULSES_PER_BEAT = 12

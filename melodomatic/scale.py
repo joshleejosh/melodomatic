@@ -1,6 +1,6 @@
 import re
-import consts, generators
-from util import *
+from melodomatic import consts, generators
+from melodomatic.util import *
 
 RE_DEGREE = re.compile('^\s*([-+]*)(\d+)([-+]*)\s*$')
 
@@ -37,11 +37,11 @@ class Scale:
         return not self.__eq__(o)
 
     def dump(self):
-        print 'SCALE %s %d:'%(self.id, id(self))
-        print '    seed %s'%self.rngSeed
-        print '    pitches = %s [%d + %s]'%(self.pitches, self.root, self.intervals)
-        print '    move time = %s'%self.moveTimer
-        print '    move link = %s'%self.moveLinker
+        print('SCALE %s %d:'%(self.id, id(self)))
+        print('    seed %s'%self.rngSeed)
+        print('    pitches = %s [%d + %s]'%(self.pitches, self.root, self.intervals))
+        print('    move time = %s'%self.moveTimer)
+        print('    move link = %s'%self.moveLinker)
 
     def set_seed(self, sv):
         self.rngSeed = sv
@@ -78,16 +78,16 @@ class Scale:
 
     def begin(self, pulse):
         self.pulse = pulse
-        self.changeTime = self.pulse + self.player.parse_duration(self.moveTimer.next())[0]
+        self.changeTime = self.pulse + self.player.parse_duration(next(self.moveTimer))[0]
         self.status = self.id
         #if consts.VERBOSE:
-        #    print 'Begin scale %s at %d, change at %d'%(self.id, self.pulse, self.changeTime)
+        #    print('Begin scale %s at %d, change at %d'%(self.id, self.pulse, self.changeTime))
 
     def update(self, pulse):
         self.status = ''
         self.pulse = pulse
         if self.pulse >= self.changeTime:
-            n = str(self.moveLinker.next())
+            n = str(next(self.moveLinker))
             return n
         return ''
 
@@ -187,13 +187,13 @@ def parse_degree(code):
 
 def format_degree(degree, octave, accidental):
     rv = ''
-    for i in xrange(abs(octave)):
+    for i in range(abs(octave)):
         if octave < 0:
             rv += '-'
         else:
             rv += '+'
     rv += str(degree)
-    for i in xrange(abs(accidental)):
+    for i in range(abs(accidental)):
         if accidental < 0:
             rv += '-'
         else:

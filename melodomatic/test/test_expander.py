@@ -1,6 +1,6 @@
 import unittest
-import testhelper
-import consts, expanders
+from . import testhelper
+from .. import consts, expanders
 
 class ExpanderTest(unittest.TestCase):
     def setUp(self):

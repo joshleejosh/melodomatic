@@ -1,6 +1,6 @@
 import sys, random
-import consts, generators
-from util import *
+from melodomatic import consts, generators
+from melodomatic.util import *
 
 class Control:
     def __init__(self, id, pl):
@@ -31,14 +31,14 @@ class Control:
         return not self.__eq__(o)
 
     def dump(self):
-        print 'CONTROL "%s"'%self.id
-        print '    channel %d'%self.channel
-        print '    seed %s'%self.rngSeed
-        for n,i in self.parameters.iteritems():
+        print('CONTROL "%s"'%self.id)
+        print('    channel %d'%self.channel)
+        print('    seed %s'%self.rngSeed)
+        for n,i in list(self.parameters.items()):
             if n in ('CONTROL_ID','CONTROL_VALUE'):
-                print '    %s: %s'%(n, list(str(j) for j in i))
+                print('    %s: %s'%(n, list(str(j) for j in i)))
             else:
-                print '    %s: %s'%(n, i)
+                print('    %s: %s'%(n, i))
 
     def set_seed(self, sv):
         self.rngSeed = sv
@@ -61,7 +61,7 @@ class Control:
         self.pulse = pulse
         self.status = ''
         if pulse >= self.nextPulse:
-            rate = self.parameters['RATE'].next()
+            rate = next(self.parameters['RATE'])
             self.nextPulse = self.pulse + self.player.parse_duration(rate)[0]
             self.set_control()
 
@@ -72,24 +72,24 @@ class Control:
             n = min(len(self.parameters['CONTROL_ID']),
                     len(self.parameters['CONTROL_VALUE']))
             for i in range(n):
-                cid = int(self.parameters['CONTROL_ID'][i].next())
-                cval = int(self.parameters['CONTROL_VALUE'][i].next())
+                cid = int(next(self.parameters['CONTROL_ID'][i]))
+                cval = int(next(self.parameters['CONTROL_VALUE'][i]))
                 cval = clamp(cval, 0, 127)
                 self.player.midi.control(self.channel, cid, cval)
                 statii.append('c%d=%d'%(cid, cval))
 
         if 'PITCHBEND' in self.parameters:
             p = self.parameters['PITCHBEND']
-            bend = int(p.next())
+            bend = int(next(p))
             self.player.midi.pitchbend(self.channel, bend)
             statii.append('pb=%d'%bend)
 
         if 'AFTERTOUCH' in self.parameters:
             p = self.parameters['AFTERTOUCH']
-            touch = int(p.next())
+            touch = int(next(p))
 
             if 'VOICE' in self.parameters:
-                voice = self.player.voices[self.parameters['VOICE'].next()]
+                voice = self.player.voices[next(self.parameters['VOICE'])]
                 note = voice.curNote
                 if note and note.velocity > 0:
                     self.player.midi.aftertouch_note(self.channel,

@@ -3,7 +3,7 @@ mydir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 if mydir not in sys.path:
     sys.path.append(mydir)
 
-import reader, midi, consts
+from melodomatic import reader, midi, consts
 
 def tokenize(s):
     s = s.replace('(',' ( ').replace(')', ' ) ')

@@ -1,6 +1,6 @@
 import unittest, random
-import testhelper
-import consts, generators
+from . import testhelper
+from .. import consts, generators
 
 class DummyContext:
     def __init__(self):
@@ -19,8 +19,8 @@ class ValueGeneratorTest(unittest.TestCase):
         return generators.bind_generator(data, self.dummy)
     def checkit(self, f, vs):
         a = vs.split()
-        for i in xrange(len(a)):
-            self.assertEqual(f.next(), a[i])
+        for i in range(len(a)):
+            self.assertEqual(next(f), a[i])
 
     def test_eq(self):
         f = self.bindit('BLEH')
@@ -55,12 +55,12 @@ class ValueGeneratorTest(unittest.TestCase):
         self.assertEqual(fg.data, ['BLEH'])
         self.assertEqual(fg.context, self.dummy)
 
-        for i in xrange(100):
-            self.assertEqual(fg.next(), 'BLEH')
+        for i in range(100):
+            self.assertEqual(next(fg), 'BLEH')
         fg = self.bindit('$scAlar BNUGH')
         self.assertEqual(str(fg), "$SCALAR ['BNUGH']")
-        for i in xrange(100):
-            self.assertEqual(fg.next(), 'BNUGH')
+        for i in range(100):
+            self.assertEqual(next(fg), 'BNUGH')
 
         # If you pass in a tuple instead of a list, the label reflects it.
         # It shouldn't affect processing at all (generators shouldn't modify values)
@@ -226,6 +226,6 @@ class ValueGeneratorTest(unittest.TestCase):
 
     def test_noise_bad(self):
         fg = self.bindit('$noise HOWDY DOODY TIME')
-        self.assertEqual(fg.next(), '0')
+        self.assertEqual(next(fg), '0')
 
 

@@ -1,7 +1,7 @@
 import math, random, time
-import consts
-from util import *
-import generators, voice, scale, midi
+from melodomatic import consts
+from melodomatic.util import *
+from melodomatic import generators, voice, scale, midi
 
 # I am the top-level updater, and I also own the MIDI connection.
 # I am configured by a Reader.
@@ -26,9 +26,9 @@ class Player:
         self.nextScaleChange = 0
 
     def dump(self):
-        print 'Player: %d bpm, %d ppb, %f pulse time'%(self.bpm, self.ppb, self.pulseTime)
-        print '    port %s'%self.midiPortName
-        print '    seed %s'%self.rngSeed
+        print('Player: %d bpm, %d ppb, %f pulse time'%(self.bpm, self.ppb, self.pulseTime))
+        print('    port %s'%self.midiPortName)
+        print('    seed %s'%self.rngSeed)
         for sc in self.scaleOrder:
             self.scales[sc].dump()
         for vo in self.voiceOrder:
@@ -76,10 +76,10 @@ class Player:
             # use whatever scale and change time startup() decided on.
             pass
         if consts.VERBOSE:
-            print 'Transferred state from old player: pulse=%d, next change=%d'%(self.pulse, self.nextScaleChange)
+            print('Transferred state from old player: pulse=%d, next change=%d'%(self.pulse, self.nextScaleChange))
 
     def add_scale(self, s):
-        if s not in self.scales.values():
+        if s not in list(self.scales.values()):
             s.player = self
             self.scales[s.id] = s
             self.scaleOrder.append(s.id)
@@ -87,13 +87,13 @@ class Player:
                 self.curScale = s
 
     def add_voice(self, v):
-        if v not in self.voices.values():
+        if v not in list(self.voices.values()):
             v.player = self
             self.voices[v.id] = v
             self.voiceOrder.append(v.id)
 
     def add_control(self, c):
-        if c not in self.controls.values():
+        if c not in list(self.controls.values()):
             c.player = self
             self.controls[c.id] = c
             self.controlOrder.append(c.id)
@@ -125,16 +125,16 @@ class Player:
             self.change_scale(self.startScale)
         else:
             self.change_scale(self.scaleOrder[0])
-        for v in self.voices.itervalues():
+        for v in list(self.voices.values()):
             if not v.mute:
                 v.begin(self.pulse)
         if consts.VERBOSE:
-            print 'starting up'
+            print('starting up')
 
     def shutdown(self):
         if consts.VERBOSE:
-            print 'shutting down'
-        for v in self.voices.itervalues():
+            print('shutting down')
+        for v in list(self.voices.values()):
             if v.curNote:
                 v.release_cur_note();
         self.midi.close()
@@ -185,18 +185,18 @@ class Player:
     # If one voice is flagged with .solo, mute all other voices.
     def resolve_solos(self):
         dosolo = False
-        for voice in self.voices.itervalues():
+        for voice in list(self.voices.values()):
             if voice.solo:
                 dosolo = True
         if dosolo:
-            for voice in self.voices.itervalues():
+            for voice in list(self.voices.values()):
                 if not voice.solo:
                     voice.set_mute(True)
 
     def panic(self):
-        for voice in self.voices.itervalues():
+        for voice in list(self.voices.values()):
             voice.panic()
-        for control in self.controls.itervalues():
+        for control in list(self.controls.values()):
             control.panic()
 
     # Assumes the code has been split and scrubbed.

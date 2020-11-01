@@ -1,6 +1,5 @@
 import argparse, time
-import consts
-import reader, viz
+from melodomatic import consts, reader, viz
 
 class MelodomaticMain:
     def __init__(self, fn):
@@ -19,7 +18,7 @@ class MelodomaticMain:
     def run(self):
         if not self.player.is_valid():
             if consts.VERBOSE:
-                print 'Ending: empty script'
+                print('Ending: empty script')
             return
         self.player.startup()
         lastt = t = time.time()
@@ -37,7 +36,7 @@ class MelodomaticMain:
                     self.player = self.reader.load_script(self.player.pulse, self.player)
                     if not self.player.is_valid():
                         if consts.VERBOSE:
-                            print 'Ending: empty script'
+                            print('Ending: empty script')
                         break
 
                 # play some music!
@@ -58,7 +57,7 @@ class MelodomaticMain:
 
         except KeyboardInterrupt:
             if consts.VERBOSE:
-                print 'Ending: hit ^C'
+                print('Ending: hit ^C')
             pass
         finally:
             self.player.shutdown()
@@ -75,7 +74,7 @@ def bootstrap(args, scr):
     if consts.QUIET:
         main.set_visualizer(None)
     elif scr:
-        import vizcurses
+        from melodomatic import vizcurses
         main.set_visualizer(vizcurses.CursesVisualizer(scr))
     main.load()
     main.run()
@@ -96,8 +95,8 @@ if __name__ == '__main__':
         else:
             bootstrap(args, None)
     except KeyboardInterrupt:
-        print 'Ending: hit ^C'
+        print('Ending: hit ^C')
         pass
 
-    print 'Goodbye.'
+    print('Goodbye.')
 

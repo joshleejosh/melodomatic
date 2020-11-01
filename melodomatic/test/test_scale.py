@@ -1,6 +1,6 @@
 import unittest, random
-import testhelper
-import consts, generators
+from . import testhelper
+from .. import consts, generators
 
 class ScaleTest(unittest.TestCase):
     def setUp(self):

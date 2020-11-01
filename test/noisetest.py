@@ -9,8 +9,8 @@ import sys, os.path, math, time
 # https://github.com/caseman/noise (or just `pip install noise`)
 import noise
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'melodomatic'))
-import generators
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', ))
+from melodomatic import generators
 
 # ---------------------------------------------------------
 
@@ -51,7 +51,7 @@ def test_noise(base, step, viz=False):
         p = noise.pnoise1(base + step * i)
         q = generators._noise1(base + step * i)
         if viz:
-            print '%+0.4f | %s | %s | %+0.4f'%(p, _fmt(p), _fmt(q), q)
+            print('%+0.4f | %s | %s | %+0.4f'%(p, _fmt(p), _fmt(q), q))
         pdist[_rmap(p, -1.0, 1.0, DISTRIBUTION_BUCKETS)] += 1
         qdist[_rmap(q, -1.0, 1.0, DISTRIBUTION_BUCKETS)] += 1
 
@@ -64,8 +64,8 @@ if __name__ == '__main__':
         test_noise(i, STEPSIZE, False)
     for i in range(len(pdist)):
         maxval = max(max(pdist), max(qdist))
-        print '%03d | %07d %-40s | %07d %-40s |'%(i,
+        print('%03d | %07d %-40s | %07d %-40s |'%(i,
                 pdist[i], _bar(_rmap(pdist[i], 0.0, maxval, 40)),
-                qdist[i], _bar(_rmap(qdist[i], 0.0, maxval, 40)))
+                qdist[i], _bar(_rmap(qdist[i], 0.0, maxval, 40))))
 
 

@@ -1,6 +1,6 @@
 import unittest, random
-import testhelper
-import consts, generators
+from . import testhelper
+from .. import consts, generators
 
 class VoiceGeneratorTest(unittest.TestCase):
     def setUp(self):
@@ -71,17 +71,17 @@ class VoiceGeneratorTest(unittest.TestCase):
                 :s S .r 48 .i 0 2 4 5 7 9 11
                 :p .bpm 120 .ppb 12
                 """)
-        self.checkit(v.generator.next(), 48, 24, 64)
-        self.checkit(v.generator.next(), 50, 24, 64)
-        self.checkit(v.generator.next(), 52, 24, 56)
-        self.checkit(v.generator.next(), 1, 12, 0)
-        self.checkit(v.generator.next(), 53, 24, 64)
-        self.checkit(v.generator.next(), 1, 12, 0)
-        self.checkit(v.generator.next(), 1, 12, 0)
-        self.checkit(v.generator.next(), 1, 12, 0)
-        self.checkit(v.generator.next(), 50, 12, 64)
-        self.checkit(v.generator.next(), 1, 12, 0)
-        self.checkit(v.generator.next(), 1, 12, 0)
+        self.checkit(next(v.generator), 48, 24, 64)
+        self.checkit(next(v.generator), 50, 24, 64)
+        self.checkit(next(v.generator), 52, 24, 56)
+        self.checkit(next(v.generator), 1, 12, 0)
+        self.checkit(next(v.generator), 53, 24, 64)
+        self.checkit(next(v.generator), 1, 12, 0)
+        self.checkit(next(v.generator), 1, 12, 0)
+        self.checkit(next(v.generator), 1, 12, 0)
+        self.checkit(next(v.generator), 50, 12, 64)
+        self.checkit(next(v.generator), 1, 12, 0)
+        self.checkit(next(v.generator), 1, 12, 0)
 
     def test_unscaled(self):
         # should be the same as in test_melodomatic, despite the different scale.
@@ -94,17 +94,17 @@ class VoiceGeneratorTest(unittest.TestCase):
                 :s S .r 62 .i 0 2 3 5 7 8 10 # D Minor
                 :p .bpm 120 .ppb 12
                 """)
-        self.checkit(v.generator.next(), 48, 24, 64)
-        self.checkit(v.generator.next(), 50, 24, 64)
-        self.checkit(v.generator.next(), 52, 24, 56)
-        self.checkit(v.generator.next(), 1, 12, 0)
-        self.checkit(v.generator.next(), 53, 24, 64)
-        self.checkit(v.generator.next(), 1, 12, 0)
-        self.checkit(v.generator.next(), 1, 12, 0)
-        self.checkit(v.generator.next(), 1, 12, 0)
-        self.checkit(v.generator.next(), 50, 12, 64)
-        self.checkit(v.generator.next(), 1, 12, 0)
-        self.checkit(v.generator.next(), 1, 12, 0)
+        self.checkit(next(v.generator), 48, 24, 64)
+        self.checkit(next(v.generator), 50, 24, 64)
+        self.checkit(next(v.generator), 52, 24, 56)
+        self.checkit(next(v.generator), 1, 12, 0)
+        self.checkit(next(v.generator), 53, 24, 64)
+        self.checkit(next(v.generator), 1, 12, 0)
+        self.checkit(next(v.generator), 1, 12, 0)
+        self.checkit(next(v.generator), 1, 12, 0)
+        self.checkit(next(v.generator), 50, 12, 64)
+        self.checkit(next(v.generator), 1, 12, 0)
+        self.checkit(next(v.generator), 1, 12, 0)
 
     def test_unison(self):
         p,v = self.bindit("""

@@ -1,7 +1,7 @@
 import os, os.path, imp, sys, time, re
-import consts
-from util import *
-import generators, expanders, player, voice, scale, control
+from melodomatic import consts
+from melodomatic.util import *
+from melodomatic import generators, expanders, player, voice, scale, control
 
 BLOCK_LABELS = {
         'PLAYER': [
@@ -93,7 +93,7 @@ class Parser:
                 self.data.append(block)
             self.buf = []
 
-        for linei in xrange(len(self.text)):
+        for linei in range(len(self.text)):
             line = self.text[linei].split('#')[0].strip()
             if len(line) == 0:
                 continue
@@ -122,7 +122,7 @@ class Parser:
                     lines = fp.readlines()
                 toInsert.append((linei, lines))
                 if consts.VERBOSE:
-                    print '!include %s'%fn
+                    print('!include %s'%fn)
         for linei,chunk in reversed(toInsert):
             # splice the lines in over the include call.
             self.text[linei+1:1] = chunk
@@ -146,7 +146,7 @@ class Parser:
                 imp.load_source(mname, fn)
                 todel.append(linei)
                 if consts.VERBOSE:
-                    print '!import %s'%fn
+                    print('!import %s'%fn)
                 continue
 
             if len(defining) == 2:
@@ -178,7 +178,7 @@ class Parser:
                     line = self.text[linei]
                 if '@' in line:
                     if consts.VERBOSE:
-                        print 'ERROR line %d: unresolved macro reference [%s]'%(linei, line[:-1])
+                        print('ERROR line %d: unresolved macro reference [%s]'%(linei, line[:-1]))
 
         # Remove preprocessor lines so they don't much with things later.
         for linei in reversed(todel):
@@ -219,7 +219,7 @@ class Parser:
                     elif cmd == 'SEED':
                         self.player.set_seed(ca[1])
                     elif consts.VERBOSE:
-                        print 'ERROR: Bad player command .%s'%cmd
+                        print('ERROR: Bad player command .%s'%cmd)
             # while we're here, build lists of valid scale and voice IDs.
             elif btype == 'SCALE':
                 scid = 'DUMMY'
@@ -253,7 +253,7 @@ class Parser:
     def build_scale(self, block, scaleIDs):
         if len(block[0]) < 2:
             if consts.VERBOSE:
-                print 'ERROR: Scale block has no ID'
+                print('ERROR: Scale block has no ID')
             block[0].append('DUMMY')
         sc = scale.Scale(block[0][1].strip(), self.player)
         for ca in (expanders.expand_list(b) for b in block[1:]):
@@ -281,13 +281,13 @@ class Parser:
             elif cmd == 'SEED':
                 sc.set_seed(ca[1])
             elif consts.VERBOSE:
-                print 'ERROR: Bad scale command .%s'%cmd
+                print('ERROR: Bad scale command .%s'%cmd)
         self.player.add_scale(sc)
 
     def build_voice(self, block, voiceIDs):
         if len(block[0]) < 2:
             if consts.VERBOSE:
-                print 'ERROR: Voice block has no ID'
+                print('ERROR: Voice block has no ID')
             block[0].append('DUMMY')
         id = block[0][1].strip()
         vo = voice.Voice(id, self.player)
@@ -329,7 +329,7 @@ class Parser:
             if ca[0] in skipit:
                 continue
             if not vo.set_parameter(ca) and consts.VERBOSE:
-                print 'ERROR: Bad voice command .%s'%cmd
+                print('ERROR: Bad voice command .%s'%cmd)
 
         vo.validate_generator()
         self.player.add_voice(vo)
@@ -337,7 +337,7 @@ class Parser:
     def build_control(self, block):
         if len(block[0]) < 2:
             if consts.VERBOSE:
-                print 'ERROR: Control block has no ID'
+                print('ERROR: Control block has no ID')
             block[0].append('DUMMY')
         id = block[0][1].strip()
         co = control.Control(id, self.player)
@@ -362,7 +362,7 @@ class Parser:
         if d.startswith(':'):
             d = d[1:]
         d = d.upper()
-        for directive in BLOCK_LABELS.iterkeys():
+        for directive in BLOCK_LABELS.keys():
             if directive.startswith(d):
                 return directive
         return d
@@ -400,10 +400,10 @@ class Reader:
             fp.close()
             rv = Parser().make_player(lines, self, oldPlayer, os.path.dirname(self.filename))
             if consts.VERBOSE:
-                print '(Re)load at %d, hotload interval %d'%(ts, self.reloadInterval)
+                print('(Re)load at %d, hotload interval %d'%(ts, self.reloadInterval))
             return rv
         except Exception as e:
-            print e
+            print(e)
             if fp:
                 fp.close()
             return oldPlayer
@@ -418,6 +418,6 @@ class Reader:
                     self.status = '*'
                     return True
             except Exception as e:
-                print e
+                print(e)
         return False
 

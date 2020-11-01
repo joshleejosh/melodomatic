@@ -1,6 +1,6 @@
 import math, pytweening
-import consts
-from util import *
+from melodomatic import consts
+from melodomatic.util import *
 
 EXPANDERS = {}
 EXPANDERS_ORDERED = []
@@ -16,7 +16,7 @@ def autocomplete_expander_name(n):
         if name.startswith(n):
             return name
     if consts.VERBOSE:
-        print 'ERROR: Bad expander name %s'%n
+        print('ERROR: Bad expander name %s'%n)
     return 'LIST'
 
 def expand_list(a):
@@ -90,7 +90,7 @@ def _cleanse_range_args(data):
 
 def ex_range(data):
     a, b, step = _cleanse_range_args(data)
-    return range(a, b+sign(step), step)
+    return list(range(a, b+sign(step), step))
 register_expander('RANGE', ex_range)
 
 def ex_crange(data):
@@ -125,9 +125,9 @@ register_expander('CRANGE', ex_crange)
 
 def ex_pingpong(data):
     a, b, step = _cleanse_range_args(data)
-    rv = range(a, b+sign(step), step)
+    rv = list(range(a, b+sign(step), step))
     if rv:
-        rv += range(rv[-1]-step, a, -step)
+        rv += list(range(rv[-1]-step, a, -step))
     return rv
 register_expander('PINGPONG', ex_pingpong)
 register_expander('PP', ex_pingpong)
@@ -140,7 +140,7 @@ def ex_xerox(data):
         pass
     data = data[1:]
     rv = []
-    for i in xrange(n):
+    for i in range(n):
         rv += data
     return rv
 register_expander('XEROX', ex_xerox)
@@ -171,7 +171,7 @@ def autocomplete_curve_function(s):
         if i.startswith(s):
             return i
     if consts.VERBOSE:
-        print 'ERROR: Bad curve function %s'%s
+        print('ERROR: Bad curve function %s'%s)
     return CURVE_FUNCTIONS_ORDERED[0]
 
 def autocomplete_curve_direction(s):
@@ -183,7 +183,7 @@ def autocomplete_curve_direction(s):
     elif s[0] == 'O':
         return 1
     if consts.VERBOSE:
-        print 'ERROR: Bad curve direction %s'%s
+        print('ERROR: Bad curve direction %s'%s)
     return 0
 
 def ex_curve(data):
@@ -201,18 +201,18 @@ def ex_curve(data):
         data = data[3:]
         if not data:
             if consts.VERBOSE:
-                print 'ERROR: No data for curve'
+                print('ERROR: No data for curve')
             return []
         f = CURVE_FUNCTIONS[ef][ed]
         maxi = len(data)-1
-        for i in xrange(period):
+        for i in range(period):
             v = f(float(i) / float(period-1))
             di = int(round(v*float(maxi)))
             rv.append(data[di])
 
     except Exception as e:
         if consts.VERBOSE:
-            print 'ERROR: Curve failed [%s]'%e
+            print('ERROR: Curve failed [%s]'%e)
 
     return rv
 register_expander('CURVE', ex_curve)

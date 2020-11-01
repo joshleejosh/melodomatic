@@ -1,6 +1,6 @@
 import os, unittest, random, tempfile, shutil
-import testhelper
-import consts, generators, reader, midi
+from melodomatic.test import testhelper
+from melodomatic import consts, generators, reader, midi
 
 class ReaderTest(unittest.TestCase):
     def setUp(self):

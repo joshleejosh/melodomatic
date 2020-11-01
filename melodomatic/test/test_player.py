@@ -1,6 +1,6 @@
 import os, unittest, random, tempfile
-import testhelper
-import consts, generators
+from . import testhelper
+from .. import consts, generators
 
 class PlayerTest(unittest.TestCase):
     def setUp(self):
@@ -103,7 +103,7 @@ class PlayerTest(unittest.TestCase):
         self.assertEqual(q.controls['C'], p.controls['C'])
 
         p.startup()
-        for i in xrange(4):
+        for i in range(4):
             p.update()
             p.pulse += 1
         q.transfer_state(p)
@@ -115,7 +115,7 @@ class PlayerTest(unittest.TestCase):
         self.assertEqual(id(q.controls['C']), id(p.controls['C']))
 
         # Change S scale, should not copy when transferred
-        for i in xrange(4):
+        for i in range(4):
             q.update()
             q.pulse += 1
         r = self.bindit(""":v V .p 1 3 5 .d 1 2 .v 64 72

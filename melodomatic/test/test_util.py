@@ -1,6 +1,6 @@
 import unittest, random
-import testhelper
-import consts, util
+from . import testhelper
+from .. import consts, util
 
 class UtilTest(unittest.TestCase):
     def setUp(self):

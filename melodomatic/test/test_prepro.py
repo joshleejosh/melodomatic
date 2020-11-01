@@ -1,6 +1,6 @@
 import unittest, random
-import testhelper
-import consts, generators
+from . import testhelper
+from .. import consts, generators
 
 class PreprocessorTest(unittest.TestCase):
     def setUp(self):

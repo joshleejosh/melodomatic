@@ -102,6 +102,6 @@ class TTYVisualizer(Visualizer):
         s = self.status_line_main(status)
 
         if (player.pulse%player.visualizationWindow == 0) or should_force_print(s):
-            print s
+            print(s)
         return 0
 

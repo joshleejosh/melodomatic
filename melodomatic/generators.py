@@ -1,6 +1,6 @@
 import math
-import consts, expanders
-from util import *
+from melodomatic import consts, expanders
+from melodomatic.util import *
 
 # ######################################################## #
 
@@ -31,8 +31,8 @@ class GeneratorBinding:
     def __iter__(self):
         return self
 
-    def next(self):
-        return self._f.next()
+    def __next__(self):
+        return next(self._f)
 
 # ----------------------------
 
@@ -89,7 +89,7 @@ def bind_generator(data, ctx):
         #return (GENERATORS[cmd](data, ctx), '$%s %s'%(cmd, str(data)))
 
     if consts.VERBOSE:
-        print 'ERROR: Bad generator funtion [%s]'%cmd
+        print('ERROR: Bad generator funtion [%s]'%cmd)
     return GeneratorBinding('SCALAR', data, ctx)
 
 
@@ -125,7 +125,7 @@ def random(data, ctx):
 # Does not modify the list.
 def shuffle(data, ctx):
     while True:
-        ia = range(len(data))
+        ia = list(range(len(data)))
         ctx.rng.shuffle(ia)
         for i in ia:
             yield data[i]
@@ -136,7 +136,7 @@ def _safearg(data, i, castf, default):
         rv = castf(data[i])
     except:
         if consts.VERBOSE:
-            print 'ERROR: Can\'t get %s(%s[%d])'%(castf, data, i)
+            print('ERROR: Can\'t get %s(%s[%d])'%(castf, data, i))
         return default
     return rv
 
@@ -171,14 +171,14 @@ def wave(data, ctx):
     vmax = _safearg(data, 4, int, 127)
 
     while True:
-        for i in xrange(period):
+        for i in range(period):
             # Result should cycle from 0 to 1 back to 0 over period
             t = 2.0 * float(i) / float(period)
             if t > 1.0:
                 t = 2.0 - t
             t = fcurve(t)
             v = int(round(t*(vmax-vmin) + vmin))
-            #print '%0.6f %3d'%(t,v)
+            #print('%0.6f %3d'%(t,v))
             yield str(v)
 
 

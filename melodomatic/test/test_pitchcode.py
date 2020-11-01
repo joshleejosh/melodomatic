@@ -1,6 +1,6 @@
 import unittest
-import testhelper
-import scale
+from . import testhelper
+from .. import scale
 
 class PitchCodeTest(unittest.TestCase):
     def setUp(self):

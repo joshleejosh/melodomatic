@@ -45,7 +45,7 @@ class CursesVisualizer(melodomatic.viz.Visualizer):
         self.screen.clear()
         self.screen.refresh()
 
-        for m in self.modeScreens.itervalues():
+        for m in list(self.modeScreens.values()):
             m.startup()
         height = self.screen.getmaxyx()[0] - 1
         width = self.screen.getmaxyx()[1] - 1
@@ -102,12 +102,12 @@ class CursesVisualizer(melodomatic.viz.Visualizer):
         voice.set_solo(not voice.solo)
         if osolo and not voice.solo:
             nosolos = True
-            for v in player.voices.itervalues():
+            for v in list(player.voices.values()):
                 if v.solo:
                     nosolos = False
                     break
             if nosolos:
-                for v in player.voices.itervalues():
+                for v in list(player.voices.values()):
                     if v.mute:
                         v.set_mute(False)
         player.resolve_solos()
@@ -116,7 +116,7 @@ class CursesVisualizer(melodomatic.viz.Visualizer):
         player.panic()
 
     def addtool(self, label):
-        if isinstance(label, basestring):
+        if isinstance(label, str):
             self.winToolbar.addstr(label.encode('utf-8'))
         elif hasattr(label, '__iter__'):
             self.winToolbar.addstr(label[0].encode('utf-8'), curses.A_REVERSE)
@@ -173,7 +173,7 @@ class CursesVisualizer(melodomatic.viz.Visualizer):
             if m != self.mode:
                 rv.append(m)
         rv.append(CursesVisualizer.TOOLSEP)
-        rv.append(( u'ESC', u'Quit' ))
+        rv.append(( 'ESC', 'Quit' ))
         return rv
 
 # ------------------------------------------------------------------ #
@@ -233,7 +233,7 @@ class ModeMain(ModeScreen):
         return 0
 
     def get_toolbar_labels(self):
-        return ( ( u'P', u'Panic' ), )
+        return ( ( 'P', 'Panic' ), )
 
 # ------------------------------------------------------------------ #
 
@@ -271,10 +271,10 @@ class ModeVoice(ModeScreen):
         self.winConf.addstr(3, 11, str(voice.rngSeed))
         self.winConf.addstr(5, 1, 'Generator $%s'%voice.generator.name)
 
-        widthPName = max((len(p) for p in voice.parameters.keys())) + 1
-        widthGName = max((len(g.name) for g in voice.parameters.values())) + 1
+        widthPName = max((len(p) for p in list(voice.parameters.keys()))) + 1
+        widthGName = max((len(g.name) for g in list(voice.parameters.values()))) + 1
         y = 6
-        for p,g in voice.parameters.iteritems():
+        for p,g in list(voice.parameters.items()):
             if y >= rows - 1:
                 break
             self.winConf.addstr(y, 2, p)
@@ -297,7 +297,7 @@ class ModeVoice(ModeScreen):
         height = self.winStat.getmaxyx()[0]-1
         columns = self.winStat.getmaxyx()[1]-3
         y = height - 1
-        for i in xrange(len(self.parent.statusBuffer)-1, -1, -1):
+        for i in range(len(self.parent.statusBuffer)-1, -1, -1):
             if y < 1:
                 break
             pulse = self.parent.statusBuffer[i]['pulse']
@@ -315,18 +315,18 @@ class ModeVoice(ModeScreen):
             self.parent.solo_voice(player)
         elif key in (ord('P'), ord('p')):
             self.parent.panic(player)
-        elif key in (ord(u'v'), curses.KEY_RIGHT, ord('2')):
+        elif key in (ord('v'), curses.KEY_RIGHT, ord('2')):
             self.parent.change_voice(1, player)
-        elif key in (ord(u'V'), curses.KEY_LEFT, ord('@')):
+        elif key in (ord('V'), curses.KEY_LEFT, ord('@')):
             self.parent.change_voice(-1, player)
         return 0
 
     def get_toolbar_labels(self):
         return (
-                ( u'M', u'Mute' ),
-                ( u'S', u'Solo' ),
-                ( u'P', u'Panic' ),
-                ( u'←/→', u'Prev/Next Voice' ),
+                ( 'M', 'Mute' ),
+                ( 'S', 'Solo' ),
+                ( 'P', 'Panic' ),
+                ( '←/→', 'Prev/Next Voice' ),
                 )
 
 # ------------------------------------------------------------------ #
@@ -341,7 +341,7 @@ class ModeControls(ModeScreen):
         self.paint_headers(player, reader, columns)
 
         y = height - 1
-        for i in xrange(len(self.parent.statusBuffer)-1, -1, -1):
+        for i in range(len(self.parent.statusBuffer)-1, -1, -1):
             if y < 2:
                 break
             pulse = self.parent.statusBuffer[i]['pulse']
@@ -366,7 +366,7 @@ class ModeControls(ModeScreen):
         return 0
 
     def get_toolbar_labels(self):
-        return ( ( u'P', u'Panic' ), )
+        return ( ( 'P', 'Panic' ), )
 
 # ------------------------------------------------------------------ #
 
@@ -463,8 +463,8 @@ class ModeReader(ModeScreen):
 
     def get_toolbar_labels(self):
         return (
-                ( u'F', u'Flush Messages' ),
-                ( u'↑ ↓ PGUP PGDN HOME END', u'Scroll Log' ),
+                ( 'F', 'Flush Messages' ),
+                ( '↑ ↓ PGUP PGDN HOME END', 'Scroll Log' ),
                 )
 
 # ------------------------------------------------------------------ #

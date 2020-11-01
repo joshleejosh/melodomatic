@@ -1,6 +1,6 @@
 import sys, random
-import consts, generators, scale
-from util import *
+from melodomatic import consts, generators, scale
+from melodomatic.util import *
 
 # I represent a playable midi note.
 class Note:
@@ -64,17 +64,17 @@ class Voice:
         return not self.__eq__(o)
 
     def dump(self):
-        print 'VOICE "%s" : generator %s '%(self.id, self.generator.name)
-        print '    channel %d'%self.channel
-        print '    seed %s'%self.rngSeed
+        print('VOICE "%s" : generator %s '%(self.id, self.generator.name))
+        print('    channel %d'%self.channel)
+        print('    seed %s'%self.rngSeed)
         if self.mute:
-            print '    muted!'
-        for n,i in self.parameters.iteritems():
-            print '    %s: %s'%(n, i)
+            print('    muted!')
+        for n,i in list(self.parameters.items()):
+            print('    %s: %s'%(n, i))
         if self.moveTimer:
-            print '    move time = %s'%self.moveTimer
+            print('    move time = %s'%self.moveTimer)
         if self.moveLinker:
-            print '    move link = %s'%self.moveLinker
+            print('    move link = %s'%self.moveLinker)
 
     def set_seed(self, sv):
         self.rngSeed = sv
@@ -120,21 +120,21 @@ class Voice:
     def validate_generator(self):
         if not self.generator:
             if consts.VERBOSE:
-                print 'ERROR: Voice [%s] has no generator'%self.id
+                print('ERROR: Voice [%s] has no generator'%self.id)
             return False
-        for parm in VOICE_GENERATORS[self.generator.name][1].iterkeys():
+        for parm in list(VOICE_GENERATORS[self.generator.name][1].keys()):
             if parm not in self.parameters:
-                print 'ERROR: Voice [%s] is missing parameter [%s] for generator [%s]'%(self.id, parm, self.generator)
+                print('ERROR: Voice [%s] is missing parameter [%s] for generator [%s]'%(self.id, parm, self.generator))
                 return False
         return True
 
     def begin(self, pulse):
         self.mute = False
         self.pulse = pulse
-        self.changeTime = self.pulse + self.player.parse_duration(self.moveTimer.next())[0]
+        self.changeTime = self.pulse + self.player.parse_duration(next(self.moveTimer))[0]
         self.status = self.id
         #if consts.VERBOSE:
-        #    print 'Begin voice %s at %d, change at %d'%(self.id, self.pulse, self.changeTime)
+        #    print('Begin voice %s at %d, change at %d'%(self.id, self.pulse, self.changeTime))
 
     def update(self, pulse):
         self.pulse = pulse
@@ -151,13 +151,13 @@ class Voice:
             return ''
 
         if self.pulse >= self.changeTime:
-            self.changeTime = self.pulse + self.player.parse_duration(self.moveTimer.next())[0]
-            nid = self.moveLinker.next()
+            self.changeTime = self.pulse + self.player.parse_duration(next(self.moveTimer))[0]
+            nid = next(self.moveLinker)
             if nid != self.id:
                 return nid
 
         if pulse >= self.nextPulse:
-            note = self.generator.next()
+            note = next(self.generator)
             if note:
                 self.play(note)
         return ''
@@ -194,7 +194,7 @@ class Voice:
 class VoiceGenerator:
     def __init__(self, n, v):
         self.name = n
-        self.parameters = VOICE_GENERATORS[self.name][1].keys()
+        self.parameters = list(VOICE_GENERATORS[self.name][1].keys())
         self.voice = v
         self._f = VOICE_GENERATORS[self.name][0](v)
     def __eq__(self, o):
@@ -209,8 +209,8 @@ class VoiceGenerator:
         return '$%s'%self.name
     def __iter__(self):
         return self
-    def next(self):
-        return self._f.next()
+    def __next__(self):
+        return next(self._f)
 
 VOICE_GENERATORS = { }
 VOICE_GENERATORS_ORDERED = []
@@ -227,7 +227,7 @@ def autocomplete_voice_generator_name(n):
         if name.startswith(n):
             return name
     if consts.VERBOSE:
-        print 'ERROR: Bad voice generator name [%s]?'%n
+        print('ERROR: Bad voice generator name [%s]?'%n)
     return n
 
 def autocomplete_voice_parameter(n, v):
@@ -237,11 +237,11 @@ def autocomplete_voice_parameter(n, v):
     gtype = 'MELODOMATIC'
     if v and v.generator:
         gtype = v.generator.name
-    for parm in VOICE_GENERATORS[gtype][1].iterkeys():
+    for parm in list(VOICE_GENERATORS[gtype][1].keys()):
         if parm.startswith(n):
             return parm
     #if consts.VERBOSE:
-    #    print 'ERROR: Bad generator parameter [%s] for [%s]?'%(n, gtype)
+    #    print('ERROR: Bad generator parameter [%s] for [%s]?'%(n, gtype))
     return n
 
 def bind_voice_generator(voice, gtype):
@@ -252,12 +252,12 @@ def bind_voice_generator(voice, gtype):
     gtype = autocomplete_voice_generator_name(gtype)
     if gtype not in VOICE_GENERATORS:
         if consts.VERBOSE:
-            print 'ERROR: Bad voice generator [%s]'%gtype
+            print('ERROR: Bad voice generator [%s]'%gtype)
         return (None, '')
     gspec = VOICE_GENERATORS[gtype]
     voice.generator = VoiceGenerator(gtype, voice)
     voice.parameters.clear()
-    for key,default in gspec[1].iteritems():
+    for key,default in list(gspec[1].items()):
         data = [key,]
         data.extend(default)
         voice.set_parameter(data)
@@ -272,16 +272,16 @@ def g_melodomatic(vo):
     velocitier = vo.parameters['VELOCITY']
     transposer = vo.parameters['TRANSPOSE']
     while True:
-        d,h = vo.player.parse_duration(durationer.next())
+        d,h = vo.player.parse_duration(next(durationer))
         p = 1
         v = 0
         if d < 0 or h == 0:
             yield Rest(vo.pulse, abs(d))
         else:
-            t = int(transposer.next())
-            p = vo.player.curScale.degree_to_pitch(pitcher.next())
+            t = int(next(transposer))
+            p = vo.player.curScale.degree_to_pitch(next(pitcher))
             p = clamp(p+t, 0, 127)
-            v = int(velocitier.next())
+            v = int(next(velocitier))
             v = clamp(v, 0, 127)
             yield Note(vo.pulse, d, p, v, h)
 
@@ -302,15 +302,15 @@ def g_unscaled(vo):
     durationer = vo.parameters['DURATION']
     velocitier = vo.parameters['VELOCITY']
     while True:
-        d,h = vo.player.parse_duration(durationer.next())
+        d,h = vo.player.parse_duration(next(durationer))
         n = consts.DEFAULT_SCALE_ROOT
         v = 0
         if d < 0 or h == 0:
             yield Rest(vo.pulse, abs(d))
         else:
-            n = int(noter.next())
+            n = int(next(noter))
             n = clamp(n, 0, 127)
-            v = int(velocitier.next())
+            v = int(next(velocitier))
             v = clamp(v, 0, 127)
             yield Note(vo.pulse, d, n, v, h)
 
@@ -330,7 +330,7 @@ def g_unison(vo):
     transposer = vo.parameters['TRANSPOSE']
     velocitier = vo.parameters['VELOCITY']
     while True:
-        vn = voicer.next()
+        vn = next(voicer)
         if vn not in vo.player.voices:
             # invalid voice, emit a rest
             yield Rest(vo.pulse, 1)
@@ -343,9 +343,9 @@ def g_unison(vo):
             continue
         d = notef.duration
         h = notef.hold
-        v = notef.velocity + int(velocitier.next())
+        v = notef.velocity + int(next(velocitier))
         v = clamp(v, 0, 127)
-        p = notef.pitch + int(transposer.next())
+        p = notef.pitch + int(next(transposer))
         if p >= 0 and p <= 127:
             yield Note(notef.at, d, p, v, h)
         else:

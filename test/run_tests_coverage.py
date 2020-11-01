@@ -4,8 +4,9 @@
 # is verbose debug output).
 
 import sys, os.path, unittest, coverage, argparse
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'melodomatic'))
-import consts
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+from melodomatic import consts
+import melodomatic.test
 
 def do_tests():
     coverer = coverage.Coverage(
@@ -19,16 +20,11 @@ def do_tests():
     coverer.exclude('def dump\(self\):')
     coverer.start()
 
-    # -----------------------------------------------
-    loader = unittest.defaultTestLoader
-    suite = loader.discover(os.path.join(os.path.dirname(__file__), '..', 'melodomatic', 'test'))
-    runner = unittest.TextTestRunner(verbosity=2)
-    runner.run(suite)
-    # -----------------------------------------------
+    melodomatic.test.run_tests()
 
     coverer.stop()
     coverer.save()
-    print '\n\n'
+    print('\n\n')
     coverer.report(show_missing=True)
 
 if __name__ == '__main__':
