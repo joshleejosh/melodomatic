@@ -183,6 +183,7 @@ def wave(data, ctx):
 
 
 # Cobbled together from various references
+# TODO: surely there's a library for this (1D perlin noise)
 def _mod289(x):
     return x - math.floor(x * (1.0 / 289.0)) * 289.0;
 def _permute(x):

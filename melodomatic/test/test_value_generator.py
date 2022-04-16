@@ -78,14 +78,14 @@ class ValueGeneratorTest(unittest.TestCase):
         # bare list defualts to $RANDOM
         fg = self.bindit('FOO BAR')
         self.assertEqual(str(fg), "$RANDOM ['FOO', 'BAR']")
-        self.checkit(fg, 'FOO FOO BAR BAR FOO')
+        self.checkit(fg, 'BAR BAR BAR FOO FOO')
 
         fg = self.bindit('$raNdOm FOO BAR')
         self.assertEqual(fg.name, 'RANDOM')
         self.assertEqual(fg.data, ['FOO', 'BAR'])
         self.assertEqual(fg.context, self.dummy)
         self.assertEqual(str(fg), "$RANDOM ['FOO', 'BAR']")
-        self.checkit(fg, 'FOO FOO BAR BAR FOO')
+        self.checkit(fg, 'BAR BAR BAR FOO FOO')
 
         fg = self.bindit('$r')
         self.assertEqual(str(fg), "$RANDOM ('1',)")
@@ -94,7 +94,7 @@ class ValueGeneratorTest(unittest.TestCase):
     def test_shuffle(self):
         fg = self.bindit('$shuffle FOO BAR BAZ QUX')
         self.assertEqual(str(fg), "$SHUFFLE ['FOO', 'BAR', 'BAZ', 'QUX']")
-        self.checkit(fg, 'BAZ QUX FOO BAR FOO QUX BAR BAZ FOO')
+        self.checkit(fg, 'FOO BAR BAZ QUX BAR BAZ FOO QUX BAZ')
 
         fg = self.bindit('$sh FOO')
         self.assertEqual(str(fg), "$SHUFFLE ['FOO']")
@@ -130,12 +130,12 @@ class ValueGeneratorTest(unittest.TestCase):
     def test_random_walk(self):
         fg = self.bindit('$random-walk .75 FOO BAR BAZ QUX')
         self.assertEqual(str(fg), "$RANDOM-WALK ['.75', 'FOO', 'BAR', 'BAZ', 'QUX']")
-        self.checkit(fg, 'BAR BAZ BAR BAR BAZ QUX BAZ BAZ BAZ BAZ BAZ BAZ BAR BAR BAZ')
+        self.checkit(fg, 'QUX QUX BAZ BAZ BAR BAZ BAR FOO BAR BAZ QUX BAZ QUX BAZ BAZ')
 
         # should step every time
         fg = self.bindit('$random-walk 1.0 FOO BAR BAZ QUX')
         self.assertEqual(str(fg), "$RANDOM-WALK ['1.0', 'FOO', 'BAR', 'BAZ', 'QUX']")
-        self.checkit(fg, 'BAR BAZ BAR FOO BAR BAZ QUX BAZ QUX BAZ BAR BAZ QUX BAZ BAR')
+        self.checkit(fg, 'QUX BAZ QUX BAZ QUX BAZ BAR FOO BAR BAZ QUX BAZ QUX BAZ BAR')
 
         # no values: the binder thinks we're okay because there's an argument, so the function needs to check itself
         fg = self.bindit('$rw .75')
@@ -150,7 +150,8 @@ class ValueGeneratorTest(unittest.TestCase):
         # bad chance falls back to 1
         fg = self.bindit('$rw afqr3a A B')
         self.assertEqual(str(fg), "$RW ['afqr3a', 'A', 'B']")
-        self.checkit(fg, 'A B A B A B A B A B A B A B A')
+        self.checkit(fg, 'B A B A B A B A B A B A B A B')
+        
 
     def test_wave(self):
         # don't need to overtest the curve functions -- see ExpanderTest.test_curve() for that
@@ -180,7 +181,7 @@ class ValueGeneratorTest(unittest.TestCase):
         # period defaults to 16
         fg = self.bindit('$w sin io asfr2q3r 3 10')
         self.assertEqual(str(fg), "$WAVE ['sin', 'io', 'asfr2q3r', '3', '10']")
-        self.checkit(fg, '3 3 4 5 7 8 9 10 10 10 9 8 7 5 4 3 3 3 4 5 7 8 9 10 10 10 9 8 7 5 4')
+        self.checkit(fg, '3 3 4 5 6 8 9 10 10 10 9 8 6 5 4 3 3 3 4 5 6 8 9 10 10 10 9 8 6 5 4')
 
         # min defaults to 0
         fg = self.bindit('$w sin io 13 asfr2q3r 10')
@@ -217,12 +218,12 @@ class ValueGeneratorTest(unittest.TestCase):
         # 0.1 is pretty noisy, to make for a more interesting test
         fg = self.bindit('$noise 0 32 0.1')
         self.assertEqual(str(fg), "$NOISE ['0', '32', '0.1']")
-        self.checkit(fg, '27 27 26 23 20 17 16 15 15 15 15 15 16 16 16 16 16 15 15 15 15 15 16 16 16 16 16 15 13 10 6 2')
+        self.checkit(fg, '15 15 15 15 15 16 16 16 16 16 15 15 15 15 15 16 16 16 16 16 15 13 11 8 6 5 6 8 11 15 18 20')
 
         # extremely noisy!
         fg = self.bindit('$noise -43 19 .99')
         self.assertEqual(str(fg), "$NOISE ['-43', '19', '.99']")
-        self.checkit(fg, '9 -13 -13 -27 14 -13 -13 -23 0 11 -19 0 -10 -13 0 -18 2 3 -14 -9 -13 -13 -13 -10 -14 -2 -13 -13 -6 -10 -10 -9')
+        self.checkit(fg, '-12 -12 -12 -9 -9 -12 -12 -12 -11 -11 -13 -11 -11 -11 -16 -10 -10 -10 -13 -10 -21 -20 -8 -14 -9 -10 -10 -24 -6 -10 -10 -28')
 
     def test_noise_bad(self):
         fg = self.bindit('$noise HOWDY DOODY TIME')

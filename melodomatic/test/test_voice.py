@@ -15,6 +15,8 @@ class VoiceGeneratorTest(unittest.TestCase):
         self.assertEqual(note.pitch, p)
         self.assertEqual(note.duration, d)
         self.assertEqual(note.velocity, v)
+        #def f(n, p, d, v):
+        #    print('        self.checkit(v.curNote, %d, %d, %d)'%(n.pitch, n.duration, n.velocity))
 
     def test_eq(self):
         p,v = self.bindit(':VOICE V .channel 2 .seed SEEDS .pitch 3 .duration 2 .velocity 57')
@@ -71,17 +73,17 @@ class VoiceGeneratorTest(unittest.TestCase):
                 :s S .r 48 .i 0 2 4 5 7 9 11
                 :p .bpm 120 .ppb 12
                 """)
-        self.checkit(next(v.generator), 48, 24, 64)
-        self.checkit(next(v.generator), 50, 24, 64)
+        self.checkit(next(v.generator),  1, 12,  0)
         self.checkit(next(v.generator), 52, 24, 56)
-        self.checkit(next(v.generator), 1, 12, 0)
+        self.checkit(next(v.generator), 48, 12, 48)
+        self.checkit(next(v.generator), 48, 24, 64)
+        self.checkit(next(v.generator), 52, 12, 48)
         self.checkit(next(v.generator), 53, 24, 64)
-        self.checkit(next(v.generator), 1, 12, 0)
-        self.checkit(next(v.generator), 1, 12, 0)
-        self.checkit(next(v.generator), 1, 12, 0)
-        self.checkit(next(v.generator), 50, 12, 64)
-        self.checkit(next(v.generator), 1, 12, 0)
-        self.checkit(next(v.generator), 1, 12, 0)
+        self.checkit(next(v.generator), 53, 12, 64)
+        self.checkit(next(v.generator),  1, 12,  0)
+        self.checkit(next(v.generator),  1, 12,  0)
+        self.checkit(next(v.generator),  1, 12,  0)
+        self.checkit(next(v.generator), 48, 24, 64)
 
     def test_unscaled(self):
         # should be the same as in test_melodomatic, despite the different scale.
@@ -94,17 +96,17 @@ class VoiceGeneratorTest(unittest.TestCase):
                 :s S .r 62 .i 0 2 3 5 7 8 10 # D Minor
                 :p .bpm 120 .ppb 12
                 """)
-        self.checkit(next(v.generator), 48, 24, 64)
-        self.checkit(next(v.generator), 50, 24, 64)
+        self.checkit(next(v.generator), 1, 12, 0)
         self.checkit(next(v.generator), 52, 24, 56)
-        self.checkit(next(v.generator), 1, 12, 0)
+        self.checkit(next(v.generator), 48, 12, 48)
+        self.checkit(next(v.generator), 48, 24, 64)
+        self.checkit(next(v.generator), 52, 12, 48)
         self.checkit(next(v.generator), 53, 24, 64)
+        self.checkit(next(v.generator), 53, 12, 64)
         self.checkit(next(v.generator), 1, 12, 0)
         self.checkit(next(v.generator), 1, 12, 0)
         self.checkit(next(v.generator), 1, 12, 0)
-        self.checkit(next(v.generator), 50, 12, 64)
-        self.checkit(next(v.generator), 1, 12, 0)
-        self.checkit(next(v.generator), 1, 12, 0)
+        self.checkit(next(v.generator), 48, 24, 64)
 
     def test_unison(self):
         p,v = self.bindit("""
@@ -116,23 +118,23 @@ class VoiceGeneratorTest(unittest.TestCase):
         u = p.voices['U']
         p.startup()
         p.update()
-        self.checkit(v.curNote, 48, 24, 64)
-        self.checkit(u.curNote, 60, 24, 56)
+        self.checkit(v.curNote, 1, 12, 0)
+        self.checkit(u.curNote, 13, 12, 0)
 
         p.pulse = 24
-        p.update()
-        self.checkit(v.curNote, 50, 24, 64)
-        self.checkit(u.curNote, 62, 24, 56)
-
-        p.pulse = 48
         p.update()
         self.checkit(v.curNote, 52, 24, 56)
         self.checkit(u.curNote, 64, 24, 48)
 
+        p.pulse = 48
+        p.update()
+        self.checkit(v.curNote, 48, 12, 48)
+        self.checkit(u.curNote, 60, 12, 40)
+
         p.pulse = 72
         p.update()
-        self.checkit(v.curNote, 1, 12, 0)
-        self.checkit(u.curNote, 13, 12, 0)
+        self.checkit(v.curNote, 48, 24, 64)
+        self.checkit(u.curNote, 60, 24, 56)
 
     def test_unison_bad_voice(self):
         # U is trying to follow a nonexistent voice

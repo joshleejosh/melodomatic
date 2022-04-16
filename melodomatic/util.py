@@ -1,4 +1,4 @@
-import random, time
+import random, time, math
 
 def coinflip(ctx=None):
     r = ctx.rng.random() if ctx else random.random()
@@ -51,7 +51,7 @@ def split_floats(a):
 
 NOTE_NAMES = ('C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B')
 def note_name(v):
-    octave = int(v/12)
+    octave = math.floor(v/12)
     note = NOTE_NAMES[v%12]
     return '%s%d'%(note, octave)
 

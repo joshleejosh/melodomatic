@@ -199,8 +199,8 @@ class ExpanderTest(unittest.TestCase):
         self.assertEqual(''.join(list), '01234')
         list = self.doit('%curv lin OUT 6 A B C')
         self.assertEqual(''.join(list), 'AABBCC')
-        list = self.doit('%cu lin INOUT 7 A B C D')
-        self.assertEqual(''.join(list), 'ABBCCDD')
+        list = self.doit('%cu lin INOUT 8 A B C D')
+        self.assertEqual(''.join(list), 'AABBCCDD')
         list = self.doit('%cu lin INOUT 7 A')
         self.assertEqual(''.join(list), 'AAAAAAA')
 
@@ -219,7 +219,7 @@ class ExpanderTest(unittest.TestCase):
         self.assertEqual(''.join(list), 'AAAAABBBCCCDDDEEEEE')
 
         list = self.doit('%cu cubic i 19 A B C D E')
-        self.assertEqual(''.join(list), 'AAAAAAAAABBBBCCCDDE')
+        self.assertEqual(''.join(list), 'AAAAAAAAAABBBCCCDDE')
         list = self.doit('%cu cub o 19 A B C D E')
         self.assertEqual(''.join(list), 'ABBCCCDDDEEEEEEEEEE')
         list = self.doit('%cu cub io 19 A B C D E')
