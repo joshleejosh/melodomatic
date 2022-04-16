@@ -2,7 +2,7 @@
 # The player is the conductor of the piece, handling timing
 # and control.
 # Everything here is optional, if you're okay with the
-# defaults values.
+# default values.
 
 :player
 
