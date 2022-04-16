@@ -85,54 +85,6 @@ class ReaderTest(unittest.TestCase):
         p = r.load_script(0)
         self.assertEqual(str(p.scales['S'].root), '62')
 
-
-    def test_import(self):
-        dir = self.mkdir()
-        impfn = self.mkfile(dir, """
-import generators
-# Return every other element in the data set.
-def alternate(data, ctx):
-    i=0
-    while True:
-        yield data[i]
-        i = (i+2)%len(data)
-generators.register_generator('test_alt', alternate)
-        """)
-        scrfn = self.mkfile(dir, """
-!import """ + impfn + """
-:scale S .r 62 .i 0 2 3 5 7 9 10
-:voice V .d 1 2 .v 72 80
-.p $test_alt 1 2 3 4 5 6 7
-                """)
-        r = reader.Reader(scrfn)
-        p = r.load_script(0)
-        self.assertEqual(str(p.voices['V'].parameters['PITCH']),
-                "$TEST_ALT ('1', '2', '3', '4', '5', '6', '7')")
-
-    def test_import_relative_path(self):
-        dir = self.mkdir()
-        impfn = self.mkfile(dir, """
-import generators
-# Return every other element in the data set.
-def alternate(data, ctx):
-    i=0
-    while True:
-        yield data[i]
-        i = (i+2)%len(data)
-generators.register_generator('test_alt', alternate)
-        """)
-        impbn = os.path.basename(impfn)
-        scrfn = self.mkfile(dir, """
-!import """ + impbn + """
-:scale S .r 62 .i 0 2 3 5 7 9 10
-:voice V .d 1 2 .v 72 80
-.p $test_alt 1 2 3 4 5 6 7
-                """)
-        r = reader.Reader(scrfn)
-        p = r.load_script(0)
-        self.assertEqual(str(p.voices['V'].parameters['PITCH']),
-                "$TEST_ALT ('1', '2', '3', '4', '5', '6', '7')")
-
     def test_autocomplete_label(self):
         par = reader.Parser()
         self.assertEqual(par.autocomplete_label('.puls', ':PLAYER'), 'PULSES_PER_BEAT')

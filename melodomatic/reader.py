@@ -129,7 +129,6 @@ class Parser:
             del self.text[linei]
 
     # Handle preprocessing directives other than !include:
-    # !import - import python code (totally unsafe!)
     # !define - define macros
     # @       - perform macro substitutions. We only do one pass, so
     #           definitions *must* come before references.
@@ -138,17 +137,6 @@ class Parser:
         todel = []
         defining = []
         for linei,line in enumerate(self.text):
-            if line.strip().upper().startswith('!IMPORT'):
-                fn = line.strip()[len('!IMPORT'):].split('#')[0].strip()
-                if not os.path.isabs(fn):
-                    fn = os.path.join(self.scriptdir, fn)
-                mname,ext = os.path.splitext(os.path.split(fn)[-1])
-                imp.load_source(mname, fn)
-                todel.append(linei)
-                if consts.VERBOSE:
-                    print('!import %s'%fn)
-                continue
-
             if len(defining) == 2:
                 todel.append(linei)
                 a = line.split()
