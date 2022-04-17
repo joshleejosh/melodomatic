@@ -1,11 +1,13 @@
-import math, random, time
+import random
+import time
 from melodomatic import consts
 from melodomatic.util import *
-from melodomatic import generators, voice, scale, midi
+from melodomatic import midi
 
 # I am the top-level updater, and I also own the MIDI connection.
 # I am configured by a Reader.
 class Player:
+    # pylint: disable=too-many-instance-attributes
     def __init__(self):
         self.rng = random.Random()
         self.player = self # Generators frequently want a ref to their context's player, so make sure we match the interface.
@@ -41,10 +43,8 @@ class Player:
         self.rng.seed(self.rngSeed)
 
     def transfer_state(self, old):
-        copiedMidi = False
-        if (old.midi.is_open()):
+        if old.midi.is_open():
             self.midi = old.midi
-            copiedMidi = True
         else:
             old.shutdown()
             self.startup()
@@ -136,7 +136,7 @@ class Player:
             print('shutting down')
         for v in list(self.voices.values()):
             if v.curNote:
-                v.release_cur_note();
+                v.release_cur_note()
         self.midi.close()
 
     def tick(self):
@@ -185,13 +185,13 @@ class Player:
     # If one voice is flagged with .solo, mute all other voices.
     def resolve_solos(self):
         dosolo = False
-        for voice in list(self.voices.values()):
-            if voice.solo:
+        for v in list(self.voices.values()):
+            if v.solo:
                 dosolo = True
         if dosolo:
-            for voice in list(self.voices.values()):
-                if not voice.solo:
-                    voice.set_mute(True)
+            for v in list(self.voices.values()):
+                if not v.solo:
+                    v.set_mute(True)
 
     def panic(self):
         for voice in list(self.voices.values()):
@@ -223,6 +223,7 @@ class Player:
         h = a[1] if len(a) > 1 else str(d)+'p'
         h = self._parse_duration_code(h)
         h = min(h, d)
+        # pylint: disable=chained-comparison # whaaaat
         if d > 0 and h < 0:
             h = d
         return d, h

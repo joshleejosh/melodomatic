@@ -1,9 +1,12 @@
-import sys, random
-from melodomatic import consts, generators, scale
+import random
+from melodomatic import consts, generators
 from melodomatic.util import *
+
+# pylint: disable=stop-iteration-return # lots of false positives in generators
 
 # I represent a playable midi note.
 class Note:
+    # pylint: disable=too-many-instance-attributes
     def __init__(self, a, d, p, v, h):
         self.at = a
         self.pitch = p
@@ -18,7 +21,7 @@ class Note:
         return '%d_%d'%(self.pitch, self.velocity)
         #return '%dv%dd%d(%d-%d)'%(self.pitch, self.velocity, self.duration, self.at, self.until)
     def is_rest(self):
-        return (self.velocity == 0)
+        return self.velocity == 0
 
 class Rest(Note):
     def __init__(self, a, d):
@@ -27,8 +30,9 @@ class Rest(Note):
 
 # I am responsible for generating actual notes to play.
 class Voice:
-    def __init__(self, id, pl):
-        self.id = id
+    # pylint: disable=too-many-instance-attributes
+    def __init__(self, vid, pl):
+        self.id = vid
         self.player = pl
         self.rng = random.Random()
         self.set_seed(self.player.rng.random())
@@ -46,17 +50,27 @@ class Voice:
         self.parameters = {}
         bind_voice_generator(self, 'MELODOMATIC')
 
+    # pylint: disable=too-many-return-statements
     def __eq__(self, o):
-        if not o: return False
-        if self.id != o.id: return False
-        if self.channel != o.channel: return False
-        #if self.rngSeed != o.rngSeed: return False
-        if self.mute != o.mute: return False
-        if self.moveTimer != o.moveTimer: return False
-        if self.moveLinker != o.moveLinker: return False
-        if self.generator != o.generator: return False
-        a, r, m, s = dict_compare(self.parameters, o.parameters)
-        if a or r or m: return False
+        if not o:
+            return False
+        if self.id != o.id:
+            return False
+        if self.channel != o.channel:
+            return False
+        #if self.rngSeed != o.rngSeed:
+        #    return False
+        if self.mute != o.mute:
+            return False
+        if self.moveTimer != o.moveTimer:
+            return False
+        if self.moveLinker != o.moveLinker:
+            return False
+        if self.generator != o.generator:
+            return False
+        a, r, m, _ = dict_compare(self.parameters, o.parameters)
+        if a or r or m:
+            return False
         # don't check player or time, we expect them to be different.
         return True
 
@@ -115,7 +129,7 @@ class Voice:
         g = generators.bind_generator(data, self)
         if g:
             self.parameters[pname] = g
-            return pname
+        return pname
 
     def validate_generator(self):
         if not self.generator:
@@ -198,9 +212,12 @@ class VoiceGenerator:
         self.voice = v
         self._f = VOICE_GENERATORS[self.name][0](v)
     def __eq__(self, o):
-        if not o: return False
-        if self.name != o.name: return False
-        if self.parameters != o.parameters: return False
+        if not o:
+            return False
+        if self.name != o.name:
+            return False
+        if self.parameters != o.parameters:
+            return False
         # don't check the voice, we expect that to be different.
         return True
     def __ne__(self, o):
@@ -222,7 +239,6 @@ def register_voice_generator(name, fun, parms):
 
 def autocomplete_voice_generator_name(n):
     n = n.strip().upper()
-    rv = n
     for name in VOICE_GENERATORS_ORDERED:
         if name.startswith(n):
             return name
@@ -346,7 +362,7 @@ def g_unison(vo):
         v = notef.velocity + int(next(velocitier))
         v = clamp(v, 0, 127)
         p = notef.pitch + int(next(transposer))
-        if p >= 0 and p <= 127:
+        if 0 <= p <= 127:
             yield Note(notef.at, d, p, v, h)
         else:
             yield Rest(notef.at, h)

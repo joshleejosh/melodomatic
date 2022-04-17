@@ -4,6 +4,8 @@ import melodomatic
 from melodomatic.viz import *
 from melodomatic.util import *
 
+# pylint: disable-all
+
 class CursesVisualizer(melodomatic.viz.Visualizer):
     TOOLBARHEIGHT = 2
     TOOLSEP = '   '

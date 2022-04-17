@@ -1,6 +1,7 @@
-import unittest, random
+import unittest
+import random
 from . import testhelper
-from .. import consts, generators
+from .. import generators
 
 class DummyContext:
     def __init__(self):
@@ -55,11 +56,11 @@ class ValueGeneratorTest(unittest.TestCase):
         self.assertEqual(fg.data, ['BLEH'])
         self.assertEqual(fg.context, self.dummy)
 
-        for i in range(100):
+        for _ in range(100):
             self.assertEqual(next(fg), 'BLEH')
         fg = self.bindit('$scAlar BNUGH')
         self.assertEqual(str(fg), "$SCALAR ['BNUGH']")
-        for i in range(100):
+        for _ in range(100):
             self.assertEqual(next(fg), 'BNUGH')
 
         # If you pass in a tuple instead of a list, the label reflects it.
@@ -151,7 +152,6 @@ class ValueGeneratorTest(unittest.TestCase):
         fg = self.bindit('$rw afqr3a A B')
         self.assertEqual(str(fg), "$RW ['afqr3a', 'A', 'B']")
         self.checkit(fg, 'B A B A B A B A B A B A B A B')
-        
 
     def test_wave(self):
         # don't need to overtest the curve functions -- see ExpanderTest.test_curve() for that

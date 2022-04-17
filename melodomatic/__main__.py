@@ -1,11 +1,15 @@
-import argparse, time
+import argparse
+import time
 from melodomatic import consts, reader, viz
+
+# pylint: disable=import-outside-toplevel
 
 class MelodomaticMain:
     def __init__(self, fn):
         self.filename = fn
         self.reader = reader.Reader(self.filename)
         self.set_visualizer(viz.TTYVisualizer())
+        self.player = None
 
     def load(self):
         self.player = self.reader.load_script(0)
@@ -15,6 +19,7 @@ class MelodomaticMain:
         if self.visualizer:
             self.visualizer.startup()
 
+    # pylint: disable=too-many-nested-blocks, too-many-branches, unused-variable # it's the main run loop... you're gonna get some branching
     def run(self):
         if not self.player.is_valid():
             if consts.VERBOSE:
@@ -28,7 +33,7 @@ class MelodomaticMain:
                 # update time
                 lastt = t
                 t = time.time()
-                dt = t - lastt
+                #dt = t - lastt
 
                 # check for a file change
                 if self.reader.update(self.player.pulse):
@@ -58,7 +63,6 @@ class MelodomaticMain:
         except KeyboardInterrupt:
             if consts.VERBOSE:
                 print('Ending: hit ^C')
-            pass
         finally:
             self.player.shutdown()
             if self.visualizer:
@@ -85,18 +89,18 @@ if __name__ == '__main__':
     parser.add_argument('-q', '--quiet', dest='quiet', action='store_true', help='don\'t print out visualization junk')
     parser.add_argument('-v', '--verbose', dest='verbose', action='store_true', help='print extra debug spam')
     parser.add_argument('--viz', dest='viz', action='store_true', help='use fancy visualizer')
-    args = parser.parse_args()
+    pargs = parser.parse_args()
 
     try:
-        if args.viz:
-            import curses, locale
+        if pargs.viz:
+            import curses
+            import locale
             locale.setlocale(locale.LC_ALL, '')
-            curses.wrapper(lambda scr: bootstrap(args, scr))
+            curses.wrapper(lambda scr: bootstrap(pargs, scr))
         else:
-            bootstrap(args, None)
+            bootstrap(pargs, None)
     except KeyboardInterrupt:
         print('Ending: hit ^C')
-        pass
 
     print('Goodbye.')
 

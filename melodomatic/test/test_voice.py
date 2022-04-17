@@ -1,6 +1,5 @@
-import unittest, random
+import unittest
 from . import testhelper
-from .. import consts, generators
 
 class VoiceGeneratorTest(unittest.TestCase):
     def setUp(self):
@@ -19,30 +18,30 @@ class VoiceGeneratorTest(unittest.TestCase):
         #    print('        self.checkit(v.curNote, %d, %d, %d)'%(n.pitch, n.duration, n.velocity))
 
     def test_eq(self):
-        p,v = self.bindit(':VOICE V .channel 2 .seed SEEDS .pitch 3 .duration 2 .velocity 57')
-        q,w = self.bindit(':v V .ch 2 .seed SEEDS .p 3 .d 2 .v 57')
+        _,v = self.bindit(':VOICE V .channel 2 .seed SEEDS .pitch 3 .duration 2 .velocity 57')
+        _,w = self.bindit(':v V .ch 2 .seed SEEDS .p 3 .d 2 .v 57')
         self.assertEqual(v, w)
-        r,x = self.bindit(':VOICE V .channel 2 .seed SEEDS .pitch 4 .duration 2 .velocity 57')
+        _,x = self.bindit(':VOICE V .channel 2 .seed SEEDS .pitch 4 .duration 2 .velocity 57')
         self.assertNotEqual(v, x)
 
     def test_bad_voice(self):
-        p,v = self.bindit(':v')
+        _,v = self.bindit(':v')
         self.assertEqual(v.id, 'DUMMY')
-        p,v = self.bindit(':v V .')
-        p,v = self.bindit(':v V .qwijybo')
+        _,v = self.bindit(':v V .')
+        _,v = self.bindit(':v V .qwijybo')
 
-        p,v = self.bindit(':v V')
+        _,v = self.bindit(':v V')
         self.assertTrue(v.validate_generator())
         del v.parameters['PITCH']
         self.assertFalse(v.validate_generator())
 
-        p,v = self.bindit(':v V')
+        _,v = self.bindit(':v V')
         self.assertTrue(v.validate_generator())
         v.generator = None
         self.assertFalse(v.validate_generator())
 
     def test_bare(self):
-        p,v = self.bindit("""
+        _,v = self.bindit("""
                 :v V
                 .seed SEEDS
                 """)
@@ -53,7 +52,7 @@ class VoiceGeneratorTest(unittest.TestCase):
         self.assertEqual(sorted(v.generator.parameters), ['DURATION', 'PITCH', 'TRANSPOSE', 'VELOCITY'])
 
     def test_melodomatic(self):
-        p,v = self.bindit("""
+        _,v = self.bindit("""
                 :v V .seed SEEDS .p 3 .d 2 .v 57
                 :s S .r 48 .i 0 2 4 5 7 9 11
                 :p .bpm 120 .ppb 12
@@ -64,7 +63,7 @@ class VoiceGeneratorTest(unittest.TestCase):
             if i > 11:
                 break
 
-        p,v = self.bindit("""
+        _,v = self.bindit("""
                 :v V
                 .seed SEEDS
                 .p 1 2 3 4
@@ -87,7 +86,7 @@ class VoiceGeneratorTest(unittest.TestCase):
 
     def test_unscaled(self):
         # should be the same as in test_melodomatic, despite the different scale.
-        p,v = self.bindit("""
+        _,v = self.bindit("""
                 :v V $UNSCALED
                 .seed SEEDS
                 .n 48 50 52 53
@@ -262,5 +261,4 @@ class VoiceGeneratorTest(unittest.TestCase):
         v.set_solo(True)
         self.assertFalse(v.mute)
         self.assertTrue(v.solo)
-        
 

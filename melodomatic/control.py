@@ -1,10 +1,11 @@
-import sys, random
-from melodomatic import consts, generators
+import random
+from melodomatic import generators
 from melodomatic.util import *
 
 class Control:
-    def __init__(self, id, pl):
-        self.id = id
+    # pylint: disable=too-many-instance-attributes
+    def __init__(self, cid, pl):
+        self.id = cid
         self.player = pl
         self.rng = random.Random()
         self.set_seed(self.player.rng.random())
@@ -18,12 +19,17 @@ class Control:
         self.set_parameter('RATE', ('1',))
 
     def __eq__(self, o):
-        if not o: return False
-        if self.id != o.id: return False
-        #if self.rngSeed != o.rngSeed: return False
-        if self.channel != o.channel: return False
-        a, r, m, s = dict_compare(self.parameters, o.parameters)
-        if a or r or m: return False
+        if not o:
+            return False
+        if self.id != o.id:
+            return False
+        #if self.rngSeed != o.rngSeed:
+        #    return False
+        if self.channel != o.channel:
+            return False
+        a, r, m, _ = dict_compare(self.parameters, o.parameters)
+        if a or r or m:
+            return False
         # Don't check player or current time; we expect those to be different.
         return True
 
@@ -55,7 +61,7 @@ class Control:
                 self.parameters[pname].append(g)
             else:
                 self.parameters[pname] = g
-            return g.name
+        return g.name
 
     def update(self, pulse):
         self.pulse = pulse
@@ -67,7 +73,7 @@ class Control:
 
     def set_control(self):
         statii = []
-        if ('CONTROL_ID' in self.parameters 
+        if ('CONTROL_ID' in self.parameters
                 and 'CONTROL_VALUE' in self.parameters):
             n = min(len(self.parameters['CONTROL_ID']),
                     len(self.parameters['CONTROL_VALUE']))

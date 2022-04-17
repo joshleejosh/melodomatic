@@ -1,19 +1,18 @@
-import random, time, math
+import random
+import math
 
 def coinflip(ctx=None):
     r = ctx.rng.random() if ctx else random.random()
     if r < .5:
         return -1
-    else:
-        return +1
+    return +1
 
 def sign(n):
     if n < 0:
         return -1
-    elif n > 0:
+    if n > 0:
         return +1
-    else:
-        return 0
+    return 0
 
 def clamp(v, low, high):
     return min(high, max(low, v))

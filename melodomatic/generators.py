@@ -2,6 +2,8 @@ import math
 from melodomatic import consts, expanders
 from melodomatic.util import *
 
+# pylint: disable=unused-argument # all generators take a `ctx` arg
+
 # ######################################################## #
 
 # Wraps a generator function in an iterator w/ additional relevant data/metadata
@@ -117,6 +119,7 @@ def pingpong(data, ctx):
             yield data[i]
 
 # Pick randomly from the list forever.
+# pylint: disable=function-redefined
 def random(data, ctx):
     while True:
         yield ctx.rng.choice(data)
@@ -185,11 +188,11 @@ def wave(data, ctx):
 # Cobbled together from various references
 # TODO: surely there's a library for this (1D perlin noise)
 def _mod289(x):
-    return x - math.floor(x * (1.0 / 289.0)) * 289.0;
+    return x - math.floor(x * (1.0 / 289.0)) * 289.0
 def _permute(x):
-    return _mod289(((x * 34.0) + 1.0) * x);
-def _grad(hash, x):
-    return -x if (hash & 8) else x * ((hash & 7) + 1)
+    return _mod289(((x * 34.0) + 1.0) * x)
+def _grad(hashval, x):
+    return -x if (hashval & 8) else x * ((hashval & 7) + 1)
 def _fade(t):
     return t * t * t * (t * (t * 6.0 - 15.0) + 10.0)
 def _lerp(t, a, b):
@@ -202,7 +205,7 @@ def _noise1(x):
     pa = int(_permute(xf))
     pb = int(_permute(xf+1))
     t = _fade(xm)
-    return _lerp(t, _grad(pa, xm), _grad(pb, xm - 1)) * 0.4;
+    return _lerp(t, _grad(pa, xm), _grad(pb, xm - 1)) * 0.4
 
 def noise(data, ctx):
     minv = maxv = 0

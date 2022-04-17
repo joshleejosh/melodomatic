@@ -1,7 +1,9 @@
-import os, os.path, imp, sys, time, re
+import os
+import os.path
+import time
 from melodomatic import consts
 from melodomatic.util import *
-from melodomatic import generators, expanders, player, voice, scale, control
+from melodomatic import expanders, player, voice, scale, control
 
 BLOCK_LABELS = {
         'PLAYER': [
@@ -53,6 +55,8 @@ class Parser:
         self.data = []
         self.reader = None
         self.player = None
+        self.scriptdir = ''
+        self.buf = []
 
     def make_player(self, lines, reader, oldPlayer, scriptdir=''):
         self.scriptdir = scriptdir
@@ -152,12 +156,12 @@ class Parser:
                 todel.append(linei)
                 line = line.strip()[len('!DEFINE'):].split('#')[0]
                 a = line.split()
-                id = a[0].strip()
+                mid = a[0].strip()
                 val = ' '.join(a[1:])
                 if len(val) > 0 and val[-1] == '\\':
-                    defining = [id, val[:-1]]
+                    defining = [mid, val[:-1]]
                 else:
-                    macros.append((id, val))
+                    macros.append((mid, val))
                 continue
 
             if '@' in line:
@@ -172,6 +176,7 @@ class Parser:
         for linei in reversed(todel):
             del self.text[linei]
 
+    # pylint: disable=too-many-branches
     def build_player(self):
         scaleIDs = set()
         voiceIDs = set()
@@ -183,18 +188,18 @@ class Parser:
                 # Do one pass just to look for ppb and bpm, since so many other things depend on them being set.
                 for ca in block[1:]:
                     cmd = self.autocomplete_label(ca[0], btype)
-                    if cmd == 'BEATS_PER_MINUTE' or cmd == 'BPM':
+                    if cmd in ('BEATS_PER_MINUTE', 'BPM'):
                         bpm = int(ca[1])
                         self.player.change_tempo(bpm, self.player.ppb)
-                    elif cmd == 'PULSES_PER_BEAT' or cmd == 'PPB':
+                    elif cmd in ('PULSES_PER_BEAT', 'PPB'):
                         ppb = int(ca[1])
                         self.player.change_tempo(self.player.bpm, ppb)
                 # Go through again and get everything else.
                 for ca in block[1:]:
                     cmd = self.autocomplete_label(ca[0], btype)
-                    if cmd == 'BEATS_PER_MINUTE' or cmd == 'BPM' or cmd == 'PULSES_PER_BEAT' or cmd == 'PPB':
+                    if cmd in ('BEATS_PER_MINUTE', 'BPM', 'PULSES_PER_BEAT', 'PPB'):
                         continue
-                    elif cmd == 'RELOAD_INTERVAL':
+                    if cmd == 'RELOAD_INTERVAL':
                         # This isn't a player property at all! It's on the reader.
                         if self.reader:
                             self.reader.reloadInterval = self.player.parse_duration(ca[1])[0]
@@ -238,6 +243,7 @@ class Parser:
             if btype == 'CONTROL':
                 self.build_control(block)
 
+    # pylint: disable=too-many-branches
     def build_scale(self, block, scaleIDs):
         if len(block[0]) < 2:
             if consts.VERBOSE:
@@ -249,7 +255,7 @@ class Parser:
             if cmd == 'ROOT':
                 if len(ca) > 1 and is_int(ca[1]):
                     n = int(ca[1])
-                    if n >= 0 and n <= 127:
+                    if 0 <= n <= 127:
                         sc.set_root(int(ca[1]))
             elif cmd == 'INTERVALS':
                 if len(ca) > 1:
@@ -272,13 +278,14 @@ class Parser:
                 print('ERROR: Bad scale command .%s'%cmd)
         self.player.add_scale(sc)
 
+    # pylint: disable=too-many-branches
     def build_voice(self, block, voiceIDs):
         if len(block[0]) < 2:
             if consts.VERBOSE:
                 print('ERROR: Voice block has no ID')
             block[0].append('DUMMY')
-        id = block[0][1].strip()
-        vo = voice.Voice(id, self.player)
+        vid = block[0][1].strip()
+        vo = voice.Voice(vid, self.player)
 
         # set special parameters before generator-specific ones
         skipit = []
@@ -305,7 +312,7 @@ class Parser:
                 skipit.append(ca[0])
             elif cmd in ('MOVE_LINK', 'ML'):
                 # try to strip out invalid links before setting
-                vo.set_move_linker(tuple((id for id in ca[1:] if id in voiceIDs or id[0] == '$')))
+                vo.set_move_linker(tuple((vid for vid in ca[1:] if vid in voiceIDs or vid[0] == '$')))
                 skipit.append(ca[0])
 
         gn = ''
@@ -327,8 +334,8 @@ class Parser:
             if consts.VERBOSE:
                 print('ERROR: Control block has no ID')
             block[0].append('DUMMY')
-        id = block[0][1].strip()
-        co = control.Control(id, self.player)
+        cid = block[0][1].strip()
+        co = control.Control(cid, self.player)
 
         for ca in (expanders.expand_list(b) for b in block[1:]):
             cmd = self.autocomplete_label(ca[0], ':CONTROL')
@@ -350,7 +357,7 @@ class Parser:
         if d.startswith(':'):
             d = d[1:]
         d = d.upper()
-        for directive in BLOCK_LABELS.keys():
+        for directive in BLOCK_LABELS:
             if directive.startswith(d):
                 return directive
         return d

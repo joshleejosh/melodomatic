@@ -6,10 +6,11 @@ class MelodomaticMidi:
         self.midiOut = None
 
     def is_open(self):
-        return (self.midiOut != None)
+        return self.midiOut is not None
 
+    # pylint: disable=no-member # dunno why this triggers for mido.open_output
     def open(self, port):
-        if (port):
+        if port:
             self.midiOut = mido.open_output(port)
         else:
             self.midiOut = mido.open_output()
@@ -29,8 +30,8 @@ class MelodomaticMidi:
     def note_off(self, ch, n, v):
         self.send(mido.Message('note_off', channel=ch, note=n, velocity=v))
 
-    def control(self, ch, id, v):
-        self.send(mido.Message('control_change', channel=ch, control=id, value=v))
+    def control(self, ch, cid, v):
+        self.send(mido.Message('control_change', channel=ch, control=cid, value=v))
 
     # value is in range [-8192,+8191]
     def pitchbend(self, ch, p):

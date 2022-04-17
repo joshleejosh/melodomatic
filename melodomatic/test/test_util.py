@@ -1,5 +1,4 @@
-import unittest, random
-from . import testhelper
+import unittest
 from .. import consts, util
 
 class UtilTest(unittest.TestCase):

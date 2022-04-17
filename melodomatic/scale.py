@@ -2,13 +2,14 @@ import re
 from melodomatic import consts, generators
 from melodomatic.util import *
 
-RE_DEGREE = re.compile('^\s*([-+]*)(\d+)([-+]*)\s*$')
+RE_DEGREE = re.compile(r'^\s*([-+]*)(\d+)([-+]*)\s*$')
 
 # I represent a musical scale out of which notes are picked to produce melodies.
 # I also know what other scales the ScaleChanger can transition to from me.
 class Scale:
-    def __init__(self, id, player):
-        self.id = id
+    # pylint: disable=too-many-instance-attributes
+    def __init__(self, sid, player):
+        self.id = sid
         self.player = player
         self.rng = random.Random()
         self.set_seed(self.player.rng.random())
@@ -21,14 +22,21 @@ class Scale:
         self.changeTime = 0
         self.status = ''
 
+    # pylint: disable=too-many-return-statements
     def __eq__(self, o):
-        if not o: return False
-        if self.id != o.id: return False
+        if not o:
+            return False
+        if self.id != o.id:
+            return False
         #if self.rngSeed != o.rngSeed: return False
-        if self.root != o.root: return False
-        if self.intervals != o.intervals: return False
-        if self.moveTimer != o.moveTimer: return False
-        if self.moveLinker != o.moveLinker: return False
+        if self.root != o.root:
+            return False
+        if self.intervals != o.intervals:
+            return False
+        if self.moveTimer != o.moveTimer:
+            return False
+        if self.moveLinker != o.moveLinker:
+            return False
         # Assume pitches was set up correctly based on root+intervals
         # Don't check player or current time; we expect those
         return True
@@ -137,8 +145,8 @@ class Scale:
         return format_degree(nd, no, oa)
 
     def degree_distance(self, deg1, deg2):
-        d1, o1, a1 = self.parse_code(deg1)
-        d2, o2, a2 = self.parse_code(deg2)
+        d1, o1, _ = self.parse_code(deg1)
+        d2, o2, _ = self.parse_code(deg2)
         off1 = self.join_degree(d1, o1)
         off2 = self.join_degree(d2, o2)
         return off2 - off1
@@ -181,19 +189,19 @@ def parse_degree(code):
         else:
             break
         i += 1
-    
+
     return (degree, octave, accidental)
 
 
 def format_degree(degree, octave, accidental):
     rv = ''
-    for i in range(abs(octave)):
+    for _ in range(abs(octave)):
         if octave < 0:
             rv += '-'
         else:
             rv += '+'
     rv += str(degree)
-    for i in range(abs(accidental)):
+    for _ in range(abs(accidental)):
         if accidental < 0:
             rv += '-'
         else:

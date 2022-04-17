@@ -1,4 +1,4 @@
-import math, pytweening
+import pytweening
 from melodomatic import consts
 from melodomatic.util import *
 
@@ -20,7 +20,7 @@ def autocomplete_expander_name(n):
     return 'LIST'
 
 def expand_list(a):
-    rv, i = expand_sublist(a, 0)
+    rv, _ = expand_sublist(a, 0)
     return rv
 
 def expand_sublist(a, i):
@@ -37,7 +37,7 @@ def expand_sublist(a, i):
             break
 
         # open a new sublist by recursing down
-        elif a[i] == '(':
+        if a[i] == '(':
             b, i = expand_sublist(a, i+1)
             buf.extend(b)
 
@@ -94,30 +94,28 @@ def ex_range(data):
 register_expander('RANGE', ex_range)
 
 def ex_crange(data):
-    center = min = max = spread = 0
+    center = minv = maxv = spread = 0
     step = 1
     try:
         center = int(data[0])
         spread = int(data[1])
         if len(data) > 2:
             step = int(data[2])
-        min = center - spread/2
-        max = center + spread/2
+        minv = center - spread/2
+        maxv = center + spread/2
     except ValueError:
         pass
     if step == 0:
         step = 1
-    if min > max:
-        t = max
-        max = min
-        min = t
+    if minv > maxv:
+        minv, maxv = maxv, minv
     rv = [center]
     v = center - step
-    while v >= min and v <= max:
+    while minv <= v <= maxv:
         rv.insert(0, v)
         v -= step
     v = center + step
-    while v >= min and v <= max:
+    while minv <= v <= maxv:
         rv.append(v)
         v += step
     return rv
@@ -140,7 +138,7 @@ def ex_xerox(data):
         pass
     data = data[1:]
     rv = []
-    for i in range(n):
+    for _ in range(n):
         rv += data
     return rv
 register_expander('XEROX', ex_xerox)
@@ -176,11 +174,11 @@ def autocomplete_curve_function(s):
 
 def autocomplete_curve_direction(s):
     s = s.strip().upper()
-    if s == 'IO' or s == 'INOUT':
+    if s in ('IO', 'INOUT'):
         return 2
-    elif s[0] == 'I':
+    if s[0] == 'I':
         return 0
-    elif s[0] == 'O':
+    if s[0] == 'O':
         return 1
     if consts.VERBOSE:
         print('ERROR: Bad curve direction %s'%s)
@@ -193,9 +191,7 @@ def ex_curve(data):
         ed = autocomplete_curve_direction(data[1])
         period = 2
         try:
-            period = int(data[2])
-            if period < 2:
-                period = 2
+            period = max(int(data[2]), 2)
         except ValueError:
             pass
         data = data[3:]

@@ -1,6 +1,9 @@
-import os, unittest, random, tempfile, shutil
+import os
+import unittest
+import tempfile
+import shutil
 from melodomatic.test import testhelper
-from melodomatic import consts, generators, reader, midi
+from melodomatic import reader, midi
 
 class ReaderTest(unittest.TestCase):
     def setUp(self):
@@ -22,8 +25,8 @@ class ReaderTest(unittest.TestCase):
         self.tempdirs.append(dn)
         return dn
 
-    def mkfile(self, dir, scr):
-        fn = os.path.join(dir, self.nexttempfile())
+    def mkfile(self, fdir, scr):
+        fn = os.path.join(fdir, self.nexttempfile())
         with open(fn, 'w') as fp:
             fp.write(scr)
         return fn
@@ -57,11 +60,11 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(str(p.voices['V'].parameters['VELOCITY']), '$RANDOM (\'72\', \'84\')')
 
     def test_include(self):
-        dir = self.mkdir()
-        incfn = self.mkfile(dir, """
+        fdir = self.mkdir()
+        incfn = self.mkfile(fdir, """
 :scale S .r 62 .i 0 2 3 5 7 9 10
                 """)
-        scrfn = self.mkfile(dir, """
+        scrfn = self.mkfile(fdir, """
 !include """ + incfn + """
 :voice V .p 1 3 5 .d 1 2 .v 72 80
                 """)
@@ -71,12 +74,12 @@ class ReaderTest(unittest.TestCase):
         self.assertEqual(str(p.scales['S'].root), '62')
 
     def test_include_relative_path(self):
-        dir = self.mkdir()
-        incfn = self.mkfile(dir, """
+        fdir = self.mkdir()
+        incfn = self.mkfile(fdir, """
 :scale S .r 62 .i 0 2 3 5 7 9 10
                 """)
-        incdir, incbn = os.path.split(incfn)
-        scrfn = self.mkfile(dir, """
+        _, incbn = os.path.split(incfn)
+        scrfn = self.mkfile(fdir, """
 !include """ + incbn + """
 :voice V .p 1 3 5 .d 1 2 .v 72 80
                 """)
