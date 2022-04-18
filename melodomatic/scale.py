@@ -7,7 +7,6 @@ RE_DEGREE = re.compile(r'^\s*([-+]*)(\d+)([-+]*)\s*$')
 # I represent a musical scale out of which notes are picked to produce melodies.
 # I also know what other scales the ScaleChanger can transition to from me.
 class Scale:
-    # pylint: disable=too-many-instance-attributes
     def __init__(self, sid, player):
         self.id = sid
         self.player = player
@@ -22,7 +21,6 @@ class Scale:
         self.changeTime = 0
         self.status = ''
 
-    # pylint: disable=too-many-return-statements
     def __eq__(self, o):
         if not o:
             return False

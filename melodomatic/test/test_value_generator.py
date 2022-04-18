@@ -8,6 +8,7 @@ class DummyContext:
         self.rng = random.Random()
         self.rng.seed('SEEDS')
 
+# pylint: disable=attribute-defined-outside-init
 class ValueGeneratorTest(unittest.TestCase):
     def setUp(self):
         testhelper.setUp()
@@ -20,8 +21,8 @@ class ValueGeneratorTest(unittest.TestCase):
         return generators.bind_generator(data, self.dummy)
     def checkit(self, f, vs):
         a = vs.split()
-        for i in range(len(a)):
-            self.assertEqual(next(f), a[i])
+        for _,element in enumerate(a):
+            self.assertEqual(next(f), element)
 
     def test_eq(self):
         f = self.bindit('BLEH')

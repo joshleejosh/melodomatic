@@ -7,7 +7,6 @@ from melodomatic import midi
 # I am the top-level updater, and I also own the MIDI connection.
 # I am configured by a Reader.
 class Player:
-    # pylint: disable=too-many-instance-attributes
     def __init__(self):
         self.rng = random.Random()
         self.player = self # Generators frequently want a ref to their context's player, so make sure we match the interface.

@@ -3,7 +3,6 @@ from melodomatic import generators
 from melodomatic.util import *
 
 class Control:
-    # pylint: disable=too-many-instance-attributes
     def __init__(self, cid, pl):
         self.id = cid
         self.player = pl

@@ -97,8 +97,8 @@ class Parser:
                 self.data.append(block)
             self.buf = []
 
-        for linei in range(len(self.text)):
-            line = self.text[linei].split('#')[0].strip()
+        for _, line in enumerate(self.text):
+            line = line.split('#')[0].strip()
             if len(line) == 0:
                 continue
             line = line.replace('(',' ( ').replace(')', ' ) ')
@@ -176,7 +176,6 @@ class Parser:
         for linei in reversed(todel):
             del self.text[linei]
 
-    # pylint: disable=too-many-branches
     def build_player(self):
         scaleIDs = set()
         voiceIDs = set()
@@ -243,7 +242,6 @@ class Parser:
             if btype == 'CONTROL':
                 self.build_control(block)
 
-    # pylint: disable=too-many-branches
     def build_scale(self, block, scaleIDs):
         if len(block[0]) < 2:
             if consts.VERBOSE:
@@ -278,7 +276,6 @@ class Parser:
                 print('ERROR: Bad scale command .%s'%cmd)
         self.player.add_scale(sc)
 
-    # pylint: disable=too-many-branches
     def build_voice(self, block, voiceIDs):
         if len(block[0]) < 2:
             if consts.VERBOSE:
@@ -390,9 +387,9 @@ class Reader:
         fp = None
         try:
             self.filetime = os.stat(self.filename).st_mtime
-            fp = open(self.filename)
-            lines = fp.readlines()
-            fp.close()
+            lines = []
+            with open(self.filename) as fp:
+                lines = fp.readlines()
             rv = Parser().make_player(lines, self, oldPlayer, os.path.dirname(self.filename))
             if consts.VERBOSE:
                 print('(Re)load at %d, hotload interval %d'%(ts, self.reloadInterval))

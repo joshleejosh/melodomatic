@@ -1,3 +1,5 @@
+# pylint: disable=wrong-import-position
+
 import sys
 import os.path
 mydir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))

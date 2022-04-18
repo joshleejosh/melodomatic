@@ -1,7 +1,6 @@
 
 [MESSAGE CONTROL]
-
-disable=invalid-name,
+disable=invalid-name, # there's nothing wrong with 1-letter variables!
 	line-too-long,
 	wildcard-import,
 	unused-wildcard-import,
@@ -15,4 +14,15 @@ disable=invalid-name,
 	duplicate-code,
 	bare-except,
 	broad-except,
+	unspecified-encoding,
+
+[REFACTORING]
+max-nested-blocks=6
+
+[DESIGN]
+max-args=9
+max-returns=10
+max-branches=24
+max-statements=80
+max-attributes=20
 

@@ -6,7 +6,6 @@ from melodomatic.util import *
 
 # I represent a playable midi note.
 class Note:
-    # pylint: disable=too-many-instance-attributes
     def __init__(self, a, d, p, v, h):
         self.at = a
         self.pitch = p
@@ -30,7 +29,6 @@ class Rest(Note):
 
 # I am responsible for generating actual notes to play.
 class Voice:
-    # pylint: disable=too-many-instance-attributes
     def __init__(self, vid, pl):
         self.id = vid
         self.player = pl
@@ -50,7 +48,6 @@ class Voice:
         self.parameters = {}
         bind_voice_generator(self, 'MELODOMATIC')
 
-    # pylint: disable=too-many-return-statements
     def __eq__(self, o):
         if not o:
             return False

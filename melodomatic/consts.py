@@ -1,4 +1,6 @@
 
+# pylint: disable=global-statement
+
 QUIET = False
 VERBOSE = 0
 

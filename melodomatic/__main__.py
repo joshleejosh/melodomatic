@@ -19,7 +19,7 @@ class MelodomaticMain:
         if self.visualizer:
             self.visualizer.startup()
 
-    # pylint: disable=too-many-nested-blocks, too-many-branches, unused-variable # it's the main run loop... you're gonna get some branching
+    # pylint: disable=unused-variable # for lastt, dt, etc.
     def run(self):
         if not self.player.is_valid():
             if consts.VERBOSE:
