@@ -1,9 +1,19 @@
+"""
+A Control manages MIDI control codes for a channel in parallel with the Voice that is handling its notes.
+"""
+
 import random
 from melodomatic import generators
 from melodomatic.util import *
 
 class Control:
+    """
+    I am responsible for generating MIDI control codes for an instrument.
+    I'm also responsible for pitch bend and aftertouch signals.
+    """
+
     def __init__(self, cid, pl):
+        """ Initialize values. """
         self.id = cid
         self.player = pl
         self.rng = random.Random()
@@ -36,6 +46,7 @@ class Control:
         return not self.__eq__(o)
 
     def dump(self):
+        """ Print debug output to stdout. """
         print('CONTROL "%s"'%self.id)
         print('    channel %d'%self.channel)
         print('    seed %s'%self.rngSeed)
@@ -46,10 +57,12 @@ class Control:
                 print('    %s: %s'%(n, i))
 
     def set_seed(self, sv):
+        """ Initialize my RNG. """
         self.rngSeed = sv
         self.rng.seed(self.rngSeed)
 
     def set_parameter(self, pname, data):
+        """ Bind a generator function for the given parameter. """
         if pname == 'CID':
             pname = 'CONTROL_ID'
         if pname == 'CVAL':
@@ -63,6 +76,7 @@ class Control:
         return g.name
 
     def update(self, pulse):
+        """ On every pulse, generate control codes as needed. """
         self.pulse = pulse
         self.status = ''
         if pulse >= self.nextPulse:
@@ -71,6 +85,9 @@ class Control:
             self.set_control()
 
     def set_control(self):
+        """
+        Formulate a control code signal and tell my parent Player to send it.
+        """
         statii = []
         if ('CONTROL_ID' in self.parameters
                 and 'CONTROL_VALUE' in self.parameters):
@@ -106,5 +123,6 @@ class Control:
         self.status = ','.join(statii)
 
     def panic(self):
+        """ Force a change on the next pulse. """
         self.nextPulse = self.pulse
 

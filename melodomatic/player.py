@@ -1,13 +1,21 @@
+"""
+The Player is the top-level controller for the engine.
+"""
+
 import random
 import time
 from melodomatic import consts
 from melodomatic.util import *
 from melodomatic import midi
 
-# I am the top-level updater, and I also own the MIDI connection.
-# I am configured by a Reader.
 class Player:
+    """
+    I am the top-level updater, and I also own the MIDI connection.
+    I am configured by a Reader.
+    """
+
     def __init__(self):
+        """ Initialize members. Creates but does not open a MIDI connection. """
         self.rng = random.Random()
         self.player = self # Generators frequently want a ref to their context's player, so make sure we match the interface.
         self.set_seed(time.time())
@@ -27,6 +35,7 @@ class Player:
         self.nextScaleChange = 0
 
     def dump(self):
+        """ Debug output. """
         print('Player: %d bpm, %d ppb, %f pulse time'%(self.bpm, self.ppb, self.pulseTime))
         print('    port %s'%self.midiPortName)
         print('    seed %s'%self.rngSeed)
@@ -38,10 +47,12 @@ class Player:
             self.controls[co].dump()
 
     def set_seed(self, sv):
+        """ Initialize my RNG. """
         self.rngSeed = sv
         self.rng.seed(self.rngSeed)
 
     def transfer_state(self, old):
+        """ Copy unchanged state from another player. """
         if old.midi.is_open():
             self.midi = old.midi
         else:
@@ -78,6 +89,7 @@ class Player:
             print('Transferred state from old player: pulse=%d, next change=%d'%(self.pulse, self.nextScaleChange))
 
     def add_scale(self, s):
+        """ Add a Scale. """
         if s not in list(self.scales.values()):
             s.player = self
             self.scales[s.id] = s
@@ -86,18 +98,21 @@ class Player:
                 self.curScale = s
 
     def add_voice(self, v):
+        """ Add a Voice. """
         if v not in list(self.voices.values()):
             v.player = self
             self.voices[v.id] = v
             self.voiceOrder.append(v.id)
 
     def add_control(self, c):
+        """ Add a Control. """
         if c not in list(self.controls.values()):
             c.player = self
             self.controls[c.id] = c
             self.controlOrder.append(c.id)
 
     def is_valid(self):
+        """ True if I have at least one Voice and one Scale, the minimum state needed to produce notes. """
         rv = True
         if not self.voices:
             rv = False
@@ -106,15 +121,22 @@ class Player:
         return rv
 
     def change_tempo(self, bpm, ppb):
+        """ Adjust the time of a pulse. """
         self.bpm = bpm
         self.ppb = ppb
         self.pulseTime = 60.0 / self.bpm / self.ppb
 
     def play(self, ch, n, v):
+        """
+        Send a note to the MIDI device.
+        """
         # note-off is sent as a note-on with velocity 0.
         self.midi.note_on(ch, n, v)
 
     def startup(self):
+        """
+        Prime myself to start playing: open the MIDI channel, assign my opening scale, and prime voices.
+        """
         if not self.is_valid():
             return
         self.resolve_solos()
@@ -131,6 +153,9 @@ class Player:
             print('starting up')
 
     def shutdown(self):
+        """
+        Tear down resources and close MIDI.
+        """
         if consts.VERBOSE:
             print('shutting down')
         for v in list(self.voices.values()):
@@ -139,9 +164,11 @@ class Player:
         self.midi.close()
 
     def tick(self):
+        """ Advance the pulse counter. Everything important happens in update(). """
         self.pulse += 1
 
     def update(self):
+        """ Update the current Scale and Voice, or change them. """
         if self.curScale:
             nextid = self.curScale.update(self.pulse)
             if nextid:
@@ -167,6 +194,7 @@ class Player:
         return True
 
     def change_scale(self, ns):
+        """ Attach and prime a new Scale. Argument is an ID. """
         newScale = self.curScale
         if ns in self.scales:
             newScale = self.scales[ns]
@@ -175,14 +203,15 @@ class Player:
         self.curScale.begin(self.pulse)
 
     def change_voice(self, ovid, nvid):
+        """ Attach and prime a new Voice. Arguments are IDs. """
         if ovid == nvid:
             return
         self.voices[ovid].mute = True
         if self.voices[nvid].mute:
             self.voices[nvid].begin(self.pulse)
 
-    # If one voice is flagged with .solo, mute all other voices.
     def resolve_solos(self):
+        """ If any voices are flagged with .solo, mute all other voices. """
         dosolo = False
         for v in list(self.voices.values()):
             if v.solo:
@@ -193,6 +222,7 @@ class Player:
                     v.set_mute(True)
 
     def panic(self):
+        """ omg! Cut off Voices and Controls and force a new signal on the next pulse. """
         for voice in list(self.voices.values()):
             voice.panic()
         for control in list(self.controls.values()):
@@ -213,9 +243,11 @@ class Player:
             return int(float(d) * self.ppb)
         return 0
 
-    # returns a 2-tuple containing a duration and an optional hold time.
-    # if hold is not specified, it will match duration.
     def parse_duration(self, code):
+        """
+        Returns a 2-tuple containing a duration and an optional hold time.
+        If hold is not specified, it will match duration.
+        """
         a = code.strip().split(',')
         d = a[0] if len(a) > 0 else '0'
         d = self._parse_duration_code(d)

@@ -1,26 +1,46 @@
 # encoding: utf-8
+"""
+Interface and default implementations for visualizer output.
+"""
 from collections import deque
 
 STATUSBUFFERLEN = 200
+
+# Width of the pulse count in a formatted string.
 PULSEWIDTH = 6
+
+# Width of the voice name in a formatted string.
 VOICEWIDTH = 9
 
-# Are there any significant characters in this status that
-# should trigger output, even if we're off-meter?
 def should_force_print(s):
+    """
+    Returns True if there significant characters in this status that should
+    trigger output, even if we're off-meter.
+    """
     return s[PULSEWIDTH:].replace(' ', '').replace('|', '') != ''
 
 class Visualizer:
+    """
+    Interface for visualizers that display the stream of output from a Player.
+
+    TTYVisualizer is the default implementation.
+    """
+
     def __init__(self):
+        """ Initialize resoources. """
         self.statusBuffer = deque(tuple(), STATUSBUFFERLEN)
 
     def startup(self):
+        """ Initialize resoources. """
         self.statusBuffer.clear()
 
     def shutdown(self):
-        pass
+        """ Clean up resoources. """
+        self.statusBuffer.clear()
 
     def update(self, player, reader):
+        """ On each tick, this adds a record of the system status to the buffer. """
+
         status = {
                 'pulse': 0,
                 'reader': '',
@@ -55,6 +75,7 @@ class Visualizer:
         return 0
 
     def status_line_main(self, status):
+        """ Returns a formatted string of the current status of the system. """
         fmt = '%%%02dd'%PULSEWIDTH
         s = fmt%status['pulse']
         s += '%2s'%status['reader']
@@ -73,6 +94,7 @@ class Visualizer:
         return s
 
     def status_line_voice(self, status, vk):
+        """ Returns a formatted string of the current status of voices. """
         fmt = '%%%02dd'%PULSEWIDTH
         vs = fmt%status['pulse']
         if vk in status['voices']:
@@ -80,6 +102,7 @@ class Visualizer:
         return vs
 
     def status_line_controls(self, status):
+        """ Returns a formatted string of the current status of control codes. """
         fmt = '%%%02dd'%PULSEWIDTH
         s = fmt%status['pulse']
         s += '%2s'%status['reader']
@@ -90,8 +113,11 @@ class Visualizer:
 
 
 class TTYVisualizer(Visualizer):
+    """ Default implementation of Visualizer: continuously prints to the console. """
+
     def __init__(self):
         Visualizer.__init__(self)
+
     def startup(self):
         Visualizer.startup(self)
 

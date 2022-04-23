@@ -1,16 +1,26 @@
+"""
+Contains functions for creating a list of values that can be used to feed a generator.
+
+See doc/11-expander for details.
+"""
 import pytweening
 from melodomatic import consts
 from melodomatic.util import *
 
+# The master dictionary of known expander functions.
 EXPANDERS = {}
+
+# The same keys as in EXPANDERS, but sorted in order of registration.
 EXPANDERS_ORDERED = []
 
 def register_expander(name, maker):
+    """ Register a new expander function in the master dictionary. """
     name = name.strip().upper()
     EXPANDERS[name] = maker
     EXPANDERS_ORDERED.append(name)
 
 def autocomplete_expander_name(n):
+    """ Look up a partial expander name in the main dictionary and return its normalized form. """
     n = n.strip().upper()
     for name in EXPANDERS_ORDERED:
         if name.startswith(n):
@@ -20,10 +30,11 @@ def autocomplete_expander_name(n):
     return 'LIST'
 
 def expand_list(a):
-    rv, _ = expand_sublist(a, 0)
+    """ Perform the expansion. Takes a tokenized list of values, including names, parentheses, etc. """
+    rv, _ = _expand_sublist(a, 0)
     return rv
 
-def expand_sublist(a, i):
+def _expand_sublist(a, i):
     cmd = 'LIST'
     if a[i][0] == '%':
         cmd = autocomplete_expander_name(a[i][1:])
@@ -38,7 +49,7 @@ def expand_sublist(a, i):
 
         # open a new sublist by recursing down
         if a[i] == '(':
-            b, i = expand_sublist(a, i+1)
+            b, i = _expand_sublist(a, i+1)
             buf.extend(b)
 
         # a token of form x*y gets expanded as if it was (%xerox x y)
@@ -66,6 +77,7 @@ def expand_sublist(a, i):
 # ######################################################## #
 
 def ex_list(data):
+    """ Just returns the input list of values. """
     return tuple(data)
 register_expander('LIST', ex_list)
 
@@ -89,11 +101,13 @@ def _cleanse_range_args(data):
     return a, b, step
 
 def ex_range(data):
+    """ Creates a linear series of values. """
     a, b, step = _cleanse_range_args(data)
     return list(range(a, b+sign(step), step))
 register_expander('RANGE', ex_range)
 
 def ex_crange(data):
+    """ Creates a linear series of values going out from a center value. """
     center = minv = maxv = spread = 0
     step = 1
     try:
@@ -122,6 +136,7 @@ def ex_crange(data):
 register_expander('CRANGE', ex_crange)
 
 def ex_pingpong(data):
+    """ Works like `%RANGE`, but adds on a back half that walks back down the range. """
     a, b, step = _cleanse_range_args(data)
     rv = list(range(a, b+sign(step), step))
     if rv:
@@ -131,6 +146,7 @@ register_expander('PINGPONG', ex_pingpong)
 register_expander('PP', ex_pingpong)
 
 def ex_xerox(data):
+    """ Duplicate a single value multiple times. """
     n = 1
     try:
         n = int(data[0])
@@ -161,7 +177,9 @@ CURVE_FUNCTIONS = {
         #'BACK'       : [ pytweening.easeInBack    , pytweening.easeOutBack    , pytweening.easeInOutBack    ],
         }
 CURVE_FUNCTIONS_ORDERED = [ 'LINEAR', 'SINE', 'QUADRATIC', 'CUBIC', 'QUARTIC', 'QUINTIC', 'EXPONENTIAL', 'CIRCULAR', 'BOUNCE', 'BACK' ]
+
 def autocomplete_curve_function(s):
+    """ Look up a partial curve name and return its normalized form. """
     s = s.strip().upper()
     if not s:
         return CURVE_FUNCTIONS_ORDERED[0]
@@ -173,6 +191,14 @@ def autocomplete_curve_function(s):
     return CURVE_FUNCTIONS_ORDERED[0]
 
 def autocomplete_curve_direction(s):
+    """
+    Turn a string into an enumerated direction code.
+
+    IN = 0
+    OUT = 1
+    INOUT or IO = 2
+
+    """
     s = s.strip().upper()
     if s in ('IO', 'INOUT'):
         return 2
@@ -185,6 +211,7 @@ def autocomplete_curve_direction(s):
     return 0
 
 def ex_curve(data):
+    """ Redistributes the values in a list on a curve. """
     rv = []
     try:
         ef = autocomplete_curve_function(data[0])

@@ -1,3 +1,7 @@
+"""
+This module handles reading and parsing of scripts.
+"""
+
 import os
 import os.path
 import time
@@ -5,6 +9,7 @@ from melodomatic import consts
 from melodomatic.util import *
 from melodomatic import expanders, player, voice, scale, control
 
+# Dictionary of valid blocks (:) and parameters (.) in script. Does not include directives (!).
 BLOCK_LABELS = {
         'PLAYER': [
             'BEATS_PER_MINUTE', 'BPM',
@@ -46,11 +51,15 @@ BLOCK_LABELS = {
             ],
         }
 
-# I am responsible for parsing script data and configuring a Player instance
-# based on what I find.  Along the way, I am responsible for creating Scales
-# and Voices and attaching them to the player.
 class Parser:
+    """
+    I am responsible for parsing script data and configuring a Player instance
+    based on what I find.  Along the way, I am responsible for creating Scales
+    and Voices and attaching them to the player.
+    """
+
     def __init__(self):
+        """ Initialize members. No parsing happens here. """
         self.text = ''
         self.data = []
         self.reader = None
@@ -59,22 +68,27 @@ class Parser:
         self.buf = []
 
     def make_player(self, lines, reader, oldPlayer, scriptdir=''):
+        """
+        Parse the script in the given Reader instance and return a new Player instance.
+
+        If oldPlayer is given, pass it to the Player to transfer its most recent state.
+        """
         self.scriptdir = scriptdir
         self.text = lines
         self.data = []
         self.reader = reader
         self.player = player.Player()
-        self.prepreprocess() # not funny
-        self.preprocess()
-        self.parse()
-        self.build_player()
+        self._prepreprocess() # you're not funny
+        self._preprocess()
+        self._parse()
+        self._build_player()
         if oldPlayer:
             self.player.transfer_state(oldPlayer)
         if consts.VERBOSE:
             self.player.dump()
         return self.player
 
-    def parse(self):
+    def _parse(self):
         self.data = []
         self.buf = []
 
@@ -113,9 +127,12 @@ class Parser:
                     self.buf.extend(a)
         clear_buf()
 
-    # Replace include calls with the lines of the included file.
-    # Relative paths are relative to the script.
-    def prepreprocess(self):
+    def _prepreprocess(self):
+        """
+        Replace !INCLUDE calls with the lines of the included file.
+        Relative paths are relative to the script.
+        """
+
         toInsert = []
         for linei,line in enumerate(self.text):
             if line.upper().startswith('!INCLUDE'):
@@ -132,11 +149,13 @@ class Parser:
             self.text[linei+1:1] = chunk
             del self.text[linei]
 
-    # Handle preprocessing directives other than !include:
-    # !define - define macros
-    # @       - perform macro substitutions. We only do one pass, so
-    #           definitions *must* come before references.
-    def preprocess(self):
+    def _preprocess(self):
+        """
+        Handle preprocessing directives other than !include:
+        !define - define macros
+        @       - perform macro substitutions. We only do one pass,
+                  so definitions *must* come before references.
+        """
         macros = []
         todel = []
         defining = []
@@ -176,7 +195,7 @@ class Parser:
         for linei in reversed(todel):
             del self.text[linei]
 
-    def build_player(self):
+    def _build_player(self):
         scaleIDs = set()
         voiceIDs = set()
 
@@ -184,6 +203,7 @@ class Parser:
         for block in self.data:
             btype = self.autocomplete_type(block[0][0])
             if btype == 'PLAYER':
+
                 # Do one pass just to look for ppb and bpm, since so many other things depend on them being set.
                 for ca in block[1:]:
                     cmd = self.autocomplete_label(ca[0], btype)
@@ -193,6 +213,7 @@ class Parser:
                     elif cmd in ('PULSES_PER_BEAT', 'PPB'):
                         ppb = int(ca[1])
                         self.player.change_tempo(self.player.bpm, ppb)
+
                 # Go through again and get everything else.
                 for ca in block[1:]:
                     cmd = self.autocomplete_label(ca[0], btype)
@@ -212,6 +233,7 @@ class Parser:
                         self.player.set_seed(ca[1])
                     elif consts.VERBOSE:
                         print('ERROR: Bad player command .%s'%cmd)
+
             # while we're here, build lists of valid scale and voice IDs.
             elif btype == 'SCALE':
                 scid = 'DUMMY'
@@ -228,21 +250,21 @@ class Parser:
         for block in self.data:
             btype = self.autocomplete_type(block[0][0])
             if btype == 'SCALE':
-                self.build_scale(block, scaleIDs)
+                self._build_scale(block, scaleIDs)
 
         # ...Then build voices...
         for block in self.data:
             btype = self.autocomplete_type(block[0][0])
             if btype == 'VOICE':
-                self.build_voice(block, voiceIDs)
+                self._build_voice(block, voiceIDs)
 
         # ...Then build controls.
         for block in self.data:
             btype = self.autocomplete_type(block[0][0])
             if btype == 'CONTROL':
-                self.build_control(block)
+                self._build_control(block)
 
-    def build_scale(self, block, scaleIDs):
+    def _build_scale(self, block, scaleIDs):
         if len(block[0]) < 2:
             if consts.VERBOSE:
                 print('ERROR: Scale block has no ID')
@@ -276,7 +298,7 @@ class Parser:
                 print('ERROR: Bad scale command .%s'%cmd)
         self.player.add_scale(sc)
 
-    def build_voice(self, block, voiceIDs):
+    def _build_voice(self, block, voiceIDs):
         if len(block[0]) < 2:
             if consts.VERBOSE:
                 print('ERROR: Voice block has no ID')
@@ -326,7 +348,7 @@ class Parser:
         vo.validate_generator()
         self.player.add_voice(vo)
 
-    def build_control(self, block):
+    def _build_control(self, block):
         if len(block[0]) < 2:
             if consts.VERBOSE:
                 print('ERROR: Control block has no ID')
@@ -351,6 +373,7 @@ class Parser:
         self.player.add_control(co)
 
     def autocomplete_type(self, d):
+        """ Expand a shortened block label to its proper form. """
         if d.startswith(':'):
             d = d[1:]
         d = d.upper()
@@ -360,6 +383,7 @@ class Parser:
         return d
 
     def autocomplete_label(self, c, ctx):
+        """ Expand a shortened parameter label to its proper form. Requires a valid block label as context. """
         if c.startswith('.'):
             c = c[1:]
         c = c.upper()
@@ -373,17 +397,24 @@ class Parser:
         return c
 
 
-# I am responsible for reading a script file and feeding its contents to a Parser.
-# I am also responsible for checking for changes to the file at regular
-# intervals and rebuilding the Player when that happens.
 class Reader:
+    """
+    I am responsible for reading a script file and feeding its contents to a
+    Parser.
+
+    I am also responsible for checking for changes to the file at regular
+    intervals and rebuilding the Player when that happens.
+    """
+
     def __init__(self, fn):
+        """ Initialize values. Don't open the file yet. """
         self.filename = fn
         self.filetime = time.time()
         self.reloadInterval = consts.DEFAULT_RELOAD_INTERVAL
         self.status = ''
 
     def load_script(self, ts, oldPlayer=None):
+        """ Load the file and send the script through a Parser. Returns a new Player instance. """
         fp = None
         try:
             self.filetime = os.stat(self.filename).st_mtime
@@ -401,6 +432,7 @@ class Reader:
             return oldPlayer
 
     def update(self, pulse):
+        """ Check whether the file has been touched and needs to be reparsed. Return True if so. """
         self.status = ''
         if pulse%self.reloadInterval == 0:
             self.status = '_'

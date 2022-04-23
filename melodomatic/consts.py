@@ -1,3 +1,8 @@
+"""
+Global constants.
+
+(QUIET and VERBOSE aren't actually constants though!)
+"""
 
 # pylint: disable=global-statement
 
@@ -5,10 +10,12 @@ QUIET = False
 VERBOSE = 0
 
 def set_quiet(q):
+    """ Set to True to suppress all visualizations. """
     global QUIET
     QUIET = q
 
 def set_verbose(v):
+    """ Set to a value greater than 0 to enable debug messages. """
     global VERBOSE
     VERBOSE = v
     if VERBOSE > 0:

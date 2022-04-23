@@ -1,3 +1,7 @@
+"""
+Entry point for the program.
+"""
+
 import argparse
 import time
 from melodomatic import consts, reader, viz
@@ -5,22 +9,28 @@ from melodomatic import consts, reader, viz
 # pylint: disable=import-outside-toplevel
 
 class MelodomaticMain:
+    """ Owns the top level managers and main run loop. """
+
     def __init__(self, fn):
+        """ Create the default Reader, Player, and Visualizer. """
         self.filename = fn
         self.reader = reader.Reader(self.filename)
         self.set_visualizer(viz.TTYVisualizer())
         self.player = None
 
     def load(self):
+        """ Reload the script and create a new Player. """
         self.player = self.reader.load_script(0)
 
     def set_visualizer(self, v):
+        """ attach and initialize a viz.Visualizeer.  """
         self.visualizer = v
         if self.visualizer:
             self.visualizer.startup()
 
     # pylint: disable=unused-variable # for lastt, dt, etc.
     def run(self):
+        """ Main run loop. """
         if not self.player.is_valid():
             if consts.VERBOSE:
                 print('Ending: empty script')
@@ -70,6 +80,7 @@ class MelodomaticMain:
 
 
 def bootstrap(args, scr):
+    """ Process args and start up the engine. """
     if args.verbose:
         consts.set_verbose(True)
     if args.quiet:

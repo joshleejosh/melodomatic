@@ -1,4 +1,10 @@
 
+
+[MASTER]
+
+ignore-paths=^melodomatic/test/.*$,
+             ^melodomatic/vizcurses/.*$,
+
 [MESSAGE CONTROL]
 disable=invalid-name, # there's nothing wrong with 1-letter variables!
 	line-too-long,
@@ -8,9 +14,6 @@ disable=invalid-name, # there's nothing wrong with 1-letter variables!
 	consider-using-f-string,
 	too-few-public-methods,
 	no-self-use,
-	missing-module-docstring,     # I'll do it later! He said, and then never did it.
-	missing-function-docstring,   # I'll do it later! He said, and then never did it.
-	missing-class-docstring,      # I'll do it later! He said, and then never did it.
 	duplicate-code,
 	bare-except,
 	broad-except,

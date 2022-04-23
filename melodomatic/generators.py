@@ -1,3 +1,9 @@
+"""
+Contains default generator functions for producing values.
+
+See doc/05-generator for details.
+"""
+
 import math
 from melodomatic import consts, expanders
 from melodomatic.util import *
@@ -6,8 +12,8 @@ from melodomatic.util import *
 
 # ######################################################## #
 
-# Wraps a generator function in an iterator w/ additional relevant data/metadata
 class GeneratorBinding:
+    """ Wraps a generator function in an iterator w/ additional relevant data/metadata. """
     def __init__(self, n, d, c):
         self.name = n
         self.data = d
@@ -38,15 +44,20 @@ class GeneratorBinding:
 
 # ----------------------------
 
+# The master dictionary of known generator functions.
 GENERATORS = {}
+
+# The same keys as in GENERATORS, but sorted in order of registration.
 GENERATORS_ORDERED = []
 
 def register_generator(name, maker):
+    """ Register a new generator function in the master dictionary. """
     name = name.strip().upper()
     GENERATORS[name] = maker
     GENERATORS_ORDERED.append(name)
 
 def autocomplete_generator_name(n):
+    """ Look up a partial generator name in the main dictionary and return its normalized form. """
     n = n.strip().upper()
     for name in GENERATORS_ORDERED:
         if name.startswith(n):
@@ -55,20 +66,23 @@ def autocomplete_generator_name(n):
 
 # ----------------------------
 
-# Binds a generator function to the given data and context object.
-#
-# The first element in the data array should be a $ descriptor of which generator to use.
-# If none is given, we'll assume $SCALAR for single values and $RANDOM for multiple.
-#
-# If a converter function is given, any output from the generator will be run
-# through it on its way out.
-#
-# The context object should be either a Player, Scale, or Voice. The default
-# generators depend on the `rng` property of each of these types for random
-# number generation.
-#
-# Returns a 2-tuple containing the generator and a text label.
 def bind_generator(data, ctx):
+    """
+    Binds a generator function to the given data and context object.
+
+    The first element in the data array should be a $ descriptor of which
+    generator to use. If none is given, we'll assume $SCALAR for single values
+    and $RANDOM for multiple.
+
+    If a converter function is given, any output from the generator will be run
+    through it on its way out.
+
+    The context object should be either a Player, Scale, or Voice. The default
+    generators depend on the `rng` property of each of these types for random
+    number generation.
+
+    Returns a 2-tuple containing the generator and a text label.
+    """
     cmd = ''
     if not data:
         cmd = 'SCALAR'
@@ -98,35 +112,37 @@ def bind_generator(data, ctx):
 # ######################################################## #
 
 
-# Return the input value forever.
 def scalar(data, ctx):
+    """ Return the input value forever. """
     while True:
         yield data[0]
 
-# Loop through the given list on repeat forever.
 def loop(data, ctx):
+    """ Loop through the given list on repeat forever. """
     i = 0
     while True:
         yield data[i]
         i = (i+1)%len(data)
 
-# Traverse forwards and backwards through the list forever.
 def pingpong(data, ctx):
+    """ Traverse forwards and backwards through the list forever. """
     a = ('%PINGPONG', '0', str(len(data)-1), '1')
     indices = tuple(int(i) for i in expanders.expand_list(a))
     while True:
         for i in indices:
             yield data[i]
 
-# Pick randomly from the list forever.
-# pylint: disable=function-redefined
 def random(data, ctx):
+    """ Pick randomly from the list forever. """
+    # pylint: disable=function-redefined
     while True:
         yield ctx.rng.choice(data)
 
-# Shuffle the list, loop over it, and repeat forever.
-# Does not modify the list.
 def shuffle(data, ctx):
+    """
+    Shuffle the list, loop over it, and repeat forever.
+    Does not modify the list.
+    """
     while True:
         ia = list(range(len(data)))
         ctx.rng.shuffle(ia)
@@ -143,10 +159,12 @@ def _safearg(data, i, castf, default):
         return default
     return rv
 
-# Randomly walks up and down the given array forever.
-# Only steps on random occasion, based on the given chance.
-# When not at the edges of the array, step direction is an even coin flip.
 def random_walk(data, ctx):
+    """
+    Randomly walks up and down the given array forever.
+    Only steps on random occasion, based on the given chance.
+    When not at the edges of the array, step direction is an even coin flip.
+    """
     chance = _safearg(data, 0, float, 1)
     a = ['1',]
     if len(data) > 1:
@@ -166,6 +184,9 @@ def random_walk(data, ctx):
 
 
 def wave(data, ctx):
+    """
+    Walk up and down the range on a curve.
+    """
     curf = expanders.autocomplete_curve_function(data[0]) if len(data) > 0 else 'LINEAR'
     curd = expanders.autocomplete_curve_direction(data[1]) if len(data) > 1 else 2 # inout
     fcurve = expanders.CURVE_FUNCTIONS[curf][curd]
@@ -208,6 +229,7 @@ def _noise1(x):
     return _lerp(t, _grad(pa, xm), _grad(pb, xm - 1)) * 0.4
 
 def noise(data, ctx):
+    """ Use a 1D perlin noise function to pick values. """
     minv = maxv = 0
     step = 0.05
     try:
